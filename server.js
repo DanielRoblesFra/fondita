@@ -1,3 +1,19 @@
+// Middleware para CORS y cookies (AGREGAR AL INICIO)
+app.use((req, res, next) => {
+    // Permitir credenciales desde cualquier origen
+    res.header('Access-Control-Allow-Origin', 'https://fondita.onrender.com');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+    
+    // Forzar HTTPS en producción
+    if (process.env.NODE_ENV === 'production') {
+        req.connection.encrypted = true;
+    }
+    
+    next();
+});
+
 // ✅ SOLO cargar dotenv en desarrollo
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
@@ -29,21 +45,19 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'fallback-secret-render',
+    secret: process.env.SESSION_SECRET,
     resave: true,
     saveUninitialized: true,
     store: new MemoryStore({
-        checkPeriod: 86400000 
-    }), 
+        checkPeriod: 86400000
+    }),
     cookie: {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
-        maxAge: 30 * 60 * 1000,
-        domain: '.onrender.com'
+        maxAge: 30 * 60 * 1000
     }
 }));
-
 // Middleware para rutas protegidas
 function isLoggedIn(req, res, next) {
     console.log('🔍 CHECKING SESSION - loggedIn:', req.session.loggedIn);
@@ -112,42 +126,35 @@ function deleteOldImage(filename) {
 
 // -------------------- RUTAS ESPECÍFICAS --------------------
 
-// ⭐ LOGIN (GET) - ¡ESTA RUTA FALTABA!
-app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin', 'login.html'));
-});
-
-// ⭐ LOGIN (POST con validación de error en la misma página)
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
 
-    // ✅ DEBUG TEMPORAL - Esto aparecerá en los logs de Render
-    console.log('🔍 INTENTO DE LOGIN:', {
-        expectedUser: process.env.ADMIN_USER,
-        expectedPass: process.env.ADMIN_PASS,
-        receivedUser: username,
-        receivedPass: password,
-        match: username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS
-    });
-
     if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS) {
         req.session.loggedIn = true;
-        console.log('✅ LOGIN EXITOSO - Redirigiendo a admin');
-        return res.redirect('/admin/index.html');
+        
+        // Guardar sesión MANUALMENTE antes de redirigir
+        req.session.save((err) => {
+            if (err) {
+                console.log('❌ Error saving session:', err);
+                return res.status(500).send('Error interno');
+            }
+            
+            console.log('✅ Session saved successfully, sessionID:', req.sessionID);
+            
+            // Establecer cookie MANUALMENTE
+            res.cookie('connect.sid', req.sessionID, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'none',
+                maxAge: 30 * 60 * 1000
+            });
+            
+            // Redirigir
+            return res.redirect('/admin/index.html');
+        });
+    } else {
+        // ... código de error existente
     }
-
-    console.log('❌ LOGIN FALLIDO - Credenciales incorrectas');
-    
-    // Si falla el login, volvemos a mostrar login.html con un mensaje de error
-    const loginPath = path.join(__dirname, 'admin', 'login.html');
-    let loginPage = fs.readFileSync(loginPath, 'utf-8');
-
-    loginPage = loginPage.replace(
-        '<h2>Iniciar Sesión</h2>',
-        '<h2>Iniciar Sesión</h2><p class="error">❌ Usuario o contraseña incorrectos</p>'
-    );
-
-    res.send(loginPage);
 });
 
 // -------------------- LOGOUT --------------------
