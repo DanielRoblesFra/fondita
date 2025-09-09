@@ -37,22 +37,33 @@ app.use(session({
     }), 
     cookie: {
         httpOnly: true,
-        sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 30 * 60 * 1000 // 30 minutos
+        sameSite: 'none',
+        secure: true,
+        maxAge: 30 * 60 * 1000, // 30 minutos
+        domain: '.onrender.com'
     }
 }));
 
 // Middleware para rutas protegidas
 function isLoggedIn(req, res, next) {
-  console.log('🔍 CHECKING SESSION - loggedIn:', req.session.loggedIn);
-  if (req.session.loggedIn) {
-      next();
-  } else {
-      res.status(401).send('No autorizado');
-  }
+    console.log('🔍 CHECKING SESSION - loggedIn:', req.session.loggedIn);
+    if (req.session.loggedIn) {
+        next();
+    } else {
+        res.status(401).send('No autorizado');
+    }
 }
 
+// Middleware para debug de cookies (agregar después de session)
+app.use((req, res, next) => {
+    console.log('🍪 COOKIE DEBUG:', {
+        sessionId: req.sessionID,
+        loggedIn: req.session.loggedIn,
+        cookies: req.headers.cookie,
+        secure: req.secure
+    });
+    next();
+});
 // -------------------- CONFIGURAR MULTER --------------------
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
