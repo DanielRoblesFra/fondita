@@ -1,19 +1,3 @@
-// Middleware para CORS y cookies (AGREGAR AL INICIO)
-app.use((req, res, next) => {
-    // Permitir credenciales desde cualquier origen
-    res.header('Access-Control-Allow-Origin', 'https://fondita.onrender.com');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-    
-    // Forzar HTTPS en producción
-    if (process.env.NODE_ENV === 'production') {
-        req.connection.encrypted = true;
-    }
-    
-    next();
-});
-
 // ✅ SOLO cargar dotenv en desarrollo
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
@@ -38,12 +22,31 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 
+// ✅ INICIALIZAR app PRIMERO
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// ✅ MIDDLEWARE de CORS (DESPUÉS de crear app)
+app.use((req, res, next) => {
+    // Permitir credenciales desde cualquier origen
+    res.header('Access-Control-Allow-Origin', 'https://fondita.onrender.com');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+    
+    // Forzar HTTPS en producción
+    if (process.env.NODE_ENV === 'production') {
+        req.connection.encrypted = true;
+    }
+    
+    next();
+});
 
 // -------------------- MIDDLEWARES --------------------
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// ✅ CONFIGURACIÓN DE SESIÓN (orden correcto)
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: true,
@@ -58,34 +61,17 @@ app.use(session({
         maxAge: 30 * 60 * 1000
     }
 }));
+
 // Middleware para rutas protegidas
 function isLoggedIn(req, res, next) {
-    console.log('🔍 CHECKING SESSION - loggedIn:', req.session.loggedIn);
-    if (req.session.loggedIn) {
-        next();
-    } else {
-        res.status(401).send('No autorizado');
-    }
+  console.log('🔍 CHECKING SESSION - loggedIn:', req.session.loggedIn);
+  if (req.session.loggedIn) {
+      next();
+  } else {
+      res.status(401).send('No autorizado');
+  }
 }
-// Middleware para forzar cookies en Render (AGREGAR ESTO)
-app.use((req, res, next) => {
-    // Forzar secure connection en Render
-    if (process.env.NODE_ENV === 'production') {
-        req.headers['x-forwarded-proto'] = 'https';
-    }
-    next();
-});
 
-// Middleware para debug de cookies (agregar después de session)
-app.use((req, res, next) => {
-    console.log('🔍 HEADERS DEBUG:', {
-        host: req.headers.host,
-        'user-agent': req.headers['user-agent'],
-        cookie: req.headers.cookie || 'NO COOKIES',
-        'x-forwarded-proto': req.headers['x-forwarded-proto']
-    });
-    next();
-});
 // -------------------- CONFIGURAR MULTER --------------------
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -126,13 +112,28 @@ function deleteOldImage(filename) {
 
 // -------------------- RUTAS ESPECÍFICAS --------------------
 
+// ⭐ LOGIN (GET)
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin', 'login.html'));
+});
+
+// ⭐ LOGIN (POST con validación de error en la misma página)
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
+
+    // ✅ DEBUG TEMPORAL
+    console.log('🔍 INTENTO DE LOGIN:', {
+        expectedUser: process.env.ADMIN_USER,
+        expectedPass: process.env.ADMIN_PASS,
+        receivedUser: username,
+        receivedPass: password,
+        match: username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS
+    });
 
     if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS) {
         req.session.loggedIn = true;
         
-        // Guardar sesión MANUALMENTE antes de redirigir
+        // ✅ Guardar sesión MANUALMENTE
         req.session.save((err) => {
             if (err) {
                 console.log('❌ Error saving session:', err);
@@ -141,7 +142,7 @@ app.post('/login', (req, res) => {
             
             console.log('✅ Session saved successfully, sessionID:', req.sessionID);
             
-            // Establecer cookie MANUALMENTE
+            // ✅ Establecer cookie MANUALMENTE
             res.cookie('connect.sid', req.sessionID, {
                 httpOnly: true,
                 secure: true,
@@ -149,11 +150,20 @@ app.post('/login', (req, res) => {
                 maxAge: 30 * 60 * 1000
             });
             
-            // Redirigir
+            console.log('🍪 Cookie header set:', res.getHeaders()['set-cookie']);
             return res.redirect('/admin/index.html');
         });
     } else {
-        // ... código de error existente
+        console.log('❌ LOGIN FALLIDO');
+        const loginPath = path.join(__dirname, 'admin', 'login.html');
+        let loginPage = fs.readFileSync(loginPath, 'utf-8');
+
+        loginPage = loginPage.replace(
+            '<h2>Iniciar Sesión</h2>',
+            '<h2>Iniciar Sesión</h2><p class="error">❌ Usuario o contraseña incorrectos</p>'
+        );
+
+        res.send(loginPage);
     }
 });
 
