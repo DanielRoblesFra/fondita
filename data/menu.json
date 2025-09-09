@@ -1,0 +1,60 @@
+{
+  "carta": [
+    {
+      "nombre": "Pizza Boloñesa",
+      "descripcion": "Pasta con salsa cremosa de queso parmesano y un toque de jitomate cherry",
+      "precio": "$10000",
+      "pago": {
+        "mensaje": "💳 Transferencia a: Claudia Franco",
+        "banco": "BBVA: **** **** **** ***69"
+      }
+    }
+  ],
+  "menu_semana": [
+    {
+      "dia": "Lunes",
+      "fecha": "2025-09-01",
+      "imagen": "lunes.jpg",
+      "platillos": [
+        "Platillo",
+        "Platillo1234"
+      ]
+    },
+    {
+      "dia": "Martes",
+      "fecha": "2025-09-02",
+      "imagen": "martes.jpg",
+      "platillos": [
+        "Platillo",
+        "Platillo"
+      ]
+    },
+    {
+      "dia": "Miércoles",
+      "fecha": "2025-09-03",
+      "imagen": "miercoles.jpg",
+      "platillos": [
+        "Platillo",
+        "Platillo"
+      ]
+    },
+    {
+      "dia": "Jueves",
+      "fecha": "2025-09-04",
+      "imagen": "jueves.jpg",
+      "platillos": [
+        "Platillo",
+        "Platillo"
+      ]
+    },
+    {
+      "dia": "Viernes",
+      "fecha": "2025-09-05",
+      "imagen": "viernes.jpg",
+      "platillos": [
+        "Platillo",
+        "Platillo"
+      ]
+    }
+  ]
+}

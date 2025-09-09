@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Restaurante</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div class="topbar">
+        <a href="/logout" id="logoutLink">🚪 Cerrar sesión</a>
+    </div>
+    
+    <div class="container">
+        <header>
+            <h1>Panel de Administración</h1>
+        </header>
+
+        <div class="card">
+            <h2>Editar Carta (Book Interactivo)</h2>
+            <div id="cartaContainer">
+                <!-- Aquí se cargará la carta desde admin.js -->
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Editar Menú de la Semana</h2>
+            <div id="menuContainer">
+                <!-- Aquí se cargará el menú de la semana desde admin.js -->
+            </div>
+        </div>
+
+        <form id="menuForm">
+            <button type="submit">Guardar Cambios</button>
+        </form>
+    </div>
+
+    <!-- Lógica del panel -->
+    <!-- ✅ RUTA CORREGIDA: ahora apunta correctamente al JS en la misma carpeta admin -->
+    <script src="admin.js" defer></script>
+</body>
+</html>

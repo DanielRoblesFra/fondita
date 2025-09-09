@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="estilos.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Restaurante</title>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <img src="img/logo.png" alt="logo-logo">
+                <a href="index.html">BARRIGA LLENA <br>CORAZÓN CONTENTO</a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#inicio">INICIO</a></li>
+                <li><a href="#la-carta">LA CARTA</a></li>
+                <li><a href="#menu">MENÚ SEMANAL</a></li>
+                <li><a href="#ubicacion">UBICACIÓN</a></li>
+                <li><a href="#preguntas">PREGUNTAS</a></li>
+            </ul>
+            <div class="hamburger" id="hamburger">
+                <span class="bar bar1"></span>
+                <span class="bar bar2"></span>
+                <span class="bar bar3"></span>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="inicio" class="inicio">
+            <div class="contenido_seccion">
+                <div class="info">
+                    <h2>BIENVENIDOS</h2>
+                    <p>Donde cada plato es preparado con amor y los mejores ingredientes.<br>
+                    ¡Barriga llena, corazón contento!</p>
+                </div>
+            </div>
+        </section>
+
+
+<!--LA CARTA-->
+
+        <section id="la-carta" class="la-carta">
+            <div class="book" id="bookContainer"></div>
+            <button onclick="flipPage()">Siguiente</button>
+        </section>
+
+
+<!--MENU SEMANAL-->
+        <section id="menu" class="menu-semanal">
+            <h2>Menú de la Semana</h2>
+            <div id="menuSemanaContainer"></div>
+        </section>
+
+
+            <section id="ubicacion" class="ubicacion">
+                <div class="map">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3733.7937808285915!2d-100.46375412507103!3d20.63726080111061!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d3508b5a926403%3A0x566402b0e693deac!2sCerro%20del%20Madro%C3%B1o%2C%20Santa%20Ana%2C%20Ex%20Hacienda%20Santana%2C%2076116%20Santiago%20de%20Quer%C3%A9taro%2C%20Qro.!5e0!3m2!1ses!2smx!4v1756500311661!5m2!1ses!2smx" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+                <div class="text-map">
+                    <h3>Me pongo a tus órdenes</h3>
+                    <br>
+                    <p>Calle del Nabo 502-5, col. Exhacienda Santana.</p>
+                    <p>Favor de pasar por tu comida a partir de las 1:30 pm</p>
+                    <P>Cel. 3316922341</P>
+                    <p>Costo por pedido $100.00</p>
+                </div>
+
+            </section>
+
+<!-- PREGUNTAS FRECUENTES -->
+            <section id="preguntas" class="preguntas">
+                <div class="preguntas-container">
+                    <h2>Preguntas más frecuentes</h2>
+                
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h3>¿Qué incluye el menú diario?</h3>
+                            <span class="faq-arrow">▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Cada menú diario incluye una entrada (sopa o crema), plato principal con guarnición, frijoles o arroz, tortillas hechas a mano y postre casero. Todo preparado con ingredientes frescos y el sazón tradicional mexicano.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h3>¿Cuáles son los horarios de entrega?</h3>
+                            <span class="faq-arrow">▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Los pedidos están listos para recoger a partir de las 1:30 PM de lunes a viernes. Te recomendamos hacer tu pedido con anticipación para garantizar tu comida del día.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h3>¿Manejan opciones vegetarianas?</h3>
+                            <span class="faq-arrow">▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p>¡Por supuesto! Tenemos opciones vegetarianas disponibles. Contáctanos por WhatsApp para conocer las alternativas del día y podemos preparar platillos especiales según tus necesidades alimentarias.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h3>¿Necesito hacer reservación previa?</h3>
+                            <span class="faq-arrow">▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Sí, es importante que hagas tu pedido con anticipación para asegurar tu porción. Puedes contactarnos por WhatsApp al 3316922341 o llamarnos directamente. Así garantizamos tener tu comida lista a tiempo.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h3>¿Hacen entregas a domicilio?</h3>
+                            <span class="faq-arrow">▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Actualmente trabajamos con el sistema de recolección en nuestro local. Los pedidos se recogen en Calle del Nabo 502-5, col. Exhacienda Santana. Estamos evaluando el servicio de entrega a domicilio para el futuro.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+<a href="https://wa.me/3316922341?text=Hola,%20me%20gustaría%20saber%20más%20del%20menú" class="whatsapp-flotante" target="_blank">
+    <i class="fa-brands fa-whatsapp icono-whatsapp"></i>
+</a>
+<script src="menu.js"></script>
+<script src="la-carta.js"></script>
+<script src="menu-semana.js"></script>
+<script src="preguntas.js"></script>
+<script src="scoll.js"></script>
+</body> 
+</html>
+    </main>
+</body>
+</html>
