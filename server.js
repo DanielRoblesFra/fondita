@@ -30,16 +30,16 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(session({
     secret: process.env.SESSION_SECRET || 'fallback-secret-render',
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     store: new MemoryStore({
         checkPeriod: 86400000 
     }), 
     cookie: {
         httpOnly: true,
-        sameSite: 'none',
         secure: true,
-        maxAge: 30 * 60 * 1000, // 30 minutos
+        sameSite: 'none',
+        maxAge: 30 * 60 * 1000,
         domain: '.onrender.com'
     }
 }));
@@ -53,14 +53,22 @@ function isLoggedIn(req, res, next) {
         res.status(401).send('No autorizado');
     }
 }
+// Middleware para forzar cookies en Render (AGREGAR ESTO)
+app.use((req, res, next) => {
+    // Forzar secure connection en Render
+    if (process.env.NODE_ENV === 'production') {
+        req.headers['x-forwarded-proto'] = 'https';
+    }
+    next();
+});
 
 // Middleware para debug de cookies (agregar después de session)
 app.use((req, res, next) => {
-    console.log('🍪 COOKIE DEBUG:', {
-        sessionId: req.sessionID,
-        loggedIn: req.session.loggedIn,
-        cookies: req.headers.cookie,
-        secure: req.secure
+    console.log('🔍 HEADERS DEBUG:', {
+        host: req.headers.host,
+        'user-agent': req.headers['user-agent'],
+        cookie: req.headers.cookie || 'NO COOKIES',
+        'x-forwarded-proto': req.headers['x-forwarded-proto']
     });
     next();
 });
