@@ -1,18 +1,18 @@
 // ✅ SOLO cargar dotenv en desarrollo
 if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config();
+    require('dotenv').config();
 }
 
 // ✅ Validar variables CRÍTICAS en producción
 if (process.env.NODE_ENV === 'production') {
-  const requiredVars = ['ADMIN_USER', 'ADMIN_PASS', 'SESSION_SECRET'];
-  const missingVars = requiredVars.filter(varName => !process.env[varName]);
-  
-  if (missingVars.length > 0) {
-    console.error('❌ ERROR: Variables de entorno faltantes:', missingVars);
-    process.exit(1);
-  }
-}
+    const requiredVars = ['ADMIN_USER', 'ADMIN_PASS', 'SESSION_SECRET'];
+    const missingVars = requiredVars.filter(varName => !process.env[varName]);
+    
+    if (missingVars.length > 0) {
+        console.error('❌ ERROR: Variables de entorno faltantes:', missingVars);
+        process.exit(1);
+    }
+    }
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -64,12 +64,12 @@ app.use(session({
 
 // Middleware para rutas protegidas
 function isLoggedIn(req, res, next) {
-  console.log('🔍 CHECKING SESSION - loggedIn:', req.session.loggedIn);
-  if (req.session.loggedIn) {
-      next();
-  } else {
-      res.status(401).send('No autorizado');
-  }
+    console.log('🔍 CHECKING SESSION - loggedIn:', req.session.loggedIn);
+    if (req.session.loggedIn) {
+        next();
+    } else {
+        res.status(401).send('No autorizado');
+    }
 }
 
 // -------------------- CONFIGURAR MULTER --------------------
@@ -215,5 +215,24 @@ app.use('/admin', express.static(path.join(__dirname, 'admin'), { index: false }
 app.use('/img', express.static(path.join(__dirname, 'img')));
 app.use(express.static('public'));
 
+
+[file name]: server.js (modificación)
+[file content begin]
+// -------------------- NUEVO ENDPOINT PARA SINCRONIZACIÓN --------------------
+app.post('/api/sync-production', isLoggedIn, (req, res) => {
+    console.log('🔁 Solicitada sincronización con repositorio de producción');
+    
+    try {
+        // Ejecutar el script de sincronización
+        const { execSync } = require('child_process');
+        execSync('node scripts/sync-to-production.js', { stdio: 'inherit' });
+        
+        res.json({ success: true, message: 'Sincronización completada con éxito' });
+    } catch (error) {
+        console.error('Error en sincronización:', error);
+        res.status(500).json({ success: false, message: 'Error en la sincronización' });
+    }
+});
+[file content end]
 // -------------------- SERVIDOR --------------------
 app.listen(PORT, () => console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`));
