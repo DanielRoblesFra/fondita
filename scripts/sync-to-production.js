@@ -79,9 +79,8 @@ try {
         'martes.png', 
         'miercoles.jpg',
         'jueves.jpg',
-        'viernes.jpg'
-        'portada-login.jpg'
-        'viernes.jpg'
+        'viernes.jpg',
+        'portada-login.jpg',
         'logo.png'
     ];
 
@@ -110,4 +109,5 @@ try {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
 
