@@ -6,103 +6,39 @@
     <title>Panel de Administración - Restaurante</title>
     <link rel="stylesheet" href="index.css">
     <style>
-        .sync-monitor {
+        .sync-section {
+            margin-top: 30px;
+            padding: 20px;
             background: rgba(30, 41, 59, 0.6);
             border-radius: 12px;
-            padding: 25px;
-            margin-top: 30px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .sync-monitor h3 {
+        .sync-section h3 {
             font-size: 1.5rem;
             color: white;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 15px;
         }
         
-        .status-item {
-            display: flex;
-            justify-content: space-between;
+        .status-info {
             padding: 15px;
             background: rgba(15, 23, 42, 0.4);
             border-radius: 8px;
             margin-bottom: 15px;
-            align-items: center;
         }
         
-        .status {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-        
-        .status-success {
-            background: rgba(16, 185, 129, 0.2);
-            color: #10b981;
-        }
-        
-        .status-error {
-            background: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
-        }
-        
-        .log-container {
-            background: rgba(15, 23, 42, 0.4);
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 20px;
-            max-height: 200px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 0.9rem;
-        }
-        
-        .log-entry {
-            margin-bottom: 8px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .log-error {
-            color: #ef4444;
-        }
-        
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 8px;
-            background: #1e293b;
-            color: white;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transform: translateX(100%);
-            opacity: 0;
-            transition: all 0.5s ease;
-            z-index: 1000;
-        }
-        
-        .notification.show {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        
-        .notification-error {
+        .status-info.error {
             border-left: 4px solid #ef4444;
+            background: rgba(239, 68, 68, 0.1);
         }
         
-        .notification-success {
+        .status-info.success {
             border-left: 4px solid #10b981;
+            background: rgba(16, 185, 129, 0.1);
         }
         
         #syncButton {
-            margin-top: 20px;
+            margin-top: 15px;
             padding: 12px 25px;
             background: #10b981;
             color: white;
@@ -110,6 +46,11 @@
             border-radius: 8px;
             cursor: pointer;
             font-size: 1rem;
+        }
+        
+        #syncButton:disabled {
+            background: #64748b;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -141,112 +82,22 @@
             <button type="submit">Guardar Cambios</button>
         </form>
 
-        <div class="sync-monitor">
-            <h3>Monitor de Sincronización</h3>
+        <div class="sync-section">
+            <h3>Sincronización con Producción</h3>
             
-            <div class="status-item">
-                <div>
-                    <strong>Conexión con GitHub</strong>
-                    <p>Estado de la conexión con el repositorio de producción</p>
-                </div>
-                <span class="status status-success" id="githubStatus">Conectado</span>
+            <div class="status-info error">
+                <strong>Error detectado:</strong> URL de repositorio incorrecta
+                <p>La URL configurada actualmente es para GitHub Pages, no para el repositorio Git.</p>
+                <p><strong>Solución:</strong> Cambia la variable PROD_REPO_URL en Render a: <code>https://github.com/danielroblesfra/fondita-production.git</code></p>
             </div>
             
-            <div class="status-item">
-                <div>
-                    <strong>Archivos estáticos</strong>
-                    <p>Verificando que los archivos se copien correctamente</p>
-                </div>
-                <span class="status status-success" id="filesStatus">Correcto</span>
-            </div>
-            
-            <div class="status-item">
-                <div>
-                    <strong>Imágenes</strong>
-                    <p>Verificando disponibilidad de imágenes</p>
-                </div>
-                <span class="status status-error" id="imagesStatus">Con errores</span>
-            </div>
-            
-            <div class="log-container" id="syncLog">
-                <div class="log-entry">🔄 Iniciando sincronización con repositorio de producción...</div>
-                <div class="log-entry">📦 Clonando repositorio de producción...</div>
-                <div class="log-entry log-error">❌ Error: SyntaxError: Unexpected string</div>
-                <div class="log-entry">💡 Solución: Verificar comas faltantes en el array allowedImages</div>
-            </div>
-            
-            <button type="button" id="syncButton">
-                🔄 Intentar Sincronización Nuevamente
+            <button type="button" id="syncButton" onclick="synchronizeWithProduction()">
+                🔄 Sincronizar con Producción
             </button>
         </div>
     </div>
 
-    <div class="notification" id="notification">
-        <span id="notificationMessage"></span>
-    </div>
-
     <!-- Lógica del panel -->
     <script src="admin.js" defer></script>
-    <script>
-        // Función para mostrar notificaciones
-        function showNotification(message, type) {
-            const notification = document.getElementById('notification');
-            const messageElement = document.getElementById('notificationMessage');
-            
-            messageElement.textContent = message;
-            notification.className = 'notification';
-            notification.classList.add('show');
-            notification.classList.add(`notification-${type}`);
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
-        }
-
-        // Configurar botón de sincronización
-        document.addEventListener('DOMContentLoaded', function() {
-            const syncButton = document.getElementById('syncButton');
-            if (syncButton) {
-                syncButton.addEventListener('click', function() {
-                    const originalText = syncButton.textContent;
-                    
-                    syncButton.textContent = "⏳ Sincronizando...";
-                    syncButton.disabled = true;
-                    
-                    // Llamar a la función de sincronización desde admin.js
-                    synchronizeWithProduction();
-                    
-                    // Simular proceso de sincronización (esto es solo visual)
-                    setTimeout(() => {
-                        showNotification('Sincronización completada con éxito', 'success');
-                        
-                        // Actualizar estado
-                        document.getElementById('imagesStatus').textContent = 'Correcto';
-                        document.getElementById('imagesStatus').className = 'status status-success';
-                        
-                        // Agregar log de éxito
-                        const logContainer = document.getElementById('syncLog');
-                        const successLog = document.createElement('div');
-                        successLog.className = 'log-entry';
-                        successLog.textContent = '✅ Sincronización completada con éxito!';
-                        logContainer.appendChild(successLog);
-                        
-                        syncButton.textContent = originalText;
-                        syncButton.disabled = false;
-                    }, 2000);
-                });
-            }
-            
-            // Configurar confirmación de cierre de sesión
-            const logoutLink = document.getElementById('logoutLink');
-            if (logoutLink) {
-                logoutLink.addEventListener('click', function(e) {
-                    if (!confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-                        e.preventDefault();
-                    }
-                });
-            }
-        });
-    </script>
 </body>
 </html>
