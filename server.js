@@ -28,8 +28,11 @@ const PORT = process.env.PORT || 3000;
 
 // ✅ MIDDLEWARE de CORS (DESPUÉS de crear app)
 app.use((req, res, next) => {
-    // Permitir credenciales desde cualquier origen
-    res.header('Access-Control-Allow-Origin', 'https://fondita.onrender.com');
+    const allowedOrigins = ['https://fondita.onrender.com', 'https://danielroblesfra.github.io'];
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+    }
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
@@ -41,7 +44,6 @@ app.use((req, res, next) => {
     
     next();
 });
-
 // -------------------- MIDDLEWARES --------------------
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
