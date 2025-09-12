@@ -416,3 +416,71 @@ function guardarCambios() {
             }
         });
 }
+
+
+[file name]: admin.js (modificación)
+[file content begin]
+// ------------------ Botón de Sincronización ------------------
+function addSyncButton() {
+    const menuForm = document.getElementById("menuForm");
+    if (!menuForm) return;
+    
+    const syncButton = document.createElement("button");
+    syncButton.type = "button";
+    syncButton.id = "syncButton";
+    syncButton.textContent = "🔄 Sincronizar con Producción";
+    syncButton.style.marginTop = "1rem";
+    syncButton.style.marginRight = "1rem";
+    syncButton.style.padding = "1rem 2rem";
+    syncButton.style.background = "linear-gradient(135deg, #4a5568 0%, #2d3748 100%)";
+    syncButton.style.color = "white";
+    syncButton.style.border = "none";
+    syncButton.style.borderRadius = "12px";
+    syncButton.style.cursor = "pointer";
+    syncButton.style.fontSize = "1.1rem";
+    syncButton.style.fontWeight = "600";
+    
+    syncButton.addEventListener("click", synchronizeWithProduction);
+    
+    // Insertar antes del botón de guardar
+    const submitButton = menuForm.querySelector('button[type="submit"]');
+    menuForm.insertBefore(syncButton, submitButton);
+}
+
+    // ------------------ Función de Sincronización ------------------
+    function synchronizeWithProduction() {
+    const syncButton = document.getElementById("syncButton");
+    const originalText = syncButton.textContent;
+    
+    syncButton.textContent = "⏳ Sincronizando...";
+    syncButton.disabled = true;
+    
+    fetch("/api/sync-production", {
+        method: "POST",
+        headers: {
+        "Content-Type": "application/json"
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+        alert("✅ " + data.message);
+        console.log("✅ Sincronización exitosa");
+        } else {
+        alert("❌ " + data.message);
+        console.error("❌ Error en sincronización:", data.message);
+        }
+    })
+    .catch(error => {
+        console.error("Error en sincronización:", error);
+        alert("❌ Error de conexión al sincronizar");
+    })
+    .finally(() => {
+        syncButton.textContent = originalText;
+        syncButton.disabled = false;
+    });
+}
+
+// Añadir el botón cuando se cargue el DOM
+addSyncButton();
+[file content end]
