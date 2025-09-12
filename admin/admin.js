@@ -417,9 +417,6 @@ function guardarCambios() {
         });
 }
 
-
-[file name]: admin.js (modificación)
-[file content begin]
 // ------------------ Botón de Sincronización ------------------
 function addSyncButton() {
     const menuForm = document.getElementById("menuForm");
@@ -483,4 +480,3 @@ function addSyncButton() {
 
 // Añadir el botón cuando se cargue el DOM
 addSyncButton();
-[file content end]
