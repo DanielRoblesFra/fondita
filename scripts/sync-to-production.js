@@ -75,11 +75,14 @@ try {
 
     // Copiar imágenes permitidas
     const allowedImages = [
-        'platillo1.jpg',
-        'platillo2.png', 
-        'platillo3.jpg',
-        'ensalada-cesar.jpg',
-        'hamburguesa-especial.jpg'
+        'lunes.jpg',
+        'martes.png', 
+        'miercoles.jpg',
+        'jueves.jpg',
+        'viernes.jpg'
+        'portada-login.jpg'
+        'viernes.jpg'
+        'logo.png'
     ];
 
     for (const image of allowedImages) {
@@ -107,3 +110,4 @@ try {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
