@@ -210,14 +210,6 @@ app.post('/api/upload-image', isLoggedIn, upload.single('imagen'), (req, res) =>
     res.json({ filename: req.file.filename });
 });
 
-// -------------------- ARCHIVOS ESTÁTICOS --------------------
-app.use('/admin', express.static(path.join(__dirname, 'admin'), { index: false }));
-app.use('/img', express.static(path.join(__dirname, 'img')));
-app.use(express.static('public'));
-
-
-[file name]: server.js (modificación)
-[file content begin]
 // -------------------- NUEVO ENDPOINT PARA SINCRONIZACIÓN --------------------
 app.post('/api/sync-production', isLoggedIn, (req, res) => {
     console.log('🔁 Solicitada sincronización con repositorio de producción');
@@ -233,6 +225,11 @@ app.post('/api/sync-production', isLoggedIn, (req, res) => {
         res.status(500).json({ success: false, message: 'Error en la sincronización' });
     }
 });
-[file content end]
+
+// -------------------- ARCHIVOS ESTÁTICOS --------------------
+app.use('/admin', express.static(path.join(__dirname, 'admin'), { index: false }));
+app.use('/img', express.static(path.join(__dirname, 'img')));
+app.use(express.static('public'));
+
 // -------------------- SERVIDOR --------------------
 app.listen(PORT, () => console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`));
