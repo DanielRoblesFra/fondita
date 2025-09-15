@@ -12,6 +12,20 @@ const API_BASE_URL = 'https://fondita.onrender.com';
 console.log('🔄 Iniciando sincronización completa...');
 
 try {
+    // ✅ EXCLUIR production-repo DE GIT EN EL REPOSITORIO PRINCIPAL
+    try {
+        const gitignorePath = path.join(__dirname, '..', '.gitignore');
+        let gitignoreContent = fs.existsSync(gitignorePath) ? fs.readFileSync(gitignorePath, 'utf8') : '';
+        
+        if (!gitignoreContent.includes('production-repo')) {
+            gitignoreContent += '\nproduction-repo/\n';
+            fs.writeFileSync(gitignorePath, gitignoreContent);
+            console.log('✅ production-repo agregado a .gitignore');
+        }
+    } catch (error) {
+        console.log('⚠️ No se pudo actualizar .gitignore:', error.message);
+    }
+
     // ✅ PRIMERO: Guardar cambios en repositorio principal
     console.log('💾 Guardando cambios en repositorio principal...');
     try {
