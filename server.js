@@ -211,10 +211,16 @@ app.post('/api/menu', isLoggedIn, (req, res) => {
             const commitMessage = `Actualizar menú: ${new Date().toLocaleString('es-MX')}`;
             execSync(`git commit -m "${commitMessage}"`, { stdio: 'inherit' });
             
-            // Usar autenticación directa
+            // Usar autenticación directa - VERIFICAR QUE GH_TOKEN EXISTA
             const GH_TOKEN = process.env.GH_TOKEN;
+            if (!GH_TOKEN) {
+                console.error('❌ GH_TOKEN no está definido');
+                return res.send('Menú actualizado pero no se pudo guardar en GitHub (token faltante)');
+            }
+            
             execSync(`git push https://DanielRoblesFra:${GH_TOKEN}@github.com/DanielRoblesFra/fondita.git main`, 
                     { stdio: 'inherit' });
+            console.log('✅ Menú guardado en GitHub');
         }
     } catch (error) {
         console.error('Error en commit del menú:', error);
