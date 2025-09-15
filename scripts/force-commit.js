@@ -6,7 +6,7 @@ console.log('💾 Forzando commit en repositorio principal...');
 
 try {
     // Obtener la URL del repositorio remoto desde las variables de entorno
-    const REPO_URL = process.env.GIT_REPO_URL || 'https://github.com/DanielRoblesFra/fondita.git';
+    const REPO_URL = process.env.GIT_REPO_URL || 'https://github.com/danielroblesfra/fondita.git';
     
     // Configurar Git
     execSync('git config user.email "render@fondita.com"', { stdio: 'inherit' });
