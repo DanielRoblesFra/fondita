@@ -8,7 +8,11 @@ const PROD_REPO_DIR = path.join(__dirname, '..', 'production-repo');
 const BRANCH = 'main';
 const API_BASE_URL = 'https://fondita.onrender.com';
 
+// Generar un timestamp único para el cache busting
+const CACHE_BUSTING_TIMESTAMP = new Date().getTime();
+
 console.log('🔄 Iniciando sincronización con repositorio de producción...');
+console.log(`⏰ Timestamp para cache busting: ${CACHE_BUSTING_TIMESTAMP}`);
 
 try {
     // Clonar o actualizar el repositorio de producción
@@ -38,16 +42,41 @@ try {
     ];
 
     // Crear directorios necesarios
-    if (!fs.existsSync(path.join(PROD_REPO_DIR, 'data'))) {
-        fs.mkdirSync(path.join(PROD_REPO_DIR, 'data'));
-    }
-    if (!fs.existsSync(path.join(PROD_REPO_DIR, 'img'))) {
-        fs.mkdirSync(path.join(PROD_REPO_DIR, 'img'));
+    const directoriesToCreate = ['data', 'img', 'js', 'css'];
+    for (const dir of directoriesToCreate) {
+        if (!fs.existsSync(path.join(PROD_REPO_DIR, dir))) {
+            fs.mkdirSync(path.join(PROD_REPO_DIR, dir), { recursive: true });
+            console.log(`📁 Directorio creado: ${dir}`);
+        }
     }
 
     // Función para reemplazar las URLs en los archivos JavaScript
     function replaceApiUrls(content) {
         return content.replace(/fetch\(\s*["']\/api/g, `fetch("${API_BASE_URL}/api`);
+    }
+
+    // Función para agregar parámetros de cache busting
+    function addCacheBusting(content, fileExtension) {
+        const cacheBustingRegex = {
+            'html': /(href|src)=["']([^"']+\.(css|js|png|jpg|jpeg|gif|svg))(\?v=\d+)?["']/g,
+            'css': /url\(["']?([^"')]+\.(png|jpg|jpeg|gif|svg))(\?v=\d+)?["']?\)/g,
+            'js': /(\.src|\.href|import\()\s*["']([^"']+\.(js|css))(\?v=\d+)?["']/g
+        };
+
+        if (fileExtension === 'html') {
+            return content.replace(cacheBustingRegex.html, (match, attr, url) => {
+                return `${attr}="${url}?v=${CACHE_BUSTING_TIMESTAMP}"`;
+            });
+        } else if (fileExtension === 'css') {
+            return content.replace(cacheBustingRegex.css, (match, url) => {
+                return `url("${url}?v=${CACHE_BUSTING_TIMESTAMP}")`;
+            });
+        } else if (fileExtension === 'js') {
+            return content.replace(cacheBustingRegex.js, (match, prefix, url) => {
+                return `${prefix} "${url}?v=${CACHE_BUSTING_TIMESTAMP}"`;
+            });
+        }
+        return content;
     }
 
     // Copiar cada archivo
@@ -56,41 +85,63 @@ try {
         const destPath = path.join(PROD_REPO_DIR, file.dest);
         
         if (fs.existsSync(srcPath)) {
+            let content = fs.readFileSync(srcPath, 'utf8');
+            
+            // Reemplazar URLs de API
             if (file.src.endsWith('.js')) {
-                let content = fs.readFileSync(srcPath, 'utf8');
                 content = replaceApiUrls(content);
-                fs.writeFileSync(destPath, content, 'utf8');
-                console.log(`✅ Copiado y modificado: ${file.src} → ${file.dest}`);
-            } else {
-                fs.copyFileSync(srcPath, destPath);
-                console.log(`✅ Copiado: ${file.src} → ${file.dest}`);
             }
+            
+            // Agregar cache busting según el tipo de archivo
+            if (file.src.endsWith('.html')) {
+                content = addCacheBusting(content, 'html');
+            } else if (file.src.endsWith('.css')) {
+                content = addCacheBusting(content, 'css');
+            } else if (file.src.endsWith('.js')) {
+                content = addCacheBusting(content, 'js');
+            }
+            
+            fs.writeFileSync(destPath, content, 'utf8');
+            console.log(`✅ Copiado y modificado: ${file.src} → ${file.dest}`);
         } else {
             console.log(`⚠️  Advertencia: ${file.src} no existe`);
         }
     }
 
-    // Copiar imágenes permitidas
-    const allowedImages = [
-        'lunes.jpg',
-        'martes.png', 
-        'miercoles.jpg',
-        'jueves.jpg',
-        'viernes.jpg',
-        'portada-login.jpg',
-        'logo.png'
-    ];
-
-    for (const image of allowedImages) {
-        const srcPath = path.join(__dirname, '..', 'img', image);
-        const destPath = path.join(PROD_REPO_DIR, 'img', image);
-        
-        if (fs.existsSync(srcPath)) {
-            fs.copyFileSync(srcPath, destPath);
-            console.log(`✅ Copiada imagen: ${image}`);
-        } else {
-            console.log(`⚠️  Imagen no encontrada: ${image}`);
+    // Copiar todas las imágenes de la carpeta img
+    console.log('🖼️ Copiando todas las imágenes...');
+    const srcImgDir = path.join(__dirname, '..', 'img');
+    const destImgDir = path.join(PROD_REPO_DIR, 'img');
+    
+    if (fs.existsSync(srcImgDir)) {
+        // Eliminar imágenes existentes en el directorio de destino
+        if (fs.existsSync(destImgDir)) {
+            fs.rmSync(destImgDir, { recursive: true, force: true });
+            fs.mkdirSync(destImgDir, { recursive: true });
         }
+        
+        // Copiar todas las imágenes
+        const copyImages = (src, dest) => {
+            const items = fs.readdirSync(src, { withFileTypes: true });
+            for (const item of items) {
+                const srcPath = path.join(src, item.name);
+                const destPath = path.join(dest, item.name);
+                
+                if (item.isDirectory()) {
+                    if (!fs.existsSync(destPath)) {
+                        fs.mkdirSync(destPath, { recursive: true });
+                    }
+                    copyImages(srcPath, destPath);
+                } else if (item.isFile() && /\.(png|jpg|jpeg|gif|svg|webp)$/i.test(item.name)) {
+                    fs.copyFileSync(srcPath, destPath);
+                    console.log(`✅ Copiada imagen: ${item.name}`);
+                }
+            }
+        };
+        
+        copyImages(srcImgDir, destImgDir);
+    } else {
+        console.log('⚠️  Advertencia: Directorio de imágenes no encontrado');
     }
 
     // Forzar la detección de cambios y hacer commit
