@@ -9,17 +9,6 @@ const PROD_REPO_DIR = path.join(__dirname, '..', 'production-repo');
 const BRANCH = 'main';
 const API_BASE_URL = 'https://fondita.onrender.com';
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-
-// Configuración
-const PROD_REPO_URL = process.env.PROD_REPO_URL;
-const GH_TOKEN = process.env.GH_TOKEN;
-const PROD_REPO_DIR = path.join(__dirname, '..', 'production-repo');
-const BRANCH = 'main';
-const API_BASE_URL = 'https://fondita.onrender.com';
-
 console.log('🔄 Iniciando sincronización completa...');
 
 try {
@@ -37,30 +26,9 @@ try {
     const REPO_NAME = repoMatch ? repoMatch[2] : '';
     const AUTH_REPO_URL = `https://${GIT_USERNAME}:${GH_TOKEN}@github.com/${GIT_USERNAME}/${REPO_NAME}.git`;
 
-    // ... [EL RESTO DE TU CÓDIGO ACTUAL] ...
-    // Clonar, copiar archivos, hacer push a fondita-production, etc.
-    
-    console.log('✅ Sincronización completa exitosa');
-
-} catch (error) {
-    console.error('❌ Error en sincronización:', error);
-    process.exit(1);
-}
-
-// Extraer usuario y repositorio de la URL
-const repoMatch = PROD_REPO_URL.match(/github\.com\/([^\/]+)\/([^\.]+)/);
-const GIT_USERNAME = repoMatch ? repoMatch[1] : '';
-const REPO_NAME = repoMatch ? repoMatch[2] : '';
-
-// Generar timestamp único para cache busting
-const CACHE_BUST_TIMESTAMP = new Date().getTime();
-
-console.log('🔄 Iniciando sincronización con repositorio de producción...');
-console.log(`⏰ Timestamp para cache busting: ${CACHE_BUST_TIMESTAMP}`);
-
-try {
-    // Construir URL con autenticación
-    const AUTH_REPO_URL = `https://${GIT_USERNAME}:${GH_TOKEN}@github.com/${GIT_USERNAME}/${REPO_NAME}.git`;
+    // Generar timestamp único para cache busting
+    const CACHE_BUST_TIMESTAMP = new Date().getTime();
+    console.log(`⏰ Timestamp para cache busting: ${CACHE_BUST_TIMESTAMP}`);
 
     // Clonar o actualizar el repositorio de producción
     if (!fs.existsSync(PROD_REPO_DIR)) {
@@ -208,4 +176,3 @@ try {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
-
