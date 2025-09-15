@@ -65,7 +65,7 @@ try {
 
     // Función para agregar cache busting a las imágenes en HTML
     function addImageCacheBusting(content) {
-        return content.replace(/(src|href)=["'](.*?\.(jpg|jpeg|png|gif|svg|webp))(\?v=\d+)?["']/gi, 
+        return content.replace(/(src|href)=["'](.*?\.(jpg|jpeg|png|gif|svg|webp|avif))(\?v=\d+)?["']/gi, 
             (match, attr, url) => {
                 return `${attr}="${url}?v=${CACHE_BUST_TIMESTAMP}"`;
             });
@@ -73,7 +73,7 @@ try {
 
     // Función para agregar cache busting a las imágenes en CSS
     function addCssCacheBusting(content) {
-        return content.replace(/url\(["']?(.*?\.(jpg|jpeg|png|gif|svg|webp))(\?v=\d+)?["']?\)/gi, 
+        return content.replace(/url\(["']?(.*?\.(jpg|jpeg|png|gif|svg|webp|avif))(\?v=\d+)?["']?\)/gi, 
             (match, url) => {
                 return `url("${url}?v=${CACHE_BUST_TIMESTAMP}")`;
             });
@@ -120,7 +120,7 @@ try {
         }
     }
 
-    // Copiar TODAS las imágenes de la carpeta img
+    // Copiar TODAS las imágenes de la carpeta img (incluyendo .avif)
     console.log('🖼️ Copiando todas las imágenes...');
     const srcImgDir = path.join(__dirname, '..', 'img');
     
@@ -128,15 +128,15 @@ try {
         const images = fs.readdirSync(srcImgDir);
         
         for (const image of images) {
-            // Solo copiar archivos de imagen
-            if (image.match(/\.(jpg|jpeg|png|gif|svg|webp)$/i)) {
-                const srcPath = path.join(srcImgDir, image);
-                const destPath = path.join(destImgDir, image);
+            const srcPath = path.join(srcImgDir, image);
+            const destPath = path.join(destImgDir, image);
+            
+            // Verificar si es un archivo (no directorio) y es una imagen
+            if (fs.statSync(srcPath).isFile() && 
+                image.match(/\.(jpg|jpeg|png|gif|svg|webp|avif|bmp|tiff)$/i)) {
                 
-                if (fs.statSync(srcPath).isFile()) {
-                    fs.copyFileSync(srcPath, destPath);
-                    console.log(`✅ Copiada imagen: ${image}`);
-                }
+                fs.copyFileSync(srcPath, destPath);
+                console.log(`✅ Copiada imagen: ${image}`);
             }
         }
     } else {
