@@ -197,12 +197,27 @@ app.get('/api/menu', (req, res) => {
 app.post('/api/menu', isLoggedIn, (req, res) => {
     const menuPath = path.join(__dirname, 'data', 'menu.json');
     fs.writeFileSync(menuPath, JSON.stringify(req.body, null, 2));
+    
+    // ✅ FORZAR COMMIT MANUAL del menu.json
     try {
         const { execSync } = require('child_process');
-        console.log('💾 Guardando cambios en repositorio principal...');
-        execSync('node scripts/force-commit.js', { stdio: 'inherit' });
+        console.log('💾 Guardando menu.json específicamente...');
+        
+        // Agregar solo el archivo modificado
+        execSync('git add data/menu.json', { stdio: 'inherit' });
+        
+        const status = execSync('git status --porcelain data/menu.json').toString();
+        if (status.trim() !== '') {
+            const commitMessage = `Actualizar menú: ${new Date().toLocaleString('es-MX')}`;
+            execSync(`git commit -m "${commitMessage}"`, { stdio: 'inherit' });
+            
+            // Usar autenticación directa
+            const GH_TOKEN = process.env.GH_TOKEN;
+            execSync(`git push https://DanielRoblesFra:${GH_TOKEN}@github.com/DanielRoblesFra/fondita.git main`, 
+                    { stdio: 'inherit' });
+        }
     } catch (error) {
-        console.error('Error en commit automático:', error);
+        console.error('Error en commit del menú:', error);
     }
     
     res.send('Menú actualizado y guardado');
