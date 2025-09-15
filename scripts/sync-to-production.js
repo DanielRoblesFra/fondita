@@ -12,7 +12,6 @@ const API_BASE_URL = 'https://fondita.onrender.com';
 const CACHE_BUSTING_TIMESTAMP = new Date().getTime();
 
 console.log('🔄 Iniciando sincronización con repositorio de producción...');
-console.log(`⏰ Timestamp para cache busting: ${CACHE_BUSTING_TIMESTAMP}`);
 
 try {
     // Clonar o actualizar el repositorio de producción
@@ -42,12 +41,11 @@ try {
     ];
 
     // Crear directorios necesarios
-    const directoriesToCreate = ['data', 'img', 'js', 'css'];
-    for (const dir of directoriesToCreate) {
-        if (!fs.existsSync(path.join(PROD_REPO_DIR, dir))) {
-            fs.mkdirSync(path.join(PROD_REPO_DIR, dir), { recursive: true });
-            console.log(`📁 Directorio creado: ${dir}`);
-        }
+    if (!fs.existsSync(path.join(PROD_REPO_DIR, 'data'))) {
+        fs.mkdirSync(path.join(PROD_REPO_DIR, 'data'));
+    }
+    if (!fs.existsSync(path.join(PROD_REPO_DIR, 'img'))) {
+        fs.mkdirSync(path.join(PROD_REPO_DIR, 'img'));
     }
 
     // Función para reemplazar las URLs en los archivos JavaScript
@@ -56,27 +54,11 @@ try {
     }
 
     // Función para agregar parámetros de cache busting
-    function addCacheBusting(content, fileExtension) {
-        const cacheBustingRegex = {
-            'html': /(href|src)=["']([^"']+\.(css|js|png|jpg|jpeg|gif|svg))(\?v=\d+)?["']/g,
-            'css': /url\(["']?([^"')]+\.(png|jpg|jpeg|gif|svg))(\?v=\d+)?["']?\)/g,
-            'js': /(\.src|\.href|import\()\s*["']([^"']+\.(js|css))(\?v=\d+)?["']/g
-        };
-
-        if (fileExtension === 'html') {
-            return content.replace(cacheBustingRegex.html, (match, attr, url) => {
+    function addCacheBusting(content) {
+        return content.replace(/(href|src)=["']([^"']+\.(css|js|png|jpg|jpeg|gif|svg))(\?v=\d+)?["']/g, 
+            (match, attr, url) => {
                 return `${attr}="${url}?v=${CACHE_BUSTING_TIMESTAMP}"`;
             });
-        } else if (fileExtension === 'css') {
-            return content.replace(cacheBustingRegex.css, (match, url) => {
-                return `url("${url}?v=${CACHE_BUSTING_TIMESTAMP}")`;
-            });
-        } else if (fileExtension === 'js') {
-            return content.replace(cacheBustingRegex.js, (match, prefix, url) => {
-                return `${prefix} "${url}?v=${CACHE_BUSTING_TIMESTAMP}"`;
-            });
-        }
-        return content;
     }
 
     // Copiar cada archivo
@@ -87,18 +69,14 @@ try {
         if (fs.existsSync(srcPath)) {
             let content = fs.readFileSync(srcPath, 'utf8');
             
-            // Reemplazar URLs de API
+            // Reemplazar URLs de API en archivos JS
             if (file.src.endsWith('.js')) {
                 content = replaceApiUrls(content);
             }
             
-            // Agregar cache busting según el tipo de archivo
+            // Agregar cache busting a HTML
             if (file.src.endsWith('.html')) {
-                content = addCacheBusting(content, 'html');
-            } else if (file.src.endsWith('.css')) {
-                content = addCacheBusting(content, 'css');
-            } else if (file.src.endsWith('.js')) {
-                content = addCacheBusting(content, 'js');
+                content = addCacheBusting(content);
             }
             
             fs.writeFileSync(destPath, content, 'utf8');
@@ -108,38 +86,28 @@ try {
         }
     }
 
-    // Copiar todas las imágenes de la carpeta img
+    // Copiar TODAS las imágenes de la carpeta img (no solo las de la lista)
     console.log('🖼️ Copiando todas las imágenes...');
     const srcImgDir = path.join(__dirname, '..', 'img');
     const destImgDir = path.join(PROD_REPO_DIR, 'img');
     
     if (fs.existsSync(srcImgDir)) {
-        // Eliminar imágenes existentes en el directorio de destino
-        if (fs.existsSync(destImgDir)) {
-            fs.rmSync(destImgDir, { recursive: true, force: true });
-            fs.mkdirSync(destImgDir, { recursive: true });
-        }
+        // Leer todas las imágenes en la carpeta src img
+        const images = fs.readdirSync(srcImgDir);
         
-        // Copiar todas las imágenes
-        const copyImages = (src, dest) => {
-            const items = fs.readdirSync(src, { withFileTypes: true });
-            for (const item of items) {
-                const srcPath = path.join(src, item.name);
-                const destPath = path.join(dest, item.name);
+        for (const image of images) {
+            // Solo copiar archivos de imagen (extensiones comunes)
+            if (image.match(/\.(jpg|jpeg|png|gif|svg|webp)$/i)) {
+                const srcPath = path.join(srcImgDir, image);
+                const destPath = path.join(destImgDir, image);
                 
-                if (item.isDirectory()) {
-                    if (!fs.existsSync(destPath)) {
-                        fs.mkdirSync(destPath, { recursive: true });
-                    }
-                    copyImages(srcPath, destPath);
-                } else if (item.isFile() && /\.(png|jpg|jpeg|gif|svg|webp)$/i.test(item.name)) {
+                // Verificar si es un archivo (no directorio)
+                if (fs.statSync(srcPath).isFile()) {
                     fs.copyFileSync(srcPath, destPath);
-                    console.log(`✅ Copiada imagen: ${item.name}`);
+                    console.log(`✅ Copiada imagen: ${image}`);
                 }
             }
-        };
-        
-        copyImages(srcImgDir, destImgDir);
+        }
     } else {
         console.log('⚠️  Advertencia: Directorio de imágenes no encontrado');
     }
