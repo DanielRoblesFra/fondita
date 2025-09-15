@@ -73,7 +73,7 @@ try {
     // Copiar imágenes permitidas
     const allowedImages = [
         'lunes.jpg',
-        'martes.png', 
+        'martes.jpg', 
         'miercoles.jpg',
         'jueves.jpg',
         'viernes.jpg',
@@ -118,3 +118,4 @@ try {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
