@@ -197,7 +197,15 @@ app.get('/api/menu', (req, res) => {
 app.post('/api/menu', isLoggedIn, (req, res) => {
     const menuPath = path.join(__dirname, 'data', 'menu.json');
     fs.writeFileSync(menuPath, JSON.stringify(req.body, null, 2));
-    res.send('Menú actualizado');
+    try {
+        const { execSync } = require('child_process');
+        console.log('💾 Guardando cambios en repositorio principal...');
+        execSync('node scripts/force-commit.js', { stdio: 'inherit' });
+    } catch (error) {
+        console.error('Error en commit automático:', error);
+    }
+    
+    res.send('Menú actualizado y guardado');
 });
 
 app.post('/api/upload-image', isLoggedIn, upload.single('imagen'), (req, res) => {
