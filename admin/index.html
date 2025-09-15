@@ -34,21 +34,6 @@
             <button type="submit">Guardar Cambios</button>
         </form>
 
-        <div class="sync-section">
-            <h3>Sincronización con Producción</h3>
-            
-            <div class="status-info error">
-                <strong>Error detectado:</strong> URL de repositorio incorrecta
-                <p>La URL configurada actualmente es para GitHub Pages, no para el repositorio Git.</p>
-                <p><strong>Solución:</strong> Cambia la variable PROD_REPO_URL en Render a: <code>https://github.com/danielroblesfra/fondita-production.git</code></p>
-            </div>
-            
-            <button type="button" id="syncButton" onclick="synchronizeWithProduction()">
-                🔄 Sincronizar con Producción
-            </button>
-        </div>
-    </div>
-
     <!-- Lógica del panel -->
     <script src="admin.js" defer></script>
 </body>
