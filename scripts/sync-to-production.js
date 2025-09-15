@@ -6,7 +6,7 @@ const path = require('path');
 const PROD_REPO_URL = process.env.PROD_REPO_URL;
 const PROD_REPO_DIR = path.join(__dirname, '..', 'production-repo');
 const BRANCH = 'main';
-const API_BASE_URL = 'https://fondita.onrender.com'; // Tu URL de Render
+const API_BASE_URL = 'https://fondita.onrender.com';
 
 console.log('🔄 Iniciando sincronización con repositorio de producción...');
 
@@ -17,12 +17,12 @@ try {
         execSync(`git clone ${PROD_REPO_URL} ${PROD_REPO_DIR}`, { stdio: 'inherit' });
     } else {
         console.log('📥 Actualizando repositorio existente...');
-        execSync(`cd ${PROD_REPO_DIR} && git pull origin ${BRANCH}`, { stdio: 'inherit' });
+        execSync(`cd ${PROD_REPO_DIR} && git fetch origin && git reset --hard origin/${BRANCH}`, { stdio: 'inherit' });
     }
 
     // Configurar Git para commits
-    execSync(`cd ${PROD_REPO_DIR} && git config user.email "tu-email@ejemplo.com"`, { stdio: 'inherit' });
-    execSync(`cd ${PROD_REPO_DIR} && git config user.name "Tu Usuario"`, { stdio: 'inherit' });
+    execSync(`cd ${PROD_REPO_DIR} && git config user.email "render@fondita.com"`, { stdio: 'inherit' });
+    execSync(`cd ${PROD_REPO_DIR} && git config user.name "Render Bot"`, { stdio: 'inherit' });
 
     console.log('🗂️ Copiando archivos estáticos...');
 
@@ -47,7 +47,6 @@ try {
 
     // Función para reemplazar las URLs en los archivos JavaScript
     function replaceApiUrls(content) {
-        // Reemplazar fetch("/api por fetch(API_BASE_URL + "/api
         return content.replace(/fetch\(\s*["']\/api/g, `fetch("${API_BASE_URL}/api`);
     }
 
@@ -58,13 +57,11 @@ try {
         
         if (fs.existsSync(srcPath)) {
             if (file.src.endsWith('.js')) {
-                // Para archivos JS, leemos el contenido y reemplazamos las URLs
                 let content = fs.readFileSync(srcPath, 'utf8');
                 content = replaceApiUrls(content);
                 fs.writeFileSync(destPath, content, 'utf8');
                 console.log(`✅ Copiado y modificado: ${file.src} → ${file.dest}`);
             } else {
-                // Para otros archivos, copiamos normalmente
                 fs.copyFileSync(srcPath, destPath);
                 console.log(`✅ Copiado: ${file.src} → ${file.dest}`);
             }
@@ -91,18 +88,22 @@ try {
         if (fs.existsSync(srcPath)) {
             fs.copyFileSync(srcPath, destPath);
             console.log(`✅ Copiada imagen: ${image}`);
+        } else {
+            console.log(`⚠️  Imagen no encontrada: ${image}`);
         }
     }
 
-    // Verificar si hay cambios
-    console.log('🔍 Verificando cambios...');
-    const statusOutput = execSync(`cd ${PROD_REPO_DIR} && git status --porcelain`).toString().trim();
+    // Forzar la detección de cambios y hacer commit
+    console.log('💾 Forzando detección de cambios...');
     
-    if (statusOutput) {
-        // Hay cambios, proceder con commit y push
+    // Usar git add -A para agregar todos los cambios
+    execSync(`cd ${PROD_REPO_DIR} && git add -A`, { stdio: 'inherit' });
+    
+    // Verificar si hay cambios realmente
+    const status = execSync(`cd ${PROD_REPO_DIR} && git status --porcelain`).toString();
+    
+    if (status.trim() !== '') {
         console.log('💾 Haciendo commit de los cambios...');
-        execSync(`cd ${PROD_REPO_DIR} && git add .`, { stdio: 'inherit' });
-
         const commitMessage = `Actualización automática: ${new Date().toLocaleString()}`;
         execSync(`cd ${PROD_REPO_DIR} && git commit -m "${commitMessage}"`, { stdio: 'inherit' });
 
@@ -111,12 +112,9 @@ try {
 
         console.log('✅ Sincronización completada con éxito!');
     } else {
-        console.log('✅ No hay cambios que commitear. Todo está actualizado.');
+        console.log('✅ No hay cambios detectados. Todo está actualizado.');
     }
 } catch (error) {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
-
-
-
