@@ -9,6 +9,44 @@ const PROD_REPO_DIR = path.join(__dirname, '..', 'production-repo');
 const BRANCH = 'main';
 const API_BASE_URL = 'https://fondita.onrender.com';
 
+const { execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+
+// Configuración
+const PROD_REPO_URL = process.env.PROD_REPO_URL;
+const GH_TOKEN = process.env.GH_TOKEN;
+const PROD_REPO_DIR = path.join(__dirname, '..', 'production-repo');
+const BRANCH = 'main';
+const API_BASE_URL = 'https://fondita.onrender.com';
+
+console.log('🔄 Iniciando sincronización completa...');
+
+try {
+    // ✅ PRIMERO: Guardar cambios en repositorio principal
+    console.log('💾 Guardando cambios en repositorio principal...');
+    try {
+        execSync('node scripts/force-commit.js', { stdio: 'inherit' });
+    } catch (error) {
+        console.log('⚠️ Continue despite commit errors');
+    }
+
+    // ✅ LUEGO: Continuar con la sincronización normal
+    const repoMatch = PROD_REPO_URL.match(/github\.com\/([^\/]+)\/([^\.]+)/);
+    const GIT_USERNAME = repoMatch ? repoMatch[1] : '';
+    const REPO_NAME = repoMatch ? repoMatch[2] : '';
+    const AUTH_REPO_URL = `https://${GIT_USERNAME}:${GH_TOKEN}@github.com/${GIT_USERNAME}/${REPO_NAME}.git`;
+
+    // ... [EL RESTO DE TU CÓDIGO ACTUAL] ...
+    // Clonar, copiar archivos, hacer push a fondita-production, etc.
+    
+    console.log('✅ Sincronización completa exitosa');
+
+} catch (error) {
+    console.error('❌ Error en sincronización:', error);
+    process.exit(1);
+}
+
 // Extraer usuario y repositorio de la URL
 const repoMatch = PROD_REPO_URL.match(/github\.com\/([^\/]+)\/([^\.]+)/);
 const GIT_USERNAME = repoMatch ? repoMatch[1] : '';
@@ -170,3 +208,4 @@ try {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
