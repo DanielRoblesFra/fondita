@@ -209,6 +209,15 @@ app.post('/api/upload-image', isLoggedIn, upload.single('imagen'), (req, res) =>
         deleteOldImage(req.body.oldFilename);
     }
 
+    // ✅ EJECUTAR COMMIT EN REPOSITORIO PRINCIPAL
+    try {
+        const { execSync } = require('child_process');
+        console.log('💾 Guardando cambios en repositorio principal...');
+        execSync('node scripts/force-commit.js', { stdio: 'inherit' });
+    } catch (error) {
+        console.error('Error en commit automático:', error);
+    }
+
     res.json({ filename: req.file.filename });
 });
 
