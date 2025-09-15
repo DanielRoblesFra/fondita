@@ -4,17 +4,26 @@ const path = require('path');
 
 // Configuración
 const PROD_REPO_URL = process.env.PROD_REPO_URL;
+const GH_TOKEN = process.env.GH_TOKEN;
 const PROD_REPO_DIR = path.join(__dirname, '..', 'production-repo');
 const BRANCH = 'main';
 const API_BASE_URL = 'https://fondita.onrender.com';
 
+// Extraer usuario y repositorio de la URL
+const repoMatch = PROD_REPO_URL.match(/github\.com\/([^\/]+)\/([^\.]+)/);
+const GIT_USERNAME = repoMatch ? repoMatch[1] : '';
+const REPO_NAME = repoMatch ? repoMatch[2] : '';
+
 console.log('🔄 Iniciando sincronización con repositorio de producción...');
 
 try {
+    // Construir URL con autenticación
+    const AUTH_REPO_URL = `https://${GIT_USERNAME}:${GH_TOKEN}@github.com/${GIT_USERNAME}/${REPO_NAME}.git`;
+
     // Clonar o actualizar el repositorio de producción
     if (!fs.existsSync(PROD_REPO_DIR)) {
         console.log('📦 Clonando repositorio de producción...');
-        execSync(`git clone ${PROD_REPO_URL} ${PROD_REPO_DIR}`, { stdio: 'inherit' });
+        execSync(`git clone ${AUTH_REPO_URL} ${PROD_REPO_DIR}`, { stdio: 'inherit' });
     } else {
         console.log('📥 Actualizando repositorio existente...');
         execSync(`cd ${PROD_REPO_DIR} && git fetch origin && git reset --hard origin/${BRANCH}`, { stdio: 'inherit' });
@@ -70,27 +79,38 @@ try {
         }
     }
 
-    // Copiar imágenes permitidas
-    const allowedImages = [
-        'lunes.jpg',
-        'martes.jpg', 
-        'miercoles.jpg',
-        'jueves.jpg',
-        'viernes.jpg',
-        'portada-login.jpg',
-        'logo.png'
-    ];
-
-    for (const image of allowedImages) {
-        const srcPath = path.join(__dirname, '..', 'img', image);
-        const destPath = path.join(PROD_REPO_DIR, 'img', image);
-        
-        if (fs.existsSync(srcPath)) {
-            fs.copyFileSync(srcPath, destPath);
-            console.log(`✅ Copiada imagen: ${image}`);
-        } else {
-            console.log(`⚠️  Imagen no encontrada: ${image}`);
+    // Eliminar todas las imágenes existentes primero
+    console.log('🗑️ Eliminando imágenes anteriores...');
+    const destImgDir = path.join(PROD_REPO_DIR, 'img');
+    if (fs.existsSync(destImgDir)) {
+        const files = fs.readdirSync(destImgDir);
+        for (const file of files) {
+            fs.unlinkSync(path.join(destImgDir, file));
+            console.log(`✅ Eliminada: ${file}`);
         }
+    }
+
+    // Copiar TODAS las imágenes de la carpeta img
+    console.log('🖼️ Copiando todas las imágenes...');
+    const srcImgDir = path.join(__dirname, '..', 'img');
+    
+    if (fs.existsSync(srcImgDir)) {
+        const images = fs.readdirSync(srcImgDir);
+        
+        for (const image of images) {
+            // Solo copiar archivos de imagen
+            if (image.match(/\.(jpg|jpeg|png|gif|svg|webp)$/i)) {
+                const srcPath = path.join(srcImgDir, image);
+                const destPath = path.join(destImgDir, image);
+                
+                if (fs.statSync(srcPath).isFile()) {
+                    fs.copyFileSync(srcPath, destPath);
+                    console.log(`✅ Copiada imagen: ${image}`);
+                }
+            }
+        }
+    } else {
+        console.log('⚠️  Advertencia: Directorio de imágenes no encontrado');
     }
 
     // Forzar la detección de cambios y hacer commit
@@ -108,7 +128,8 @@ try {
         execSync(`cd ${PROD_REPO_DIR} && git commit -m "${commitMessage}"`, { stdio: 'inherit' });
 
         console.log('🚀 Subiendo cambios al repositorio...');
-        execSync(`cd ${PROD_REPO_DIR} && git push origin ${BRANCH}`, { stdio: 'inherit' });
+        // Usar la URL con autenticación para hacer push
+        execSync(`cd ${PROD_REPO_DIR} && git push ${AUTH_REPO_URL} ${BRANCH}`, { stdio: 'inherit' });
 
         console.log('✅ Sincronización completada con éxito!');
     } else {
@@ -118,4 +139,3 @@ try {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
-
