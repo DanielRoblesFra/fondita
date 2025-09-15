@@ -14,7 +14,11 @@ const repoMatch = PROD_REPO_URL.match(/github\.com\/([^\/]+)\/([^\.]+)/);
 const GIT_USERNAME = repoMatch ? repoMatch[1] : '';
 const REPO_NAME = repoMatch ? repoMatch[2] : '';
 
+// Generar timestamp único para cache busting
+const CACHE_BUST_TIMESTAMP = new Date().getTime();
+
 console.log('🔄 Iniciando sincronización con repositorio de producción...');
+console.log(`⏰ Timestamp para cache busting: ${CACHE_BUST_TIMESTAMP}`);
 
 try {
     // Construir URL con autenticación
@@ -59,21 +63,47 @@ try {
         return content.replace(/fetch\(\s*["']\/api/g, `fetch("${API_BASE_URL}/api`);
     }
 
-    // Copiar cada archivo
+    // Función para agregar cache busting a las imágenes en HTML
+    function addImageCacheBusting(content) {
+        return content.replace(/(src|href)=["'](.*?\.(jpg|jpeg|png|gif|svg|webp))(\?v=\d+)?["']/gi, 
+            (match, attr, url) => {
+                return `${attr}="${url}?v=${CACHE_BUST_TIMESTAMP}"`;
+            });
+    }
+
+    // Función para agregar cache busting a las imágenes en CSS
+    function addCssCacheBusting(content) {
+        return content.replace(/url\(["']?(.*?\.(jpg|jpeg|png|gif|svg|webp))(\?v=\d+)?["']?\)/gi, 
+            (match, url) => {
+                return `url("${url}?v=${CACHE_BUST_TIMESTAMP}")`;
+            });
+    }
+
+    // Copiar cada archivo con cache busting
     for (const file of filesToCopy) {
         const srcPath = path.join(__dirname, '..', file.src);
         const destPath = path.join(PROD_REPO_DIR, file.dest);
         
         if (fs.existsSync(srcPath)) {
+            let content = fs.readFileSync(srcPath, 'utf8');
+            
+            // Reemplazar URLs de API en archivos JS
             if (file.src.endsWith('.js')) {
-                let content = fs.readFileSync(srcPath, 'utf8');
                 content = replaceApiUrls(content);
-                fs.writeFileSync(destPath, content, 'utf8');
-                console.log(`✅ Copiado y modificado: ${file.src} → ${file.dest}`);
-            } else {
-                fs.copyFileSync(srcPath, destPath);
-                console.log(`✅ Copiado: ${file.src} → ${file.dest}`);
             }
+            
+            // Agregar cache busting a HTML
+            if (file.src.endsWith('.html')) {
+                content = addImageCacheBusting(content);
+            }
+            
+            // Agregar cache busting a CSS
+            if (file.src.endsWith('.css')) {
+                content = addCssCacheBusting(content);
+            }
+            
+            fs.writeFileSync(destPath, content, 'utf8');
+            console.log(`✅ Copiado y modificado: ${file.src} → ${file.dest}`);
         } else {
             console.log(`⚠️  Advertencia: ${file.src} no existe`);
         }
@@ -124,7 +154,7 @@ try {
     
     if (status.trim() !== '') {
         console.log('💾 Haciendo commit de los cambios...');
-        const commitMessage = `Actualización automática: ${new Date().toLocaleString()}`;
+        const commitMessage = `Actualización automática con cache busting: ${new Date().toLocaleString()}`;
         execSync(`cd ${PROD_REPO_DIR} && git commit -m "${commitMessage}"`, { stdio: 'inherit' });
 
         console.log('🚀 Subiendo cambios al repositorio...');
@@ -132,6 +162,7 @@ try {
         execSync(`cd ${PROD_REPO_DIR} && git push ${AUTH_REPO_URL} ${BRANCH}`, { stdio: 'inherit' });
 
         console.log('✅ Sincronización completada con éxito!');
+        console.log('🔄 Los usuarios verán los cambios automáticamente gracias al cache busting');
     } else {
         console.log('✅ No hay cambios detectados. Todo está actualizado.');
     }
