@@ -94,20 +94,29 @@ try {
         }
     }
 
-    // Hacer commit y push
-    console.log('💾 Haciendo commit de los cambios...');
-    execSync(`cd ${PROD_REPO_DIR} && git add .`, { stdio: 'inherit' });
+    // Verificar si hay cambios
+    console.log('🔍 Verificando cambios...');
+    const statusOutput = execSync(`cd ${PROD_REPO_DIR} && git status --porcelain`).toString().trim();
+    
+    if (statusOutput) {
+        // Hay cambios, proceder con commit y push
+        console.log('💾 Haciendo commit de los cambios...');
+        execSync(`cd ${PROD_REPO_DIR} && git add .`, { stdio: 'inherit' });
 
-    const commitMessage = `Actualización automática: ${new Date().toLocaleString()}`;
-    execSync(`cd ${PROD_REPO_DIR} && git commit -m "${commitMessage}"`, { stdio: 'inherit' });
+        const commitMessage = `Actualización automática: ${new Date().toLocaleString()}`;
+        execSync(`cd ${PROD_REPO_DIR} && git commit -m "${commitMessage}"`, { stdio: 'inherit' });
 
-    console.log('🚀 Subiendo cambios al repositorio...');
-    execSync(`cd ${PROD_REPO_DIR} && git push origin ${BRANCH}`, { stdio: 'inherit' });
+        console.log('🚀 Subiendo cambios al repositorio...');
+        execSync(`cd ${PROD_REPO_DIR} && git push origin ${BRANCH}`, { stdio: 'inherit' });
 
-    console.log('✅ Sincronización completada con éxito!');
+        console.log('✅ Sincronización completada con éxito!');
+    } else {
+        console.log('✅ No hay cambios que commitear. Todo está actualizado.');
+    }
 } catch (error) {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
 
 
