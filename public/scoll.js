@@ -1,8 +1,8 @@
 // scoll.js - Scroll suave universal para navegación y rueda del ratón
 document.addEventListener('DOMContentLoaded', function() {
     // Configuración
-    const scrollDuration = 1000; // duración en ms
-    const scrollStep = 150; // píxeles por paso de scroll
+    const scrollDuration = 500; // duración en ms
+    const scrollStep = 1500; // píxeles por paso de scroll
     let isScrolling = false;
     let scrollTimeout;
 
