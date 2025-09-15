@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('wheel', handleWheelScroll, { passive: false });
     
     // Opción 2: Scroll incremental suave
-    // window.addEventListener('wheel', handleIncrementalWheelScroll, { passive: false });
+    window.addEventListener('wheel', handleIncrementalWheelScroll, { passive: false });
 
     // Desactivar el scroll suave en elementos específicos
     const scrollExceptions = document.querySelectorAll('.card, .book, .faq-item');
