@@ -264,7 +264,7 @@ app.post('/api/upload-image', isLoggedIn, upload.single('imagen'), (req, res) =>
         console.log('📸 Guardando imagen en repositorio principal...');
         
         // Agregar específicamente la imagen nueva
-        execSync(`git add img/${req.file.filename}`, { stdio: 'inherit' });
+       execSync(`git add -f img/${req.file.filename}`, { stdio: 'inherit' });
         
         // Verificar si hay cambios en imágenes
         const status = execSync('git status --porcelain img/').toString();
