@@ -5,49 +5,47 @@ const path = require('path');
 console.log('💾 Forzando commit en repositorio principal...');
 
 try {
-    // Obtener la URL del repositorio con autenticación
     const GH_TOKEN = process.env.GH_TOKEN;
-    const GIT_USERNAME = 'DanielRoblesFra'; // Tu nombre de usuario
-    const REPO_NAME = 'fondita'; // Tu repositorio principal
-    
-    // URL con autenticación incluida
+    const GIT_USERNAME = 'DanielRoblesFra';
+    const REPO_NAME = 'fondita';
     const AUTH_REPO_URL = `https://${GIT_USERNAME}:${GH_TOKEN}@github.com/${GIT_USERNAME}/${REPO_NAME}.git`;
     
-    console.log('🔐 Usando URL con autenticación...');
+    console.log('🔐 Configurando Git desde cero...');
 
-    // Configurar Git
+    // 1. ✅ CONFIGURAR IDENTIDAD
     execSync('git config user.email "render@fondita.com"', { stdio: 'inherit' });
     execSync('git config user.name "Render Bot"', { stdio: 'inherit' });
     
-    // Configurar el remote con autenticación
+    // 2. ✅ FORZAR RAMA MAIN (salir del estado detached)
     try {
-        execSync(`git remote remove origin`, { stdio: 'inherit' });
+        execSync('git checkout main', { stdio: 'inherit' });
+    } catch (error) {
+        console.log('⚠️ Creando rama main...');
+        execSync('git checkout -b main', { stdio: 'inherit' });
+    }
+    
+    // 3. ✅ CONFIGURAR REMOTE ORIGIN
+    try {
+        execSync('git remote remove origin', { stdio: 'inherit' });
     } catch (e) {
         // Ignorar si no existe
     }
     execSync(`git remote add origin ${AUTH_REPO_URL}`, { stdio: 'inherit' });
     
-    // Agregar todos los cambios
+    // 4. ✅ AGREGAR CAMBIOS (excluyendo node_modules)
     execSync('git add -A', { stdio: 'inherit' });
+    execSync('git reset -- node_modules/', { stdio: 'inherit' });
     
-    // Remover production-repo si se agregó accidentalmente
-    try {
-        execSync('git rm --cached production-repo -r -f', { stdio: 'inherit' });
-    } catch (e) {
-        // Ignorar si no existe
-    }
-    
-    // Verificar si hay cambios
+    // 5. ✅ VERIFICAR Y HACER COMMIT
     const status = execSync('git status --porcelain').toString();
     
     if (status.trim() !== '') {
-        // Hacer commit
         const commitMessage = `Auto-commit: ${new Date().toLocaleString('es-MX')}`;
         execSync(`git commit -m "${commitMessage}"`, { stdio: 'inherit' });
         
-        // Hacer push con URL autenticada
-        console.log('🚀 Haciendo push con autenticación...');
-        execSync(`git push ${AUTH_REPO_URL} main --force`, { stdio: 'inherit' });
+        // 6. ✅ HACER PUSH CON FUERZA (por el detached head)
+        console.log('🚀 Haciendo push forzado...');
+        execSync(`git push -f ${AUTH_REPO_URL} main`, { stdio: 'inherit' });
         
         console.log('✅ Commit forzado exitosamente');
     } else {
@@ -55,5 +53,4 @@ try {
     }
 } catch (error) {
     console.error('❌ Error forzando commit:', error.message);
-    // No salir con error para no afectar el flujo principal
 }
