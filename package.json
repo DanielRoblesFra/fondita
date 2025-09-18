@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
-    "postinstall": "git config --global user.email 'render@fondita.com' && git config --global user.name 'Render Bot' && git config --global pull.rebase false",
+    "postinstall": "git config --global user.email 'render@fondita.com' && git config --global user.name 'Render Bot' && git config --global pull.rebase false && git checkout main || git checkout -b main",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {
