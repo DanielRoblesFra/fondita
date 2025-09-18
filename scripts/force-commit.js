@@ -34,6 +34,8 @@ try {
     
     // 4. ✅ AGREGAR CAMBIOS (excluyendo node_modules)
     execSync('git add -A', { stdio: 'inherit' });
+    execSync('git add -A', { stdio: 'inherit' });
+    execSync('git add img/', { stdio: 'inherit' });
     execSync('git reset -- node_modules/', { stdio: 'inherit' });
     
     // 5. ✅ VERIFICAR Y HACER COMMIT
