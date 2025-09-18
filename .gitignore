@@ -16,16 +16,6 @@ Thumbs.db
 *.swp
 *.swo
 
-# IGNORAR NUEVAS imágenes en la carpeta img/ (las que se suban después)
-/img/*
-# PERO PERMITIR las imágenes INICIALES (¡DEBES listarlas por nombre!)
-!/img/platillo1.jpg
-!/img/platillo2.png
-!/img/platillo3.jpg
-!/img/ensalada-cesar.jpg
-!/img/hamburguesa-especial.jpg
-# AGREGA AQUÍ TODAS TUS IMÁGENES INICIALES POR NOMBRE
-
 # Logs
 logs
 *.log
