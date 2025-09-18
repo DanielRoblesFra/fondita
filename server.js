@@ -14,6 +14,7 @@ if (process.env.NODE_ENV === 'production') {
     }
     }
 
+const { execSync } = require('child_process');
 const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
@@ -111,6 +112,25 @@ function deleteOldImage(filename) {
         }
     });
 }
+
+// -------------------- RUTA DE DIAGNÓSTICO --------------------
+app.get('/api/git-debug', isLoggedIn, (req, res) => {
+    try {
+        const results = {
+            current_directory: process.cwd(),
+            git_remote: execSync('git remote -v').toString(),
+            git_status: execSync('git status').toString(),
+            last_commits: execSync('git log -5 --oneline').toString(),
+            branch_info: execSync('git branch -vv').toString(),
+            gh_token_exists: !!process.env.GH_TOKEN,
+            prod_repo_url: process.env.PROD_REPO_URL,
+            files_in_current_dir: execSync('ls -la').toString()
+        };
+        res.json(results);
+    } catch (error) {
+        res.json({ error: error.message, stack: error.stack });
+    }
+});
 
 // -------------------- RUTAS ESPECÍFICAS --------------------
 
