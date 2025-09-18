@@ -258,13 +258,33 @@ app.post('/api/upload-image', isLoggedIn, upload.single('imagen'), (req, res) =>
         deleteOldImage(req.body.oldFilename);
     }
 
-    // ✅ EJECUTAR COMMIT EN REPOSITORIO PRINCIPAL
+    // ✅ EJECUTAR COMMIT ESPECÍFICO PARA LA IMAGEN NUEVA
     try {
         const { execSync } = require('child_process');
-        console.log('💾 Guardando cambios en repositorio principal...');
-        execSync('node scripts/force-commit.js', { stdio: 'inherit' });
+        console.log('📸 Guardando imagen en repositorio principal...');
+        
+        // Agregar específicamente la imagen nueva
+        execSync(`git add img/${req.file.filename}`, { stdio: 'inherit' });
+        
+        // Verificar si hay cambios en imágenes
+        const status = execSync('git status --porcelain img/').toString();
+        if (status.trim() !== '') {
+            const commitMessage = `Subir imagen: ${req.file.filename}`;
+            execSync(`git commit -m "${commitMessage}"`, { stdio: 'inherit' });
+            
+            // Usar autenticación directa
+            const GH_TOKEN = process.env.GH_TOKEN;
+            if (!GH_TOKEN) {
+                console.error('❌ GH_TOKEN no está definido');
+                return res.json({ filename: req.file.filename });
+            }
+            
+            execSync(`git push https://DanielRoblesFra:${GH_TOKEN}@github.com/DanielRoblesFra/fondita.git main`, 
+                    { stdio: 'inherit' });
+            console.log('✅ Imagen guardada en GitHub');
+        }
     } catch (error) {
-        console.error('Error en commit automático:', error);
+        console.error('Error en commit de imagen:', error.message);
     }
 
     res.json({ filename: req.file.filename });
