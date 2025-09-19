@@ -2,7 +2,7 @@
   "carta": [
     {
       "nombre": "Enchiladas suizas",
-      "descripcion": "tacos bañados en salsa verde",
+      "descripcion": "tacos bañados en salsa verde.",
       "precio": "$95",
       "pago": {
         "mensaje": "💳 Transferencia a: Claudia Franco",
