@@ -1,95 +1,155 @@
-// scoll.js - Scroll suave universal para móvil y PC
-document.addEventListener('DOMContentLoaded', function() {
-    // Función de scroll suave mejorada
-    function smoothScroll(target) {
-        // Obtener el elemento destino
+// scroll-optimizado.js - Elimina delay y animación lenta del primer clic
+(function() {
+    'use strict';
+    
+    let isScrolling = false;
+    let initialized = false;
+    
+    // Configuración ultra-optimizada
+    const config = {
+        duration: 600,
+        offset: 0,
+        mobileOffset: 70
+    };
+    
+    // Detectar móvil
+    function isMobile() {
+        return window.innerWidth <= 768;
+    }
+    
+    // Easing simple y rápido
+    function easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+    }
+    
+    // Función de scroll optimizada para eliminar delays
+    function smoothScroll(target, customDuration = null) {
+        if (isScrolling) return;
+        
         const targetElement = typeof target === 'string' 
             ? document.querySelector(target) 
             : target;
         
         if (!targetElement) return;
-
-        // Calcular posición destino
-        const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
+        
+        // Cancelar cualquier comportamiento de scroll nativo INMEDIATAMENTE
+        document.documentElement.style.scrollBehavior = 'auto';
+        
+        isScrolling = true;
+        
+        // Cálculos inmediatos sin delays
         const startPosition = window.pageYOffset;
+        const targetRect = targetElement.getBoundingClientRect();
+        const offset = isMobile() ? config.mobileOffset : config.offset;
+        const targetPosition = targetRect.top + startPosition - offset;
         const distance = targetPosition - startPosition;
-        const duration = 800; // ms
-        let startTime = null;
-
-        // Función de easing (suavizado)
-        function easeInOutQuad(t) {
-            return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+        const duration = customDuration || config.duration;
+        
+        // Para distancias muy pequeñas, scroll instantáneo
+        if (Math.abs(distance) < 20) {
+            window.scrollTo(0, targetPosition);
+            isScrolling = false;
+            return;
         }
-
-        // Función de animación
-        function animation(currentTime) {
-            if (startTime === null) startTime = currentTime;
-            const timeElapsed = currentTime - startTime;
-            const progress = Math.min(timeElapsed / duration, 1);
-            const easeProgress = easeInOutQuad(progress);
+        
+        const startTime = performance.now();
+        
+        // Animación sin delays ni preparación
+        function animate(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easedProgress = easeOutCubic(progress);
             
-            window.scrollTo(0, startPosition + (distance * easeProgress));
+            const currentPos = startPosition + (distance * easedProgress);
+            window.scrollTo(0, currentPos);
             
-            if (timeElapsed < duration) {
-                requestAnimationFrame(animation);
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                window.scrollTo(0, targetPosition);
+                isScrolling = false;
             }
         }
-
-        // Iniciar animación
-        requestAnimationFrame(animation);
+        
+        // Iniciar inmediatamente
+        requestAnimationFrame(animate);
     }
-
-    // Aplicar scroll suave a todos los enlaces internos
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-            const target = this.getAttribute('href');
-            if (target !== '#') {
-                smoothScroll(target);
-            }
+    
+    // Inicialización agresiva para prevenir delays
+    function forceInit() {
+        if (initialized) return;
+        
+        // Forzar override del scroll nativo
+        document.documentElement.style.scrollBehavior = 'auto';
+        document.body.style.scrollBehavior = 'auto';
+        
+        // Pre-cachear elementos comunes para evitar delays en querySelector
+        const links = document.querySelectorAll('a[href^="#"]');
+        const smoothElements = document.querySelectorAll('.smooth-scroll');
+        
+        // Event listeners con captura inmediata
+        links.forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                
+                const href = this.getAttribute('href');
+                if (href && href !== '#' && href !== '#!') {
+                    // Sin setTimeout, sin delays - ejecutar inmediatamente
+                    smoothScroll(href);
+                }
+            }, true); // Captura en fase de captura para mayor velocidad
         });
-    });
-
-    // También aplicar a elementos con clase .smooth-scroll
-    document.querySelectorAll('.smooth-scroll').forEach(element => {
-        element.addEventListener('click', function() {
-            const target = this.getAttribute('data-target');
-            if (target) {
-                smoothScroll(target);
-            }
+        
+        smoothElements.forEach(element => {
+            element.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                
+                const target = this.getAttribute('data-target') || 
+                              this.getAttribute('href') || 
+                              this.dataset.scroll;
+                              
+                if (target) {
+                    smoothScroll(target);
+                }
+            }, true);
         });
-    });
-
-    console.log('✅ Scroll suave activado para todos los dispositivos');
-});
-
-// Función adicional para scroll suave programático
-function scrollToSection(sectionId) {
-    const target = document.querySelector(sectionId);
-    if (target) {
-        const targetPosition = target.getBoundingClientRect().top + window.pageYOffset;
-        const startPosition = window.pageYOffset;
-        const distance = targetPosition - startPosition;
-        const duration = 800;
-        let startTime = null;
-
-        function easeInOutQuad(t) {
-            return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-        }
-
-        function animation(currentTime) {
-            if (startTime === null) startTime = currentTime;
-            const timeElapsed = currentTime - startTime;
-            const progress = Math.min(timeElapsed / duration, 1);
-            const easeProgress = easeInOutQuad(progress);
-            
-            window.scrollTo(0, startPosition + (distance * easeProgress));
-            
-            if (timeElapsed < duration) {
-                requestAnimationFrame(animation);
-            }
-        }
-
-        requestAnimationFrame(animation);
+        
+        initialized = true;
+        console.log('✅ Scroll optimizado - Sin delays activado');
     }
-}
+    
+    // Función pública inmediata
+    window.scrollToSection = function(sectionId, duration = 500) {
+        if (typeof sectionId === 'string' && !sectionId.startsWith('#')) {
+            sectionId = '#' + sectionId;
+        }
+        smoothScroll(sectionId, duration);
+    };
+    
+    // Configuración inmediata
+    window.setSmoothScrollConfig = function(newConfig) {
+        Object.assign(config, newConfig);
+    };
+    
+    // Inicialización inmediata y agresiva
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', forceInit);
+    } else {
+        forceInit();
+    }
+    
+    // Backup de inicialización
+    setTimeout(forceInit, 0);
+    
+    // Override completo del scroll behavior nativo
+    const style = document.createElement('style');
+    style.textContent = `
+        html, body {
+            scroll-behavior: auto !important;
+        }
+    `;
+    document.head.appendChild(style);
+    
+})();
