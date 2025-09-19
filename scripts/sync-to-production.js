@@ -68,6 +68,7 @@ try {
         { src: 'public/menu-semana.js', dest: 'menu-semana.js' },
         { src: 'public/preguntas.js', dest: 'preguntas.js' },
         { src: 'public/scoll.js', dest: 'scoll.js' }
+        { src: 'public/auto-update.js', dest: 'auto-update.js' }
     ];
 
     // Crear directorios necesarios
@@ -239,4 +240,5 @@ try {
     console.log('⚠️ Error en actualización de versión:', error.message);
     process.exit(0); // ✅ Salir gracefulmente
 }
+
 
