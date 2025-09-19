@@ -3,7 +3,7 @@
     {
       "nombre": "Enchiladas suizas.",
       "descripcion": "tacos bañados en salsa verde.",
-      "precio": "$95",
+      "precio": "$90",
       "pago": {
         "mensaje": "💳 Transferencia a: Claudia Franco",
         "banco": "BBVA: **** **** **** ***69"
