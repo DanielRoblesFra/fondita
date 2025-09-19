@@ -172,16 +172,27 @@ try {
     // Verificar si hay cambios realmente
     const status = execSync(`cd ${PROD_REPO_DIR} && git status --porcelain`).toString();
     
-    if (status.trim() !== '') {
+       if (status.trim() !== '') {
         console.log('💾 Haciendo commit de los cambios...');
         const commitMessage = `Actualización automática con cache busting: ${new Date().toLocaleString()}`;
         execSync(`cd ${PROD_REPO_DIR} && git commit -m "${commitMessage}"`, { stdio: 'inherit' });
 
         console.log('🚀 Subiendo cambios al repositorio...');
-        // Usar la URL con autenticación para hacer push
         execSync(`cd ${PROD_REPO_DIR} && git push ${AUTH_REPO_URL} ${BRANCH}`, { stdio: 'inherit' });
 
         console.log('✅ Sincronización completada con éxito!');
+
+        // ✅ CREAR ARCHIVO DE VERSIÓN (NUEVO)
+        const versionFile = path.join(PROD_REPO_DIR, 'version.txt');
+        const newVersion = Date.now().toString();
+        fs.writeFileSync(versionFile, newVersion);
+        console.log('🔄 Archivo de versión creado:', newVersion);
+
+        // ✅ HACER COMMIT DEL ARCHIVO DE VERSIÓN
+        execSync(`cd ${PROD_REPO_DIR} && git add version.txt`, { stdio: 'inherit' });
+        execSync(`cd ${PROD_REPO_DIR} && git commit -m "Actualizar versión: ${newVersion}"`, { stdio: 'inherit' });
+        execSync(`cd ${PROD_REPO_DIR} && git push ${AUTH_REPO_URL} ${BRANCH}`, { stdio: 'inherit' });
+
         console.log('🔄 Los usuarios verán los cambios automáticamente gracias al cache busting');
     } else {
         console.log('✅ No hay cambios detectados. Todo está actualizado.');
@@ -228,3 +239,4 @@ try {
     console.log('⚠️ Error en actualización de versión:', error.message);
     process.exit(0); // ✅ Salir gracefulmente
 }
+
