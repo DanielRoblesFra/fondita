@@ -183,33 +183,34 @@ try {
 
         console.log('✅ Sincronización completada con éxito!');
 
-// ✅ ACTUALIZAR VERSIÓN después de sync COMPLETO
-   try {
-    // Hacer HTTP request al endpoint local para actualizar versión
-    const https = require('https');
-    
-    const options = {
-        hostname: 'fondita.onrender.com',
-        port: 443,
-        path: '/api/version-update',
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
+        // ✅ ACTUALIZAR VERSIÓN después de sync COMPLETO
+        try {
+            // Hacer HTTP request al endpoint local para actualizar versión
+            const https = require('https');
+            
+            const options = {
+                hostname: 'fondita.onrender.com',
+                port: 443,
+                path: '/api/version-update',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            };
+            
+            const req = https.request(options, (res) => {
+                console.log('🔄 Versión actualizada después de sync');
+            });
+            
+            req.on('error', (error) => {
+                console.log('⚠️ No se pudo actualizar versión automáticamente:', error.message);
+            });
+            
+            req.end();
+        } catch (error) {
+            console.log('⚠️ Error en actualización de versión:', error.message);
         }
-    };
-    
-    const req = https.request(options, (res) => {
-        console.log('🔄 Versión actualizada después de sync');
-    });
-    
-    req.on('error', (error) => {
-        console.log('⚠️ No se pudo actualizar versión automáticamente:', error.message);
-    });
-    
-    req.end();
-} catch (error) {
-    console.log('⚠️ Error en actualización de versión:', error.message);
-}
+
         console.log('🔄 Los usuarios verán los cambios automáticamente gracias al cache busting');
     } else {
         console.log('✅ No hay cambios detectados. Todo está actualizado.');
@@ -218,4 +219,3 @@ try {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
-
