@@ -1,7 +1,7 @@
 {
   "carta": [
     {
-      "nombre": "Enchiladas suizas",
+      "nombre": "Enchiladas suizas.",
       "descripcion": "tacos bañados en salsa verde.",
       "precio": "$95",
       "pago": {
@@ -49,7 +49,7 @@
     },
     {
       "dia": "Viernes",
-      "fecha": "2025-09-05",
+      "fecha": "2025-09-19",
       "imagen": "viernes.jpg",
       "platillos": [
         "Platillo",
