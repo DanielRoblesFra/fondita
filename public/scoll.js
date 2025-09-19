@@ -5,9 +5,12 @@
     let isScrolling = false;
     let initialized = false;
     
-    // Configuración ultra-optimizada
+    // Configuración con velocidad adaptativa
     const config = {
-        duration: 600,
+        baseDuration: 300,      // Duración base
+        maxDuration: 600,       // Duración máxima
+        minDuration: 200,       // Duración mínima
+        speedFactor: 0.5,       // Factor de velocidad (menor = más rápido)
         offset: 0,
         mobileOffset: 70
     };
@@ -43,7 +46,18 @@
         const offset = isMobile() ? config.mobileOffset : config.offset;
         const targetPosition = targetRect.top + startPosition - offset;
         const distance = targetPosition - startPosition;
-        const duration = customDuration || config.duration;
+        
+        // Calcular duración basada en distancia (más inteligente)
+        let duration;
+        if (customDuration) {
+            duration = customDuration;
+        } else {
+            const pixelDistance = Math.abs(distance);
+            duration = Math.min(
+                Math.max(pixelDistance * config.speedFactor, config.minDuration), 
+                config.maxDuration
+            );
+        }
         
         // Para distancias muy pequeñas, scroll instantáneo
         if (Math.abs(distance) < 20) {
@@ -120,12 +134,25 @@
         console.log('✅ Scroll optimizado - Sin delays activado');
     }
     
-    // Función pública inmediata
-    window.scrollToSection = function(sectionId, duration = 500) {
+    // Función pública con más opciones de velocidad
+    window.scrollToSection = function(sectionId, duration = null) {
         if (typeof sectionId === 'string' && !sectionId.startsWith('#')) {
             sectionId = '#' + sectionId;
         }
         smoothScroll(sectionId, duration);
+    };
+    
+    // Funciones de velocidad predefinidas
+    window.scrollFast = function(sectionId) {
+        smoothScroll(sectionId, 200);
+    };
+    
+    window.scrollSlow = function(sectionId) {
+        smoothScroll(sectionId, 600);
+    };
+    
+    window.scrollNormal = function(sectionId) {
+        smoothScroll(sectionId, 350);
     };
     
     // Configuración inmediata
@@ -143,10 +170,13 @@
     // Backup de inicialización
     setTimeout(forceInit, 0);
     
-    // Override completo del scroll behavior nativo
+    // Override específico solo para scroll (no afecta otras animaciones)
     const style = document.createElement('style');
     style.textContent = `
-        html, body {
+        html {
+            scroll-behavior: auto !important;
+        }
+        body {
             scroll-behavior: auto !important;
         }
     `;
