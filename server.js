@@ -121,13 +121,19 @@ const upload = multer({
 function deleteOldImage(filename) {
     if (!filename) return;
     const filePath = path.join(__dirname, 'img', filename);
-    fs.unlink(filePath, (err) => {
-        if (err) {
-            console.log(`⚠️ No se pudo borrar la imagen: ${filename}`, err.message);
-        } else {
-            console.log(`🗑️ Imagen eliminada: ${filename}`);
-        }
-    });
+    
+    // Verificar si el archivo existe antes de borrar
+    if (fs.existsSync(filePath)) {
+        fs.unlink(filePath, (err) => {
+            if (err) {
+                console.log(`⚠️ No se pudo borrar: ${filename}`, err.message);
+            } else {
+                console.log(`🗑️ Eliminada: ${filename}`);
+            }
+        });
+    } else {
+        console.log(`⚠️ Imagen ya no existe: ${filename}`);
+    }
 }
 
 // -------------------- RUTA DE DIAGNÓSTICO --------------------
@@ -311,29 +317,21 @@ app.post('/api/upload-image', isLoggedIn, upload.single('imagen'), (req, res) =>
 app.post('/api/sync-production', isLoggedIn, (req, res) => {
     console.log('🔁 Solicitada sincronización con repositorio de producción');
     
-    try {
-        // Ejecutar el script de sincronización
-        const { execSync } = require('child_process');
-        execSync('node scripts/sync-to-production.js', { stdio: 'inherit' });
-        
-        updateVersion(); // ✅ BIEN UBICADO
-        
-        res.json({ success: true, message: 'Sincronización completada con éxito' });
-    } catch (error) {
-        console.error('Error en sincronización:', error);
-        res.status(500).json({ success: false, message: 'Error en la sincronización' });
-    }
+    // ✅ Responder inmediatamente y ejecutar en segundo plano
+    res.json({ success: true, message: 'Sincronización iniciada en segundo plano' });
+    
+    // ✅ Ejecutar en proceso separado para no bloquear
+    const { spawn } = require('child_process');
+    const syncProcess = spawn('node', ['scripts/sync-to-production.js'], {
+        detached: true,
+        stdio: 'ignore'
+    });
+    
+    syncProcess.unref(); // Permitir que el proceso principal continúe
+    
+    console.log('🔄 Sync ejecutándose en segundo plano (PID:', syncProcess.pid, ')');
 });
 
-app.post('/api/version-update', (req, res) => {
-    const allowedHosts = ['fondita.onrender.com', 'localhost'];
-    if (!allowedHosts.includes(req.hostname)) {
-        return res.status(403).send('Forbidden');
-    }
-    
-    updateVersion();
-    res.json({ success: true, version: appVersion });
-});
 // -------------------- ARCHIVOS ESTÁTICOS --------------------
 app.use('/admin', express.static(path.join(__dirname, 'admin'), { index: false }));
 app.use('/img', express.static(path.join(__dirname, 'img')));
