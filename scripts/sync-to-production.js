@@ -219,3 +219,41 @@ try {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
+// ✅ ACTUALIZAR VERSIÓN después de sync COMPLETO
+try {
+    const https = require('https');
+    
+    const options = {
+        hostname: 'fondita.onrender.com',
+        port: 443,
+        path: '/api/version-update',
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Connection': 'close'
+        },
+        timeout: 10000 // 10 segundos timeout
+    };
+    
+    const req = https.request(options, (res) => {
+        console.log('🔄 Versión actualizada después de sync');
+        process.exit(0); // ✅ Salir gracefulmente
+    });
+    
+    req.on('error', (error) => {
+        console.log('⚠️ No se pudo actualizar versión:', error.message);
+        process.exit(0); // ✅ Salir igual aunque falle
+    });
+    
+    req.on('timeout', () => {
+        console.log('⚠️ Timeout al actualizar versión');
+        req.destroy();
+        process.exit(0);
+    });
+    
+    req.end();
+} catch (error) {
+    console.log('⚠️ Error en actualización de versión:', error.message);
+    process.exit(0); // ✅ Salir gracefulmente
+}
