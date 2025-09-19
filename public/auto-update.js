@@ -16,23 +16,36 @@ class UpdateNotifier {
         });
     }
 
-    async checkForUpdates() {
-        try {
-            const timestamp = new Date().getTime();
-            const response = await fetch(`/api/version?t=${timestamp}`);
-            const data = await response.json();
-            
+   async checkForUpdates() {
+    try {
+        // Usar timestamp para evitar cache del navegador
+        const timestamp = new Date().getTime();
+        const response = await fetch(`/version.txt?t=${timestamp}`);
+        
+        if (response.ok) {
+            const newVersion = await response.text();
             const lastUpdate = localStorage.getItem('fondita_lastUpdate');
             
+            console.log('🔍 Check versión:', { lastUpdate, newVersion });
+            
             if (!lastUpdate) {
-                localStorage.setItem('fondita_lastUpdate', data.version);
-            } else if (lastUpdate !== data.version) {
+                // Primera vez - guardar versión actual
+                localStorage.setItem('fondita_lastUpdate', newVersion);
+                console.log('✅ Versión inicial guardada:', newVersion);
+            } else if (lastUpdate !== newVersion) {
+                // ¡HAY ACTUALIZACIÓN!
+                console.log('🎉 Nueva versión detectada:', newVersion);
                 this.showUpdateNotification();
+            } else {
+                console.log('✅ Todo actualizado. Versión:', newVersion);
             }
-        } catch (error) {
-            console.log('✅ Check de actualización:', error.message);
+        } else {
+            console.log('⚠️ No se pudo leer version.txt');
         }
+    } catch (error) {
+        console.log('✅ Check de actualización:', error.message);
     }
+}
 
     showUpdateNotification() {
         // Evitar duplicados
