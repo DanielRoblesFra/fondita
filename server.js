@@ -324,6 +324,16 @@ app.post('/api/sync-production', isLoggedIn, (req, res) => {
         res.status(500).json({ success: false, message: 'Error en la sincronización' });
     }
 });
+
+app.post('/api/version-update', (req, res) => {
+    const allowedHosts = ['fondita.onrender.com', 'localhost'];
+    if (!allowedHosts.includes(req.hostname)) {
+        return res.status(403).send('Forbidden');
+    }
+    
+    updateVersion();
+    res.json({ success: true, version: appVersion });
+});
 // -------------------- ARCHIVOS ESTÁTICOS --------------------
 app.use('/admin', express.static(path.join(__dirname, 'admin'), { index: false }));
 app.use('/img', express.static(path.join(__dirname, 'img')));
