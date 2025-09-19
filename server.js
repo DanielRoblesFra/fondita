@@ -316,7 +316,7 @@ app.post('/api/sync-production', isLoggedIn, (req, res) => {
         const { execSync } = require('child_process');
         execSync('node scripts/sync-to-production.js', { stdio: 'inherit' });
         
-        updateVersion();
+        updateVersion(); // ✅ BIEN UBICADO
         
         res.json({ success: true, message: 'Sincronización completada con éxito' });
     } catch (error) {
