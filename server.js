@@ -65,6 +65,23 @@ app.use(session({
     }
 }));
 
+//VARIABLE GLOBAL Y API DE VERSIÓN
+let appVersion = Date.now();
+
+// Endpoint para verificar versión
+app.get('/api/version', (req, res) => {
+    res.json({ 
+        version: appVersion,
+        lastUpdate: new Date().toLocaleString('es-MX')
+    });
+});
+
+// Función para actualizar versión
+function updateVersion() {
+    appVersion = Date.now();
+    console.log(`🔄 Versión actualizada: ${appVersion}`);
+}
+
 // Middleware para rutas protegidas
 function isLoggedIn(req, res, next) {
     console.log('🔍 CHECKING SESSION - loggedIn:', req.session.loggedIn);
@@ -299,13 +316,14 @@ app.post('/api/sync-production', isLoggedIn, (req, res) => {
         const { execSync } = require('child_process');
         execSync('node scripts/sync-to-production.js', { stdio: 'inherit' });
         
+        updateVersion();
+        
         res.json({ success: true, message: 'Sincronización completada con éxito' });
     } catch (error) {
         console.error('Error en sincronización:', error);
         res.status(500).json({ success: false, message: 'Error en la sincronización' });
     }
 });
-
 // -------------------- ARCHIVOS ESTÁTICOS --------------------
 app.use('/admin', express.static(path.join(__dirname, 'admin'), { index: false }));
 app.use('/img', express.static(path.join(__dirname, 'img')));
