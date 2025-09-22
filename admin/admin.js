@@ -145,35 +145,6 @@ function renderCarta() {
     });
 }
 
-        // NUEVO: Grupo para Contenido de Página 4
-        const contenidoPag4Group = document.createElement("div");
-        contenidoPag4Group.className = "input-group";
-        const labelContenido4 = document.createElement("label");
-        labelContenido4.textContent = "Contenido Página 4 (Mensaje Final)";
-        labelContenido4.htmlFor = `contenido-pag4-${idx}`;
-        const textareaContenido4 = document.createElement("textarea");
-        textareaContenido4.id = `contenido-pag4-${idx}`;
-        textareaContenido4.value = item.pagina4_contenido || "¡Gracias por tu preferencia! Visítanos pronto.";
-        textareaContenido4.dataset.tipo = "carta";
-        textareaContenido4.dataset.index = idx;
-        textareaContenido4.dataset.campo = "pagina4_contenido";
-        textareaContenido4.placeholder = "Ej: ¡Esperamos verte pronto! Siguenos en redes sociales...";
-        textareaContenido4.rows = 3;
-        contenidoPag4Group.appendChild(labelContenido4);
-        contenidoPag4Group.appendChild(textareaContenido4);
-
-        // Añadir los nuevos grupos al contenedor principal
-        div.appendChild(nombreGroup);
-        div.appendChild(descGroup);
-        div.appendChild(precioGroup);
-        div.appendChild(pagoSection);
-        div.appendChild(tituloPag1Group); // NUEVO
-        div.appendChild(contenidoPag4Group); // NUEVO
-
-        container.appendChild(div);
-    });
-}
-
 // ------------------ Renderizar Menú de la Semana ------------------
 function renderMenuSemana() {
     const container = document.getElementById("menuContainer");
