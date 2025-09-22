@@ -45,7 +45,7 @@ function cargarCarta() {
             `;
 
             // Página 4
-            const page3 = document.createElement("div");
+            const page4 = document.createElement("div");
             page3.className = "page";
             page3.innerHTML = `
             <div class="content">
