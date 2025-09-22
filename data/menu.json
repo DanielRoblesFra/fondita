@@ -1,6 +1,7 @@
 {
   "carta": [
     {
+      "pagina1_titulo": "Carta del día",
       "nombre": "Enchiladas suizas.",
       "descripcion": "tacos bañados en salsa verde.",
       "precio": "$90",
