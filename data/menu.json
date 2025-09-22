@@ -3,7 +3,7 @@
     {
       "nombre": "Tacos al Pastor",
       "descripcion": "Tortilla y carne",
-      "precio": "$25",
+      "precio": "$290",
       "pago": {
         "mensaje": "💳 Transferencia a: Claudia Franco",
         "banco": "BBVA: **** **** **** ***69"
