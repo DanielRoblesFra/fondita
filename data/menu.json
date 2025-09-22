@@ -1,9 +1,9 @@
 {
   "carta": [
     {
-      "nombre": "Enchiladas suizas.",
-      "descripcion": "tacos bañados en salsa verde.",
-      "precio": "$90",
+      "nombre": "Tacos al Pastor",
+      "descripcion": "Tortilla y carne",
+      "precio": "$25",
       "pago": {
         "mensaje": "💳 Transferencia a: Claudia Franco",
         "banco": "BBVA: **** **** **** ***69"
@@ -14,7 +14,7 @@
     {
       "dia": "Lunes",
       "fecha": "2025-09-01",
-      "imagen": "1758238078009.jpg",
+      "imagen": "1758220454798.jpg",
       "platillos": [
         "Platillo",
         "Platillo"
@@ -49,7 +49,7 @@
     },
     {
       "dia": "Viernes",
-      "fecha": "2025-09-19",
+      "fecha": "2025-09-05",
       "imagen": "viernes.jpg",
       "platillos": [
         "Platillo",
