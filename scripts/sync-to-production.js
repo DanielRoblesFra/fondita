@@ -68,7 +68,6 @@ try {
         { src: 'public/menu-semana.js', dest: 'menu-semana.js' },
         { src: 'public/preguntas.js', dest: 'preguntas.js' },
         { src: 'public/scoll.js', dest: 'scoll.js' }
-        { src: 'public/auto-update.js', dest: 'auto-update.js' }
     ];
 
     // Crear directorios necesarios
@@ -173,27 +172,16 @@ try {
     // Verificar si hay cambios realmente
     const status = execSync(`cd ${PROD_REPO_DIR} && git status --porcelain`).toString();
     
-       if (status.trim() !== '') {
+    if (status.trim() !== '') {
         console.log('💾 Haciendo commit de los cambios...');
         const commitMessage = `Actualización automática con cache busting: ${new Date().toLocaleString()}`;
         execSync(`cd ${PROD_REPO_DIR} && git commit -m "${commitMessage}"`, { stdio: 'inherit' });
 
         console.log('🚀 Subiendo cambios al repositorio...');
+        // Usar la URL con autenticación para hacer push
         execSync(`cd ${PROD_REPO_DIR} && git push ${AUTH_REPO_URL} ${BRANCH}`, { stdio: 'inherit' });
 
         console.log('✅ Sincronización completada con éxito!');
-
-        // ✅ CREAR ARCHIVO DE VERSIÓN (NUEVO)
-        const versionFile = path.join(PROD_REPO_DIR, 'version.txt');
-        const newVersion = Date.now().toString();
-        fs.writeFileSync(versionFile, newVersion);
-        console.log('🔄 Archivo de versión creado:', newVersion);
-
-        // ✅ HACER COMMIT DEL ARCHIVO DE VERSIÓN
-        execSync(`cd ${PROD_REPO_DIR} && git add version.txt`, { stdio: 'inherit' });
-        execSync(`cd ${PROD_REPO_DIR} && git commit -m "Actualizar versión: ${newVersion}"`, { stdio: 'inherit' });
-        execSync(`cd ${PROD_REPO_DIR} && git push ${AUTH_REPO_URL} ${BRANCH}`, { stdio: 'inherit' });
-
         console.log('🔄 Los usuarios verán los cambios automáticamente gracias al cache busting');
     } else {
         console.log('✅ No hay cambios detectados. Todo está actualizado.');
@@ -202,43 +190,3 @@ try {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
-
-// ✅ ACTUALIZAR VERSIÓN después de sync COMPLETO
-try {
-    const https = require('https');
-    
-    const options = {
-        hostname: 'fondita.onrender.com',
-        port: 443,
-        path: '/api/version-update',
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Connection': 'close'
-        },
-        timeout: 10000 // 10 segundos timeout
-    };
-    
-    const req = https.request(options, (res) => {
-        console.log('🔄 Versión actualizada después de sync');
-        process.exit(0); // ✅ Salir gracefulmente
-    });
-    
-    req.on('error', (error) => {
-        console.log('⚠️ No se pudo actualizar versión:', error.message);
-        process.exit(0); // ✅ Salir igual aunque falle
-    });
-    
-    req.on('timeout', () => {
-        console.log('⚠️ Timeout al actualizar versión');
-        req.destroy();
-        process.exit(0);
-    });
-    
-    req.end();
-} catch (error) {
-    console.log('⚠️ Error en actualización de versión:', error.message);
-    process.exit(0); // ✅ Salir gracefulmente
-}
-
-
