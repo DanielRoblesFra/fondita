@@ -1,3 +1,5 @@
+# Reparar el menu.json
+cat > data/menu.json << 'EOF'
 {
   "carta": [
     {
@@ -8,7 +10,8 @@
       "pago": {
         "mensaje": "💳 Transferencia a: Claudia Franco",
         "banco": "BBVA: **** **** **** ***69"
-      }
+      },
+      "pagina4_contenido": "¡Gracias por tu preferencia! Visítanos pronto."
     }
   ],
   "menu_semana": [
@@ -16,46 +19,32 @@
       "dia": "Lunes",
       "fecha": "2025-09-01",
       "imagen": "1758238078009.jpg",
-      "platillos": [
-        "Platillo",
-        "Platillo"
-      ]
+      "platillos": ["Platillo", "Platillo"]
     },
     {
       "dia": "Martes",
       "fecha": "2025-09-02",
       "imagen": "martes.jpg",
-      "platillos": [
-        "Platillo",
-        "Platillo"
-      ]
+      "platillos": ["Platillo", "Platillo"]
     },
     {
       "dia": "Miércoles",
       "fecha": "2025-09-03",
       "imagen": "miercoles.jpg",
-      "platillos": [
-        "Platillo",
-        "Platillo"
-      ]
+      "platillos": ["Platillo", "Platillo"]
     },
     {
       "dia": "Jueves",
       "fecha": "2025-09-04",
       "imagen": "1758220459271.jpg",
-      "platillos": [
-        "Platillo",
-        "Platillo"
-      ]
+      "platillos": ["Platillo", "Platillo"]
     },
     {
       "dia": "Viernes",
       "fecha": "2025-09-19",
       "imagen": "viernes.jpg",
-      "platillos": [
-        "Platillo",
-        "Platillo"
-      ]
+      "platillos": ["Platillo", "Platillo"]
     }
   ]
 }
+EOF
