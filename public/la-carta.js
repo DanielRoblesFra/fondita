@@ -44,14 +44,13 @@ function cargarCarta() {
             </div>
             `;
 
-            // Página 4
+            // Página 4 (NUEVA PÁGINA)
             const page4 = document.createElement("div");
-            page3.className = "page";
-            page3.innerHTML = `
+            page4.className = "page";
+            page4.innerHTML = `
             <div class="content">
-                <p>Costo del platillo: ${platillo.precio}</p>
-                <p>${platillo.pago.mensaje}</p>
-                <p>${platillo.pago.banco}</p>
+                <h2>Información adicional</h2>
+                <p>Aquí puedes agregar más información sobre el platillo</p>
                 <div class="back"></div>
             </div>
             `;
@@ -68,7 +67,7 @@ function cargarCarta() {
         .catch(err => console.error("Error cargando carta:", err));
     }
 
-    // Función flipPage (iCambia de pagina con el boton)
+    // Función flipPage (Cambia de pagina con el boton)
     function flipPage(){
         if(currentPage < pages.length){
             pages[currentPage].classList.add("flipped");
