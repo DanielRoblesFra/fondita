@@ -258,7 +258,7 @@ function renderMenuSemana() {
 
             fetch("/api/upload-image", {
                 method: "POST",
-                body: formData
+                body: formData,
                 credentials: 'include'
             })
                 .then(res => res.json())
@@ -399,7 +399,8 @@ function guardarCambios() {
     fetch("/api/menu", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(datosMenu)
+        body: JSON.stringify(datosMenu),
+        credentials: 'include'
     })
         .then(res => res.text())
         .then(msg => {
