@@ -7,7 +7,6 @@ const PROD_REPO_URL = process.env.PROD_REPO_URL;
 const GH_TOKEN = process.env.GH_TOKEN;
 const PROD_REPO_DIR = path.join(__dirname, '..', 'production-repo');
 const BRANCH = 'main';
-const API_BASE_URL = 'https://fondita.onrender.com';
 
 console.log('🔄 Iniciando sincronización completa...');
 
@@ -63,43 +62,168 @@ try {
     const filesToCopy = [
         { src: 'public/index.html', dest: 'index.html' },
         { src: 'public/estilos.css', dest: 'estilos.css' },
-        { src: 'public/menu.js', dest: 'menu.js' },
-        { src: 'public/la-carta.js', dest: 'la-carta.js' },
-        { src: 'public/menu-semana.js', dest: 'menu-semana.js' },
         { src: 'public/preguntas.js', dest: 'preguntas.js' },
         { src: 'public/scoll.js', dest: 'scoll.js' }
     ];
 
     // Crear directorios necesarios
-    if (!fs.existsSync(path.join(PROD_REPO_DIR, 'data'))) {
-        fs.mkdirSync(path.join(PROD_REPO_DIR, 'data'));
-    }
     if (!fs.existsSync(path.join(PROD_REPO_DIR, 'img'))) {
         fs.mkdirSync(path.join(PROD_REPO_DIR, 'img'));
     }
 
-    // Función para reemplazar las URLs en los archivos JavaScript
-    function replaceApiUrls(content) {
-        return content.replace(/fetch\(\s*["']\/api/g, `fetch("${API_BASE_URL}/api`);
+    // ✅ NUEVO: Leer los datos del menú actual
+    const menuPath = path.join(__dirname, '..', 'data', 'menu.json');
+    const menuData = JSON.parse(fs.readFileSync(menuPath, 'utf8'));
+    console.log('📊 Datos del menú cargados correctamente');
+
+    // ✅ NUEVO: Función para crear la-carta.js AUTÓNOMO
+    function createAutonomousLaCarta() {
+        return `
+// ✅ VERSIÓN AUTÓNOMA - NO DEPENDE DE RENDER
+let currentPage = 0;
+const container = document.getElementById("bookContainer");
+let pages = [];
+
+// Datos embebidos directamente
+const menuData = ${JSON.stringify(menuData, null, 2)};
+
+function cargarCarta() {
+    container.innerHTML = "";
+    
+    if (menuData.carta && menuData.carta.length > 0) {
+        const platillo = menuData.carta[0]; // Tomamos el primer platillo
+        
+        // Página 1
+        const page1 = document.createElement("div");
+        page1.className = "page";
+        page1.innerHTML = \\`
+            <div class="content">
+                <h2>Carta del día</h2>
+                <img src="img/logo.png" alt="Logo Restaurante" class="page-image">
+                <p>\\${platillo.nombre}</p>
+                <div class="back"></div>
+            </div>
+        \\`;
+
+        // Página 2
+        const page2 = document.createElement("div");
+        page2.className = "page";
+        page2.innerHTML = \\`
+            <div class="content">
+                <h2>\\${platillo.nombre}</h2>
+                <p>\\${platillo.descripcion}</p>
+                <div class="back"></div>
+            </div>
+        \\`;
+
+        // Página 3
+        const page3 = document.createElement("div");
+        page3.className = "page";
+        page3.innerHTML = \\`
+            <div class="content">
+                <p>Costo del platillo: \\${platillo.precio}</p>
+                <p>\\${platillo.pago.mensaje}</p>
+                <p>\\${platillo.pago.banco}</p>
+                <div class="back"></div>
+            </div>
+        \\`;
+
+        container.appendChild(page1);
+        container.appendChild(page2);
+        container.appendChild(page3);
+
+        // Actualizar la lista de páginas para flipPage
+        pages = document.querySelectorAll('.page');
+    }
+}
+
+// Función flipPage (Cambia de pagina con el boton)
+function flipPage(){
+    if(currentPage < pages.length){
+        pages[currentPage].classList.add("flipped");
+        currentPage++;
+    } else {
+        // Reset book
+        pages.forEach(p => p.classList.remove("flipped"));
+        currentPage = 0;
+    }
+}
+
+// Cargar la carta al iniciar
+document.addEventListener("DOMContentLoaded", () => {
+    cargarCarta();
+});
+`;
     }
 
-    // Función para agregar cache busting a las imágenes en HTML
-    function addImageCacheBusting(content) {
+    // ✅ NUEVO: Función para crear menu-semana.js AUTÓNOMO
+    function createAutonomousMenuSemana() {
+        return `
+// ✅ VERSIÓN AUTÓNOMA - NO DEPENDE DE RENDER
+document.addEventListener("DOMContentLoaded", () => {
+    const container = document.getElementById("menuSemanaContainer");
+
+    // Datos embebidos directamente
+    const menuData = ${JSON.stringify(menuData, null, 2)};
+
+    if (container && menuData.menu_semana) {
+        container.innerHTML = "";
+
+        menuData.menu_semana.forEach(dia => {
+            const card = document.createElement("div");
+            card.className = "card";
+            card.innerHTML = \\`
+                <div class="card-inner">
+                    <div class="card-front">
+                        <h1>\\${dia.dia}</h1>
+                        <p>\\${dia.fecha}</p>
+                    </div>
+                    <div class="card-back">
+                        <img src="img/\\${dia.imagen}" alt="\\${dia.dia}" class="dish-image">
+                        <ul class="menu-list">
+                            \\${dia.platillos.map(p => \\`<li>\\${p}</li>\\`).join("")}
+                        </ul>
+                    </div>
+                </div>
+            \\`;
+
+            container.appendChild(card);
+        });
+    }
+});
+`;
+    }
+
+    // ✅ NUEVO: Función para corregir rutas de imágenes en HTML
+    function fixImagePaths(content) {
+        // Cambiar rutas absolutas por relativas
+        return content
+            .replace(/src="\/img\//g, 'src="img/')
+            .replace(/src="https:\/\/fondita\.onrender\.com\/img\//g, 'src="img/');
+    }
+
+    // ✅ NUEVO: Función para agregar cache busting
+    function addCacheBusting(content) {
         return content.replace(/(src|href)=["'](.*?\.(jpg|jpeg|png|gif|svg|webp|avif))(\?v=\d+)?["']/gi, 
             (match, attr, url) => {
-                return `${attr}="${url}?v=${CACHE_BUST_TIMESTAMP}"`;
+                return \\`\\${attr}="\\${url}?v=\\${CACHE_BUST_TIMESTAMP}"\\`;
             });
     }
 
-    // Función para agregar cache busting a las imágenes en CSS
-    function addCssCacheBusting(content) {
-        return content.replace(/url\(["']?(.*?\.(jpg|jpeg|png|gif|svg|webp|avif))(\?v=\d+)?["']?\)/gi, 
-            (match, url) => {
-                return `url("${url}?v=${CACHE_BUST_TIMESTAMP}")`;
-            });
-    }
+    // ✅ NUEVO: Crear archivos AUTÓNOMOS
+    console.log('📝 Creando archivos autónomos...');
+    
+    // Crear la-carta.js autónomo
+    const laCartaContent = createAutonomousLaCarta();
+    fs.writeFileSync(path.join(PROD_REPO_DIR, 'la-carta.js'), laCartaContent, 'utf8');
+    console.log('✅ la-carta.js creado (autónomo)');
 
-    // Copiar cada archivo con cache busting
+    // Crear menu-semana.js autónomo
+    const menuSemanaContent = createAutonomousMenuSemana();
+    fs.writeFileSync(path.join(PROD_REPO_DIR, 'menu-semana.js'), menuSemanaContent, 'utf8');
+    console.log('✅ menu-semana.js creado (autónomo)');
+
+    // Copiar archivos estáticos normales
     for (const file of filesToCopy) {
         const srcPath = path.join(__dirname, '..', file.src);
         const destPath = path.join(PROD_REPO_DIR, file.dest);
@@ -107,25 +231,16 @@ try {
         if (fs.existsSync(srcPath)) {
             let content = fs.readFileSync(srcPath, 'utf8');
             
-            // Reemplazar URLs de API en archivos JS
-            if (file.src.endsWith('.js')) {
-                content = replaceApiUrls(content);
-            }
-            
-            // Agregar cache busting a HTML
-            if (file.src.endsWith('.html')) {
-                content = addImageCacheBusting(content);
-            }
-            
-            // Agregar cache busting a CSS
-            if (file.src.endsWith('.css')) {
-                content = addCssCacheBusting(content);
+            // Corregir rutas en HTML
+            if (file.dest === 'index.html') {
+                content = fixImagePaths(content);
+                content = addCacheBusting(content);
             }
             
             fs.writeFileSync(destPath, content, 'utf8');
-            console.log(`✅ Copiado y modificado: ${file.src} → ${file.dest}`);
+            console.log(\\`✅ Copiado: \\${file.src} → \\${file.dest}\\`);
         } else {
-            console.log(`⚠️  Advertencia: ${file.src} no existe`);
+            console.log(\\`⚠️  Advertencia: \\${file.src} no existe\\`);
         }
     }
 
@@ -136,11 +251,11 @@ try {
         const files = fs.readdirSync(destImgDir);
         for (const file of files) {
             fs.unlinkSync(path.join(destImgDir, file));
-            console.log(`✅ Eliminada: ${file}`);
+            console.log(\\`✅ Eliminada: \\${file}\\`);
         }
     }
 
-    // Copiar TODAS las imágenes de la carpeta img (incluyendo .avif)
+    // Copiar TODAS las imágenes de la carpeta img
     console.log('🖼️ Copiando todas las imágenes...');
     const srcImgDir = path.join(__dirname, '..', 'img');
     
@@ -151,12 +266,11 @@ try {
             const srcPath = path.join(srcImgDir, image);
             const destPath = path.join(destImgDir, image);
             
-            // Verificar si es un archivo (no directorio) y es una imagen
             if (fs.statSync(srcPath).isFile() && 
-                image.match(/\.(jpg|jpeg|png|gif|svg|webp|avif|bmp|tiff)$/i)) {
+                image.match(/\\.(jpg|jpeg|png|gif|svg|webp|avif|bmp|tiff)$/i)) {
                 
                 fs.copyFileSync(srcPath, destPath);
-                console.log(`✅ Copiada imagen: ${image}`);
+                console.log(\\`✅ Copiada imagen: \\${image}\\`);
             }
         }
     } else {
@@ -167,22 +281,22 @@ try {
     console.log('💾 Forzando detección de cambios...');
     
     // Usar git add -A para agregar todos los cambios
-    execSync(`cd ${PROD_REPO_DIR} && git add -A`, { stdio: 'inherit' });
+    execSync(\\`cd \\${PROD_REPO_DIR} && git add -A\\`, { stdio: 'inherit' });
     
     // Verificar si hay cambios realmente
-    const status = execSync(`cd ${PROD_REPO_DIR} && git status --porcelain`).toString();
+    const status = execSync(\\`cd \\${PROD_REPO_DIR} && git status --porcelain\\`).toString();
     
     if (status.trim() !== '') {
         console.log('💾 Haciendo commit de los cambios...');
-        const commitMessage = `Actualización automática con cache busting: ${new Date().toLocaleString()}`;
-        execSync(`cd ${PROD_REPO_DIR} && git commit -m "${commitMessage}"`, { stdio: 'inherit' });
+        const commitMessage = \\`Actualización automática - Archivos autónomos: \\${new Date().toLocaleString()}\\`;
+        execSync(\\`cd \\${PROD_REPO_DIR} && git commit -m "\\${commitMessage}"\\`, { stdio: 'inherit' });
 
         console.log('🚀 Subiendo cambios al repositorio...');
         // Usar la URL con autenticación para hacer push
-        execSync(`cd ${PROD_REPO_DIR} && git push ${AUTH_REPO_URL} ${BRANCH}`, { stdio: 'inherit' });
+        execSync(\\`cd \\${PROD_REPO_DIR} && git push \\${AUTH_REPO_URL} \\${BRANCH}\\`, { stdio: 'inherit' });
 
         console.log('✅ Sincronización completada con éxito!');
-        console.log('🔄 Los usuarios verán los cambios automáticamente gracias al cache busting');
+        console.log('🎯 fondita-production ahora es 100% AUTÓNOMO de Render');
     } else {
         console.log('✅ No hay cambios detectados. Todo está actualizado.');
     }
