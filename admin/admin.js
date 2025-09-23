@@ -1,6 +1,38 @@
 // admin.js
 let datosMenu = {};
 
+// 🎯 FEATURE FLAGS SYSTEM - CONTROL TOTAL (AGREGAR ESTO)
+const FEATURE_FLAGS = {
+    PAGINA_4: false  // 🔘 FALSE = Oculto para usuarios normales
+};
+
+// 🕵️‍♂️ DETECTAR SI ERES ADMINISTRADOR 
+function esAdministrador() {
+    return window.location.pathname.includes('/admin') || 
+           window.location.href.includes('?debug=true');
+}
+
+// 🔓 OBTENER ESTADO REAL DEL FEATURE
+function estaActivo(feature) {
+    const valorBase = FEATURE_FLAGS[feature];
+    
+    // Si eres admin, puedes ver features aunque estén desactivados
+    if (esAdministrador()) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const forzarActivo = urlParams.get(feature);
+        
+        if (forzarActivo !== null) {
+            return forzarActivo === 'true';
+        }
+        return true; // Admin siempre ve los features
+    }
+    
+    // Para usuarios normales, solo valor base
+    return valorBase;
+}
+// 🎯 FIN DE FEATURE FLAGS - CONTINÚA TU CÓDIGO NORMAL
+
+
 // Cargar datos al iniciar
 window.addEventListener("DOMContentLoaded", () => {
     fetch("/api/menu")
