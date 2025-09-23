@@ -150,7 +150,17 @@ nav {
         transform: rotate(45deg) translate(-5px, -6px);
     }
 }
+    /* Mejorar transición del menú móvil */
+    .nav-menu {
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateY(-10px);
+        opacity: 0;
+    }
 
+    .nav-menu.active {
+        transform: translateY(0);
+        opacity: 1;
+    }
 
 
 /* --- MENU INICIO --- */
