@@ -259,6 +259,7 @@ function renderMenuSemana() {
             fetch("/api/upload-image", {
                 method: "POST",
                 body: formData
+                credentials: 'include'
             })
                 .then(res => res.json())
                 .then(resp => {
