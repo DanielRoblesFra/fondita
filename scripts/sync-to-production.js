@@ -25,6 +25,15 @@ try {
         console.log('⚠️ No se pudo actualizar .gitignore:', error.message);
     }
 
+    // ✅ CONFIGURAR GIT EN RENDER (SOLUCIÓN AL ERROR)
+    try {
+        execSync('git config user.email "render@fondita.com"', { stdio: 'inherit' });
+        execSync('git config user.name "Render Bot"', { stdio: 'inherit' });
+        console.log('✅ Configuración de Git establecida');
+    } catch (error) {
+        console.log('⚠️ Error en configuración Git:', error.message);
+    }
+
     // ✅ PRIMERO: Guardar cambios en repositorio principal
     console.log('💾 Guardando cambios en repositorio principal...');
     try {
@@ -52,7 +61,7 @@ try {
         execSync(`cd ${PROD_REPO_DIR} && git fetch origin && git reset --hard origin/${BRANCH}`, { stdio: 'inherit' });
     }
 
-    // Configurar Git para commits
+    // Configurar Git para commits en el repo de producción
     execSync(`cd ${PROD_REPO_DIR} && git config user.email "render@fondita.com"`, { stdio: 'inherit' });
     execSync(`cd ${PROD_REPO_DIR} && git config user.name "Render Bot"`, { stdio: 'inherit' });
 
@@ -76,10 +85,9 @@ try {
     const menuData = JSON.parse(fs.readFileSync(menuPath, 'utf8'));
     console.log('📊 Datos del menú cargados correctamente');
 
-    // ✅ NUEVO: Función para crear la-carta.js AUTÓNOMO
+    // ✅ NUEVO: Función para crear la-carta.js AUTÓNOMO (VERSIÓN CORREGIDA)
     function createAutonomousLaCarta() {
-        return `
-// ✅ VERSIÓN AUTÓNOMA - NO DEPENDE DE RENDER
+        return `// ✅ VERSIÓN AUTÓNOMA - NO DEPENDE DE RENDER
 let currentPage = 0;
 const container = document.getElementById("bookContainer");
 let pages = [];
@@ -96,37 +104,17 @@ function cargarCarta() {
         // Página 1
         const page1 = document.createElement("div");
         page1.className = "page";
-        page1.innerHTML = \\`
-            <div class="content">
-                <h2>Carta del día</h2>
-                <img src="img/logo.png" alt="Logo Restaurante" class="page-image">
-                <p>\\${platillo.nombre}</p>
-                <div class="back"></div>
-            </div>
-        \\`;
+        page1.innerHTML = '<div class="content"><h2>Carta del día</h2><img src="img/logo.png" alt="Logo Restaurante" class="page-image"><p>' + platillo.nombre + '</p><div class="back"></div></div>';
 
         // Página 2
         const page2 = document.createElement("div");
         page2.className = "page";
-        page2.innerHTML = \\`
-            <div class="content">
-                <h2>\\${platillo.nombre}</h2>
-                <p>\\${platillo.descripcion}</p>
-                <div class="back"></div>
-            </div>
-        \\`;
+        page2.innerHTML = '<div class="content"><h2>' + platillo.nombre + '</h2><p>' + platillo.descripcion + '</p><div class="back"></div></div>';
 
         // Página 3
         const page3 = document.createElement("div");
         page3.className = "page";
-        page3.innerHTML = \\`
-            <div class="content">
-                <p>Costo del platillo: \\${platillo.precio}</p>
-                <p>\\${platillo.pago.mensaje}</p>
-                <p>\\${platillo.pago.banco}</p>
-                <div class="back"></div>
-            </div>
-        \\`;
+        page3.innerHTML = '<div class="content"><p>Costo del platillo: ' + platillo.precio + '</p><p>' + platillo.pago.mensaje + '</p><p>' + platillo.pago.banco + '</p><div class="back"></div></div>';
 
         container.appendChild(page1);
         container.appendChild(page2);
@@ -156,10 +144,9 @@ document.addEventListener("DOMContentLoaded", () => {
 `;
     }
 
-    // ✅ NUEVO: Función para crear menu-semana.js AUTÓNOMO
+    // ✅ NUEVO: Función para crear menu-semana.js AUTÓNOMO (VERSIÓN CORREGIDA)
     function createAutonomousMenuSemana() {
-        return `
-// ✅ VERSIÓN AUTÓNOMA - NO DEPENDE DE RENDER
+        return `// ✅ VERSIÓN AUTÓNOMA - NO DEPENDE DE RENDER
 document.addEventListener("DOMContentLoaded", () => {
     const container = document.getElementById("menuSemanaContainer");
 
@@ -172,20 +159,10 @@ document.addEventListener("DOMContentLoaded", () => {
         menuData.menu_semana.forEach(dia => {
             const card = document.createElement("div");
             card.className = "card";
-            card.innerHTML = \\`
-                <div class="card-inner">
-                    <div class="card-front">
-                        <h1>\\${dia.dia}</h1>
-                        <p>\\${dia.fecha}</p>
-                    </div>
-                    <div class="card-back">
-                        <img src="img/\\${dia.imagen}" alt="\\${dia.dia}" class="dish-image">
-                        <ul class="menu-list">
-                            \\${dia.platillos.map(p => \\`<li>\\${p}</li>\\`).join("")}
-                        </ul>
-                    </div>
-                </div>
-            \\`;
+            
+            const platillosHTML = dia.platillos.map(p => '<li>' + p + '</li>').join("");
+            
+            card.innerHTML = '<div class="card-inner"><div class="card-front"><h1>' + dia.dia + '</h1><p>' + dia.fecha + '</p></div><div class="card-back"><img src="img/' + dia.imagen + '" alt="' + dia.dia + '" class="dish-image"><ul class="menu-list">' + platillosHTML + '</ul></div></div>';
 
             container.appendChild(card);
         });
@@ -206,7 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function addCacheBusting(content) {
         return content.replace(/(src|href)=["'](.*?\.(jpg|jpeg|png|gif|svg|webp|avif))(\?v=\d+)?["']/gi, 
             (match, attr, url) => {
-                return \\`\\${attr}="\\${url}?v=\\${CACHE_BUST_TIMESTAMP}"\\`;
+                return attr + '="' + url + '?v=' + CACHE_BUST_TIMESTAMP + '"';
             });
     }
 
@@ -238,9 +215,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             
             fs.writeFileSync(destPath, content, 'utf8');
-            console.log(\\`✅ Copiado: \\${file.src} → \\${file.dest}\\`);
+            console.log('✅ Copiado: ' + file.src + ' → ' + file.dest);
         } else {
-            console.log(\\`⚠️  Advertencia: \\${file.src} no existe\\`);
+            console.log('⚠️  Advertencia: ' + file.src + ' no existe');
         }
     }
 
@@ -251,7 +228,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const files = fs.readdirSync(destImgDir);
         for (const file of files) {
             fs.unlinkSync(path.join(destImgDir, file));
-            console.log(\\`✅ Eliminada: \\${file}\\`);
+            console.log('✅ Eliminada: ' + file);
         }
     }
 
@@ -267,10 +244,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const destPath = path.join(destImgDir, image);
             
             if (fs.statSync(srcPath).isFile() && 
-                image.match(/\\.(jpg|jpeg|png|gif|svg|webp|avif|bmp|tiff)$/i)) {
+                image.match(/\.(jpg|jpeg|png|gif|svg|webp|avif|bmp|tiff)$/i)) {
                 
                 fs.copyFileSync(srcPath, destPath);
-                console.log(\\`✅ Copiada imagen: \\${image}\\`);
+                console.log('✅ Copiada imagen: ' + image);
             }
         }
     } else {
@@ -281,19 +258,19 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log('💾 Forzando detección de cambios...');
     
     // Usar git add -A para agregar todos los cambios
-    execSync(\\`cd \\${PROD_REPO_DIR} && git add -A\\`, { stdio: 'inherit' });
+    execSync('cd ' + PROD_REPO_DIR + ' && git add -A', { stdio: 'inherit' });
     
     // Verificar si hay cambios realmente
-    const status = execSync(\\`cd \\${PROD_REPO_DIR} && git status --porcelain\\`).toString();
+    const status = execSync('cd ' + PROD_REPO_DIR + ' && git status --porcelain').toString();
     
     if (status.trim() !== '') {
         console.log('💾 Haciendo commit de los cambios...');
-        const commitMessage = \\`Actualización automática - Archivos autónomos: \\${new Date().toLocaleString()}\\`;
-        execSync(\\`cd \\${PROD_REPO_DIR} && git commit -m "\\${commitMessage}"\\`, { stdio: 'inherit' });
+        const commitMessage = 'Actualización automática - Archivos autónomos: ' + new Date().toLocaleString();
+        execSync('cd ' + PROD_REPO_DIR + ' && git commit -m "' + commitMessage + '"', { stdio: 'inherit' });
 
         console.log('🚀 Subiendo cambios al repositorio...');
         // Usar la URL con autenticación para hacer push
-        execSync(\\`cd \\${PROD_REPO_DIR} && git push \\${AUTH_REPO_URL} \\${BRANCH}\\`, { stdio: 'inherit' });
+        execSync('cd ' + PROD_REPO_DIR + ' && git push ' + AUTH_REPO_URL + ' ' + BRANCH, { stdio: 'inherit' });
 
         console.log('✅ Sincronización completada con éxito!');
         console.log('🎯 fondita-production ahora es 100% AUTÓNOMO de Render');
