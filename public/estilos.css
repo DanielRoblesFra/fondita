@@ -282,6 +282,7 @@ section {
     z-index: 0;
 }
 
+.page:nth-child(1){z-index: 4;}
 .page:nth-child(1){z-index: 3;}
 .page:nth-child(2){z-index: 2;}
 .page:nth-child(3){z-index: 1;}
