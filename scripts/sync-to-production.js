@@ -86,9 +86,9 @@ try {
     const menuData = JSON.parse(fs.readFileSync(menuPath, 'utf8'));
     console.log('📊 Datos del menú cargados correctamente');
 
-    // ✅ NUEVO: Función para crear la-carta.js AUTÓNOMO (VERSIÓN CORREGIDA)
+    // ✅ NUEVO: Función para crear la-carta.js AUTÓNOMO
 function createAutonomousLaCarta() {
-   
+    return `// ✅ VERSIÓN AUTÓNOMA - 4 PÁGINAS
 let currentPage = 0;
 const container = document.getElementById("bookContainer");
 let pages = [];
@@ -105,7 +105,7 @@ function cargarCarta() {
         // Página 1 (existente)
         const page1 = document.createElement("div");
         page1.className = "page";
-        const tituloCarta = platillo.tituloCarta || "Carta del día"; // ✅ Título editable
+        const tituloCarta = platillo.tituloCarta || "Carta del día";
         page1.innerHTML = '<div class="content"><h2>' + tituloCarta + '</h2><img src="img/logo.png" alt="Logo Restaurante" class="page-image"><p>' + platillo.nombre + '</p><div class="back"></div></div>';
 
         // Página 2 (existente)
@@ -124,14 +124,12 @@ function cargarCarta() {
         const textoPagina4 = platillo.pagina4 || 'Información adicional del restaurante';
         page4.innerHTML = '<div class="content"><p>' + textoPagina4 + '</p><div class="back"></div></div>';
 
+        container.appendChild(page1);
+        container.appendChild(page2);
+        container.appendChild(page3);
+        container.appendChild(page4);
 
-    container.appendChild(page1);
-    container.appendChild(page2);
-    container.appendChild(page3);
-    container.appendChild(page4);
-
-pages = document.querySelectorAll('.page');
-        
+        pages = document.querySelectorAll('.page');
     }
 }
 
@@ -291,6 +289,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
 
 
 
