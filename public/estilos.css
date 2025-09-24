@@ -217,7 +217,7 @@ section {
 
 .la-carta .content h2,
 .la-carta .content p {
-    text-transform: none;
+    text-transform: uppercase;
     letter-spacing: 3px;
 }
 
