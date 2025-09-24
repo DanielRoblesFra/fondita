@@ -89,7 +89,7 @@ try {
     // ✅ NUEVO: Función para crear la-carta.js AUTÓNOMO (VERSIÓN CORREGIDA)
 function createAutonomousLaCarta() {
     // 🎯 FEATURE FLAG PARA PRODUCCIÓN
-    const PAGINA_4_ACTIVA = false; // 🔘 MANTENER EN FALSE POR AHORA
+    const PAGINA_4_ACTIVA = true; // 🔘 MANTENER EN FALSE POR AHORA
     
     return `// ✅ VERSIÓN AUTÓNOMA - CON FEATURE FLAGS
 let currentPage = 0;
@@ -295,5 +295,6 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
 
 
