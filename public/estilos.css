@@ -89,7 +89,6 @@ nav {
     transform: translateY(-2px);
 }
 
-
 /* MENU PARA MÓVILES */
 .hamburger {
     display: none;
@@ -217,7 +216,7 @@ section {
 
 .la-carta .content h2,
 .la-carta .content p {
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 3px;
 }
 
