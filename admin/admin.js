@@ -85,6 +85,23 @@ function renderCarta() {
         nombreGroup.appendChild(labelNombre);
         nombreGroup.appendChild(inputNombre);
 
+        // Grupo para Título "Carta del día"
+        const tituloCartaGroup = document.createElement("div");
+        tituloCartaGroup.className = "input-group";
+        const labelTituloCarta = document.createElement("label");
+        labelTituloCarta.textContent = "Título de la Carta";
+        labelTituloCarta.htmlFor = `titulo-carta-${idx}`;
+        const inputTituloCarta = document.createElement("input");
+        inputTituloCarta.type = "text";
+        inputTituloCarta.id = `titulo-carta-${idx}`;
+        inputTituloCarta.value = item.tituloCarta || "Carta del día";
+        inputTituloCarta.dataset.tipo = "carta";
+        inputTituloCarta.dataset.index = idx;
+        inputTituloCarta.dataset.campo = "tituloCarta";
+        inputTituloCarta.placeholder = "Ej: Nuestra Carta, Menú Principal, etc.";
+        tituloCartaGroup.appendChild(labelTituloCarta);
+        tituloCartaGroup.appendChild(inputTituloCarta);
+
         // Grupo para Descripción
         const descGroup = document.createElement("div");
         descGroup.className = "input-group";
@@ -207,8 +224,8 @@ function renderCarta() {
 
         // Añadir todos los grupos al contenedor principal
         div.appendChild(nombreGroup);
-        div.appendChild(descGroup);
         div.appendChild(tituloCartaGroup);
+        div.appendChild(descGroup);
         div.appendChild(precioGroup);
         div.appendChild(pagoSection);
 
