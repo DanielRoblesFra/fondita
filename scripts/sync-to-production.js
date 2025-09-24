@@ -87,8 +87,11 @@ try {
     console.log('📊 Datos del menú cargados correctamente');
 
     // ✅ NUEVO: Función para crear la-carta.js AUTÓNOMO (VERSIÓN CORREGIDA)
-    function createAutonomousLaCarta() {
-        return `// ✅ VERSIÓN AUTÓNOMA - NO DEPENDE DE RENDER
+function createAutonomousLaCarta() {
+    // 🎯 FEATURE FLAG PARA PRODUCCIÓN
+    const PAGINA_4_ACTIVA = false; // 🔘 MANTENER EN FALSE POR AHORA
+    
+    return `// ✅ VERSIÓN AUTÓNOMA - CON FEATURE FLAGS
 let currentPage = 0;
 const container = document.getElementById("bookContainer");
 let pages = [];
@@ -100,28 +103,38 @@ function cargarCarta() {
     container.innerHTML = "";
     
     if (menuData.carta && menuData.carta.length > 0) {
-        const platillo = menuData.carta[0]; // Tomamos el primer platillo
+        const platillo = menuData.carta[0];
         
-        // Página 1
+        // Página 1 (existente)
         const page1 = document.createElement("div");
         page1.className = "page";
         page1.innerHTML = '<div class="content"><h2>Carta del día</h2><img src="img/logo.png" alt="Logo Restaurante" class="page-image"><p>' + platillo.nombre + '</p><div class="back"></div></div>';
 
-        // Página 2
+        // Página 2 (existente)
         const page2 = document.createElement("div");
         page2.className = "page";
         page2.innerHTML = '<div class="content"><h2>' + platillo.nombre + '</h2><p>' + platillo.descripcion + '</p><div class="back"></div></div>';
 
-        // Página 3
+        // Página 3 (existente)
         const page3 = document.createElement("div");
         page3.className = "page";
         page3.innerHTML = '<div class="content"><p>Costo del platillo: ' + platillo.precio + '</p><p>' + platillo.pago.mensaje + '</p><p>' + platillo.pago.banco + '</p><div class="back"></div></div>';
 
+        // 🎯 PÁGINA 4 - SOLO SI ESTÁ ACTIVA EL FEATURE FLAG
+        ${PAGINA_4_ACTIVA ? `
+        // ✅ PÁGINA 4 ACTIVADA
+        const page4 = document.createElement("div");
+        page4.className = "page";
+        const textoPagina4 = platillo.pagina4 || 'Información adicional del restaurante';
+        page4.innerHTML = '<div class="content"><h2>Información Adicional</h2><p>' + textoPagina4 + '</p><div class="back"></div></div>';
+        container.appendChild(page4);
+        ` : '// ⚠️ PÁGINA 4 DESACTIVADA (Feature Flag = false)'}
+
         container.appendChild(page1);
         container.appendChild(page2);
         container.appendChild(page3);
+        ${PAGINA_4_ACTIVA ? 'container.appendChild(page4);' : ''}
 
-        // Actualizar la lista de páginas para flipPage
         pages = document.querySelectorAll('.page');
     }
 }
@@ -143,7 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
     cargarCarta();
 });
 `;
-    }
+}
 
     // ✅ NUEVO: Función para crear menu-semana.js AUTÓNOMO (VERSIÓN CORREGIDA)
     function createAutonomousMenuSemana() {
@@ -282,4 +295,5 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
 
