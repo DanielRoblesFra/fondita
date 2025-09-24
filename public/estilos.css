@@ -31,11 +31,11 @@ nav {
     margin: 0 auto;
     padding: 0 2rem;
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; /* Logo a la izq, menú a la der */
     align-items: center;
     flex-wrap: wrap;
     position: relative;
-    min-height: 80px; /* Altura fija para mejor alineación */
+    min-height: 80px;
 }
 
 .logo {
@@ -46,8 +46,7 @@ nav {
     font-size: 1.2rem;
     font-weight: bold;
     letter-spacing: 1px;
-    flex: 1;
-    min-width: 250px;
+    /* Quitamos flex:1 y min-width para que no ocupe espacio innecesario */
 }
 
 .logo a {
@@ -62,14 +61,16 @@ nav {
 }
 
 .nav-menu {
-    display: none; /* Oculto por defecto - se mostrará en desktop */
+    display: none;
     list-style: none;
     gap: 2rem;
     margin: 0; /* Quitamos margin-auto */
     flex-wrap: wrap;
     transition: all 0.3s ease;
-    align-items: center; /* Centrado vertical */
-    height: 100%; /* Ocupa toda la altura del nav */
+    align-items: center;
+    height: 100%;
+    /* Agregamos margen a la izquierda para empujar hacia la derecha */
+    margin-left: auto;
 }
 
 .nav-menu li {
@@ -85,7 +86,7 @@ nav {
     text-transform: uppercase;
     font-size: 1.2rem;
     font-weight: 500;
-    padding: 1rem 0.5rem; /* Más padding vertical para mejor centrado */
+    padding: 1rem 0.5rem;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
@@ -101,13 +102,22 @@ nav {
 /* 🔥 ESCRITORIO (768px en adelante) */
 @media screen and (min-width: 768px) {
     .nav-menu {
-        display: flex !important; /* Mostrar menú en desktop */
+        display: flex !important;
         opacity: 1 !important;
         visibility: visible !important;
     }
     
     .hamburger {
-        display: none !important; /* Ocultar hamburguesa en desktop */
+        display: none !important;
+    }
+    
+    /* 🔥 SEPARACIÓN ADICIONAL ENTRE LOGO Y MENÚ */
+    .logo {
+        margin-right: auto; /* Empuja el logo a la izquierda */
+    }
+    
+    .nav-menu {
+        margin-left: auto; /* Empuja el menú a la derecha */
     }
 }
 
@@ -138,7 +148,8 @@ nav {
 @media screen and (max-width: 767px) {
     nav {
         position: relative;
-        min-height: auto; /* Altura automática en móviles */
+        min-height: auto;
+        justify-content: flex-start; /* En móviles, logo a la izquierda */
     }
 
     .nav-menu {
@@ -152,7 +163,8 @@ nav {
         text-align: center;
         padding: 1rem 0;
         border-radius: 8px;
-        height: auto; /* Altura automática en móviles */
+        height: auto;
+        margin-left: 0; /* Reset en móviles */
     }
 
     .nav-menu.active {
@@ -197,6 +209,7 @@ nav {
         opacity: 1;
     }
 }
+
 /* --- MENU INICIO --- */
 .inicio {
     background: url("img/portada.avif") no-repeat center center/cover;
