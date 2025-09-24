@@ -67,7 +67,25 @@ function renderCarta() {
     datosMenu.carta.forEach((item, idx) => {
         const div = document.createElement("div");
         div.className = "hoja";
+        
+        // Grupo para Título "Carta del día"
+        const tituloCartaGroup = document.createElement("div");
+        tituloCartaGroup.className = "input-group";
+        const labelTituloCarta = document.createElement("label");
+        labelTituloCarta.textContent = "Título de la Carta";
+        labelTituloCarta.htmlFor = `titulo-carta-${idx}`;
+        const inputTituloCarta = document.createElement("input");
+        inputTituloCarta.type = "text";
+        inputTituloCarta.id = `titulo-carta-${idx}`;
+        inputTituloCarta.value = item.tituloCarta || "Titulo";
+        inputTituloCarta.dataset.tipo = "carta";
+        inputTituloCarta.dataset.index = idx;
+        inputTituloCarta.dataset.campo = "tituloCarta";
+        inputTituloCarta.placeholder = "Ej: Titulo del libro";
+        tituloCartaGroup.appendChild(labelTituloCarta);
+        tituloCartaGroup.appendChild(inputTituloCarta);
 
+        
         // Grupo para Nombre
         const nombreGroup = document.createElement("div");
         nombreGroup.className = "input-group";
@@ -84,23 +102,6 @@ function renderCarta() {
         inputNombre.placeholder = "Ej: Texto";
         nombreGroup.appendChild(labelNombre);
         nombreGroup.appendChild(inputNombre);
-
-        // Grupo para Título "Carta del día"
-        const tituloCartaGroup = document.createElement("div");
-        tituloCartaGroup.className = "input-group";
-        const labelTituloCarta = document.createElement("label");
-        labelTituloCarta.textContent = "Título de la Carta";
-        labelTituloCarta.htmlFor = `titulo-carta-${idx}`;
-        const inputTituloCarta = document.createElement("input");
-        inputTituloCarta.type = "text";
-        inputTituloCarta.id = `titulo-carta-${idx}`;
-        inputTituloCarta.value = item.tituloCarta || "Carta del día";
-        inputTituloCarta.dataset.tipo = "carta";
-        inputTituloCarta.dataset.index = idx;
-        inputTituloCarta.dataset.campo = "tituloCarta";
-        inputTituloCarta.placeholder = "Ej: Nuestra Carta, Menú Principal, etc.";
-        tituloCartaGroup.appendChild(labelTituloCarta);
-        tituloCartaGroup.appendChild(inputTituloCarta);
 
         // Grupo para Descripción
         const descGroup = document.createElement("div");
@@ -185,35 +186,26 @@ function renderCarta() {
         pagoSection.appendChild(bancoGroup);
 
          // 🎯 PÁGINA 4 
-        if (estaActivo('PAGINA_4')) {
-            const pagina4Group = document.createElement("div");
-            pagina4Group.className = "input-group";
-            pagina4Group.style.border = "2px solid #ff9900";
-            pagina4Group.style.padding = "10px";
-            pagina4Group.style.borderRadius = "5px";
-            pagina4Group.style.marginTop = "20px";
-            pagina4Group.style.background = "#fff3e0";
-            
-            const labelPagina4 = document.createElement("label");
-            labelPagina4.textContent = "📄 Texto Página 4 (NUEVA PÁGINA)";
-            labelPagina4.htmlFor = `pagina4-${idx}`;
-            labelPagina4.style.color = "#ff9900";
-            labelPagina4.style.fontWeight = "bold";
-            
-            const textareaPagina4 = document.createElement("textarea");
-            textareaPagina4.id = `pagina4-${idx}`;
-            textareaPagina4.value = item.pagina4 || "";
-            textareaPagina4.dataset.tipo = "carta";
-            textareaPagina4.dataset.index = idx;
-            textareaPagina4.dataset.campo = "pagina4";
-            textareaPagina4.placeholder = "Ej: Mensaje para la hoja 4";
-            textareaPagina4.rows = 4;
-            textareaPagina4.style.width = "100%";
-            
-            // 🔍 INDICADOR VISUAL PARA ADMIN
-            const indicador = document.createElement("div");
-            indicador.innerHTML = '<small style="color: #ff9900;">🔧 MODO PRUEBA - Solo visible para admin</small>';
-            indicador.style.marginTop = "5px";
+         const pagina4Group = document.createElement("div");
+        pagina4Group.className = "input-group";
+        // Quitamos los estilos de color para que sea normal
+        pagina4Group.style.marginTop = "20px";
+        
+        const labelPagina4 = document.createElement("label");
+        labelPagina4.textContent = "Texto Página 4 (NUEVA PÁGINA)";
+        labelPagina4.htmlFor = `pagina4-${idx}`;
+        // Quitamos el color naranja para que sea normal
+        labelPagina4.style.fontWeight = "bold";
+        
+        const textareaPagina4 = document.createElement("textarea");
+        textareaPagina4.id = `pagina4-${idx}`;
+        textareaPagina4.value = item.pagina4 || "";
+        textareaPagina4.dataset.tipo = "carta";
+        textareaPagina4.dataset.index = idx;
+        textareaPagina4.dataset.campo = "pagina4";
+        textareaPagina4.placeholder = "Ej: Mensaje para la hoja 4";
+        textareaPagina4.rows = 4;
+        textareaPagina4.style.width = "100%";
             
             pagina4Group.appendChild(labelPagina4);
             pagina4Group.appendChild(textareaPagina4);
@@ -223,11 +215,12 @@ function renderCarta() {
 
 
         // Añadir todos los grupos al contenedor principal
-        div.appendChild(nombreGroup);
         div.appendChild(tituloCartaGroup);
+        div.appendChild(nombreGroup);
         div.appendChild(descGroup);
         div.appendChild(precioGroup);
         div.appendChild(pagoSection);
+        div.appendChild(pagina4Group);
 
         container.appendChild(div);
     });
