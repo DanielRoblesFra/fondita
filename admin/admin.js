@@ -209,7 +209,7 @@ function renderCarta() {
         div.appendChild(pagina4Group);
     
         container.appendChild(div);
-    }); ch
+    }); 
 } 
 // ------------------ Renderizar Menú de la Semana ------------------
 function renderMenuSemana() {
