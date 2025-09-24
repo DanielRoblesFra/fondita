@@ -89,6 +89,7 @@ nav {
     transform: translateY(-2px);
 }
 
+
 /* MENU PARA MÓVILES */
 .hamburger {
     display: none;
@@ -888,15 +889,5 @@ iframe {
     
     iframe {
         height: 250px;
-    }
-}
- /*forzar a mostrar el menu de navegacion en pc de escritorio*/
-@media screen and (min-width: 768px) {
-    .nav-menu {
-        display: flex !important; 
-    }
-    
-    .hamburger {
-        display: none !important;
     }
 }
