@@ -167,6 +167,44 @@ function renderCarta() {
         pagoSection.appendChild(pagoMensajeGroup);
         pagoSection.appendChild(bancoGroup);
 
+         // 🎯 PÁGINA 4 - SOLO SI EL FEATURE ESTÁ ACTIVO O ERES ADMIN
+        if (estaActivo('PAGINA_4')) {
+            const pagina4Group = document.createElement("div");
+            pagina4Group.className = "input-group";
+            pagina4Group.style.border = "2px solid #ff9900";
+            pagina4Group.style.padding = "10px";
+            pagina4Group.style.borderRadius = "5px";
+            pagina4Group.style.marginTop = "20px";
+            pagina4Group.style.background = "#fff3e0";
+            
+            const labelPagina4 = document.createElement("label");
+            labelPagina4.textContent = "📄 Texto Página 4 (NUEVA PÁGINA)";
+            labelPagina4.htmlFor = `pagina4-${idx}`;
+            labelPagina4.style.color = "#ff9900";
+            labelPagina4.style.fontWeight = "bold";
+            
+            const textareaPagina4 = document.createElement("textarea");
+            textareaPagina4.id = `pagina4-${idx}`;
+            textareaPagina4.value = item.pagina4 || "";
+            textareaPagina4.dataset.tipo = "carta";
+            textareaPagina4.dataset.index = idx;
+            textareaPagina4.dataset.campo = "pagina4";
+            textareaPagina4.placeholder = "Ej: Horarios: Lunes a Viernes 1:30 PM - 5:00 PM\nDirección: Calle del Nabo 502-5\nTeléfono: 3316922341";
+            textareaPagina4.rows = 4;
+            textareaPagina4.style.width = "100%";
+            
+            // 🔍 INDICADOR VISUAL PARA ADMIN
+            const indicador = document.createElement("div");
+            indicador.innerHTML = '<small style="color: #ff9900;">🔧 MODO PRUEBA - Solo visible para admin</small>';
+            indicador.style.marginTop = "5px";
+            
+            pagina4Group.appendChild(labelPagina4);
+            pagina4Group.appendChild(textareaPagina4);
+            pagina4Group.appendChild(indicador);
+            div.appendChild(pagina4Group);
+        }
+
+
         // Añadir todos los grupos al contenedor principal
         div.appendChild(nombreGroup);
         div.appendChild(descGroup);
