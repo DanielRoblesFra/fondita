@@ -88,7 +88,7 @@ try {
 
     // ✅ NUEVO: Función para crear la-carta.js AUTÓNOMO
 function createAutonomousLaCarta() {
-    return `// ✅ VERSIÓN AUTÓNOMA - 4 PÁGINAS
+    return `
 let currentPage = 0;
 const container = document.getElementById("bookContainer");
 let pages = [];
@@ -289,6 +289,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
 
 
 
