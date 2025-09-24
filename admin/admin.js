@@ -81,7 +81,7 @@ function renderCarta() {
         inputNombre.dataset.tipo = "carta";
         inputNombre.dataset.index = idx;
         inputNombre.dataset.campo = "nombre";
-        inputNombre.placeholder = "Ej: Pizza Bolofiesa";
+        inputNombre.placeholder = "Ej: Texto";
         nombreGroup.appendChild(labelNombre);
         nombreGroup.appendChild(inputNombre);
 
@@ -143,7 +143,7 @@ function renderCarta() {
         inputPago.dataset.tipo = "carta";
         inputPago.dataset.index = idx;
         inputPago.dataset.campo = "pago_mensaje";
-        inputPago.placeholder = "Ej: Transferencia a: Claude";
+        inputPago.placeholder = "Ej: Transferencia a: Claudia";
         pagoMensajeGroup.appendChild(labelPago);
         pagoMensajeGroup.appendChild(inputPago);
 
@@ -167,7 +167,7 @@ function renderCarta() {
         pagoSection.appendChild(pagoMensajeGroup);
         pagoSection.appendChild(bancoGroup);
 
-         // 🎯 PÁGINA 4 - SOLO SI EL FEATURE ESTÁ ACTIVO O ERES ADMIN
+         // 🎯 PÁGINA 4 
         if (estaActivo('PAGINA_4')) {
             const pagina4Group = document.createElement("div");
             pagina4Group.className = "input-group";
@@ -189,7 +189,7 @@ function renderCarta() {
             textareaPagina4.dataset.tipo = "carta";
             textareaPagina4.dataset.index = idx;
             textareaPagina4.dataset.campo = "pagina4";
-            textareaPagina4.placeholder = "Ej: Horarios: Lunes a Viernes 1:30 PM - 5:00 PM\nDirección: Calle del Nabo 502-5\nTeléfono: 3316922341";
+            textareaPagina4.placeholder = "Ej: Mensaje para la hoja 4";
             textareaPagina4.rows = 4;
             textareaPagina4.style.width = "100%";
             
@@ -208,6 +208,7 @@ function renderCarta() {
         // Añadir todos los grupos al contenedor principal
         div.appendChild(nombreGroup);
         div.appendChild(descGroup);
+        div.appendChild(tituloCartaGroup);
         div.appendChild(precioGroup);
         div.appendChild(pagoSection);
 
