@@ -31,10 +31,11 @@ nav {
     margin: 0 auto;
     padding: 0 2rem;
     display: flex;
-    justify-content: space-between; /* Logo a la izq, menú/hamburger a la derecha */
+    justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
     position: relative;
+    min-height: 80px; /* Altura fija para mejor alineación */
 }
 
 .logo {
@@ -61,16 +62,21 @@ nav {
 }
 
 .nav-menu {
-    display: flex;
+    display: none; /* Oculto por defecto - se mostrará en desktop */
     list-style: none;
     gap: 2rem;
-    margin: auto;
+    margin: 0; /* Quitamos margin-auto */
     flex-wrap: wrap;
     transition: all 0.3s ease;
+    align-items: center; /* Centrado vertical */
+    height: 100%; /* Ocupa toda la altura del nav */
 }
 
 .nav-menu li {
     position: relative;
+    display: flex;
+    align-items: center;
+    height: 100%;
 }
 
 .nav-menu a {
@@ -79,14 +85,30 @@ nav {
     text-transform: uppercase;
     font-size: 1.2rem;
     font-weight: 500;
-    padding: 0.5rem 0;
+    padding: 1rem 0.5rem; /* Más padding vertical para mejor centrado */
     transition: all 0.3s ease;
-    display: block;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    line-height: 1;
 }
 
 .nav-menu a:hover {
     color: rgba(241, 158, 3, 1);
     transform: translateY(-2px);
+}
+
+/* 🔥 ESCRITORIO (768px en adelante) */
+@media screen and (min-width: 768px) {
+    .nav-menu {
+        display: flex !important; /* Mostrar menú en desktop */
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+    
+    .hamburger {
+        display: none !important; /* Ocultar hamburguesa en desktop */
+    }
 }
 
 /* MENU PARA MÓVILES */
@@ -95,10 +117,10 @@ nav {
     cursor: pointer;
     font-size: 1.8rem;
     color: white;
-    position: absolute; /* lo posicionamos en la barra */
+    position: absolute;
     top: 50%;
-    right: 2rem; /* margen desde el borde derecho */
-    transform: translateY(-50%); /* centrado vertical */
+    right: 2rem;
+    transform: translateY(-50%);
     z-index: 1100;
 }
 
@@ -116,10 +138,11 @@ nav {
 @media screen and (max-width: 767px) {
     nav {
         position: relative;
+        min-height: auto; /* Altura automática en móviles */
     }
 
     .nav-menu {
-        display: none; /* oculto por defecto */
+        display: none;
         flex-direction: column;
         width: 100%;
         background: rgba(236, 184, 115, 0.95);
@@ -129,14 +152,26 @@ nav {
         text-align: center;
         padding: 1rem 0;
         border-radius: 8px;
+        height: auto; /* Altura automática en móviles */
     }
 
     .nav-menu.active {
-        display: flex; /* aparece al dar clic */
+        display: flex;
+    }
+
+    .nav-menu li {
+        height: auto;
+        display: block;
+    }
+
+    .nav-menu a {
+        padding: 0.8rem 1rem;
+        height: auto;
+        justify-content: center;
     }
 
     .hamburger {
-        display: block; /* visible en móvil */
+        display: block;
     }
 
     /* Transformar icono al abrir menú */
@@ -149,7 +184,7 @@ nav {
     .hamburger.active .bar3 {
         transform: rotate(45deg) translate(-5px, -6px);
     }
-}
+    
     /* Mejorar transición del menú móvil */
     .nav-menu {
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -161,8 +196,7 @@ nav {
         transform: translateY(0);
         opacity: 1;
     }
-
-
+}
 /* --- MENU INICIO --- */
 .inicio {
     background: url("img/portada.avif") no-repeat center center/cover;
