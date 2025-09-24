@@ -186,6 +186,7 @@ function renderCarta() {
         pagoSection.appendChild(bancoGroup);
 
         // 🎯 PÁGINA 4 
+// 🎯 PÁGINA 4 - ÚLTIMO
         const pagina4Group = document.createElement("div");
         pagina4Group.className = "input-group";
         pagina4Group.style.marginTop = "20px";
@@ -206,6 +207,13 @@ function renderCarta() {
         textareaPagina4.style.width = "100%";
         
         pagina4Group.appendChild(labelPagina4);
+        pagina4Group.appendChild(textareaPagina4);
+
+        div.appendChild(tituloCartaGroup);
+        div.appendChild(nombreGroup);
+        div.appendChild(descGroup);
+        div.appendChild(precioGroup); 
+        div.appendChild(pagoSection);
         div.appendChild(pagina4Group);
     
         container.appendChild(div);
