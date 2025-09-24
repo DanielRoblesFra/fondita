@@ -148,7 +148,7 @@ function renderCarta() {
         pagoTitle.style.fontSize = "1.1rem";
         pagoSection.appendChild(pagoTitle);
 
-        // Mensaje de pago
+         // Mensaje de pago
         const pagoMensajeGroup = document.createElement("div");
         pagoMensajeGroup.className = "input-group";
         const labelPago = document.createElement("label");
@@ -185,16 +185,14 @@ function renderCarta() {
         pagoSection.appendChild(pagoMensajeGroup);
         pagoSection.appendChild(bancoGroup);
 
-         // 🎯 PÁGINA 4 
-         const pagina4Group = document.createElement("div");
+        // 🎯 PÁGINA 4 
+        const pagina4Group = document.createElement("div");
         pagina4Group.className = "input-group";
-        // Quitamos los estilos de color para que sea normal
         pagina4Group.style.marginTop = "20px";
         
         const labelPagina4 = document.createElement("label");
         labelPagina4.textContent = "Texto Página 4 (NUEVA PÁGINA)";
         labelPagina4.htmlFor = `pagina4-${idx}`;
-        // Quitamos el color naranja para que sea normal
         labelPagina4.style.fontWeight = "bold";
         
         const textareaPagina4 = document.createElement("textarea");
@@ -206,26 +204,13 @@ function renderCarta() {
         textareaPagina4.placeholder = "Ej: Mensaje para la hoja 4";
         textareaPagina4.rows = 4;
         textareaPagina4.style.width = "100%";
-            
-            pagina4Group.appendChild(labelPagina4);
-            pagina4Group.appendChild(textareaPagina4);
-            pagina4Group.appendChild(indicador);
-            div.appendChild(pagina4Group);
-        }
-
-
-        // Añadir todos los grupos al contenedor principal
-        div.appendChild(tituloCartaGroup);
-        div.appendChild(nombreGroup);
-        div.appendChild(descGroup);
-        div.appendChild(precioGroup);
-        div.appendChild(pagoSection);
+        
+        pagina4Group.appendChild(labelPagina4);
         div.appendChild(pagina4Group);
-
+    
         container.appendChild(div);
-    });
-}
-
+    }); ch
+} 
 // ------------------ Renderizar Menú de la Semana ------------------
 function renderMenuSemana() {
     const container = document.getElementById("menuContainer");
