@@ -890,3 +890,26 @@ iframe {
         height: 250px;
     }
 }
+
+/* 🔥 SOLUCIÓN - MOSTRAR MENÚ EN ESCRITORIO */
+@media screen and (min-width: 768px) {
+    .nav-menu {
+        display: flex !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+    
+    .hamburger {
+        display: none !important;
+    }
+}
+
+/* 🔥 ASEGURAR QUE EL TEXTO SEA VISIBLE */
+.nav-menu a {
+    color: white !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.nav-menu a:hover {
+    color: rgba(241, 158, 3, 1) !important;
+}
