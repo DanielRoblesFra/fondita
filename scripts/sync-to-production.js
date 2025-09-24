@@ -88,10 +88,7 @@ try {
 
     // ✅ NUEVO: Función para crear la-carta.js AUTÓNOMO (VERSIÓN CORREGIDA)
 function createAutonomousLaCarta() {
-    // 🎯 FEATURE FLAG PARA PRODUCCIÓN
-    const PAGINA_4_ACTIVA = true; // 🔘 MANTENER EN FALSE POR AHORA
-    
-    return `// ✅ VERSIÓN AUTÓNOMA - CON FEATURE FLAGS
+   
 let currentPage = 0;
 const container = document.getElementById("bookContainer");
 let pages = [];
@@ -108,7 +105,8 @@ function cargarCarta() {
         // Página 1 (existente)
         const page1 = document.createElement("div");
         page1.className = "page";
-        page1.innerHTML = '<div class="content"><h2>Carta del día</h2><img src="img/logo.png" alt="Logo Restaurante" class="page-image"><p>' + platillo.nombre + '</p><div class="back"></div></div>';
+        const tituloCarta = platillo.tituloCarta || "Carta del día"; // ✅ Título editable
+        page1.innerHTML = '<div class="content"><h2>' + tituloCarta + '</h2><img src="img/logo.png" alt="Logo Restaurante" class="page-image"><p>' + platillo.nombre + '</p><div class="back"></div></div>';
 
         // Página 2 (existente)
         const page2 = document.createElement("div");
@@ -120,27 +118,20 @@ function cargarCarta() {
         page3.className = "page";
         page3.innerHTML = '<div class="content"><p>Costo del platillo: ' + platillo.precio + '</p><p>' + platillo.pago.mensaje + '</p><p>' + platillo.pago.banco + '</p><div class="back"></div></div>';
 
-        // 🎯 PÁGINA 4 - SOLO SI ESTÁ ACTIVA EL FEATURE FLAG
-    ${PAGINA_4_ACTIVA ? `
-    const page4 = document.createElement("div");
-    page4.className = "page";
-    const textoPagina4 = platillo.pagina4 || 'Información adicional del restaurante';
-    page4.innerHTML = '<div class="content"><h2>Información Adicional</h2><p style=\"color: red; font-weight: bold;\">' + textoPagina4 + '</p><div class=\"back\"></div></div>';
-    container.appendChild(page4);
-    ` : ''}
+        // PÁGINA 4 
+        const page4 = document.createElement("div");
+        page4.className = "page";
+        const textoPagina4 = platillo.pagina4 || 'Información adicional del restaurante';
+        page4.innerHTML = '<div class="content"><p>' + textoPagina4 + '</p><div class="back"></div></div>';
+
 
     container.appendChild(page1);
     container.appendChild(page2);
     container.appendChild(page3);
-    ${PAGINA_4_ACTIVA ? 'container.appendChild(page4);' : ''}
+    container.appendChild(page4);
 
 pages = document.querySelectorAll('.page');
-// 🔍 DEBUG
-console.log('PÁGINA 4 ACTIVADA:', ${PAGINA_4_ACTIVA});
-console.log('TOTAL PÁGINAS:', pages.length);
-pages.forEach((page, index) => {
-    console.log('Página', index + 1, ':', page.innerHTML.substring(0, 100) + '...');
-});
+        
     }
 }
 
@@ -300,6 +291,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
 
 
 
