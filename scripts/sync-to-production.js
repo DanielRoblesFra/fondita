@@ -121,21 +121,26 @@ function cargarCarta() {
         page3.innerHTML = '<div class="content"><p>Costo del platillo: ' + platillo.precio + '</p><p>' + platillo.pago.mensaje + '</p><p>' + platillo.pago.banco + '</p><div class="back"></div></div>';
 
         // 🎯 PÁGINA 4 - SOLO SI ESTÁ ACTIVA EL FEATURE FLAG
-        ${PAGINA_4_ACTIVA ? `
-        // ✅ PÁGINA 4 ACTIVADA
-        const page4 = document.createElement("div");
-        page4.className = "page";
-        const textoPagina4 = platillo.pagina4 || 'Información adicional del restaurante';
-        page4.innerHTML = '<div class="content"><h2>Información Adicional</h2><p>' + textoPagina4 + '</p><div class="back"></div></div>';
-        container.appendChild(page4);
-        ` : '// ⚠️ PÁGINA 4 DESACTIVADA (Feature Flag = false)'}
+    ${PAGINA_4_ACTIVA ? `
+    const page4 = document.createElement("div");
+    page4.className = "page";
+    const textoPagina4 = platillo.pagina4 || 'Información adicional del restaurante';
+    page4.innerHTML = '<div class="content"><h2>Información Adicional</h2><p style=\"color: red; font-weight: bold;\">' + textoPagina4 + '</p><div class=\"back\"></div></div>';
+    container.appendChild(page4);
+    ` : ''}
 
-        container.appendChild(page1);
-        container.appendChild(page2);
-        container.appendChild(page3);
-        ${PAGINA_4_ACTIVA ? 'container.appendChild(page4);' : ''}
+    container.appendChild(page1);
+    container.appendChild(page2);
+    container.appendChild(page3);
+    ${PAGINA_4_ACTIVA ? 'container.appendChild(page4);' : ''}
 
-        pages = document.querySelectorAll('.page');
+pages = document.querySelectorAll('.page');
+// 🔍 DEBUG
+console.log('PÁGINA 4 ACTIVADA:', ${PAGINA_4_ACTIVA});
+console.log('TOTAL PÁGINAS:', pages.length);
+pages.forEach((page, index) => {
+    console.log('Página', index + 1, ':', page.innerHTML.substring(0, 100) + '...');
+});
     }
 }
 
@@ -295,6 +300,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
 
 
 
