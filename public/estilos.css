@@ -16,7 +16,6 @@ body {
 }
 
 /*BARRA DE NAVEGACION*/
-/*BARRA DE NAVEGACION*/
 header {
     position: fixed;
     top: 0;
@@ -28,7 +27,7 @@ header {
 }
 
 nav {
-    max-width: 1400px; /* Aumentamos el max-width para más espacio */
+    max-width: 1200px; /* Volvemos al ancho original */
     margin: 0 auto;
     padding: 0 2rem;
     display: flex;
@@ -37,7 +36,7 @@ nav {
     flex-wrap: wrap;
     position: relative;
     min-height: 80px;
-    gap: 2rem; /* Agregamos gap entre elementos */
+    gap: 1rem; /* Gap más moderado */
 }
 
 .logo {
@@ -70,7 +69,7 @@ nav {
 .nav-menu {
     display: none;
     list-style: none;
-    gap: 2.5rem; /* Más espacio entre elementos del menú */
+    gap: 1.5rem; /* Gap más moderado entre elementos del menú */
     margin: 0;
     flex-wrap: wrap;
     transition: all 0.3s ease;
@@ -110,7 +109,7 @@ nav {
 @media screen and (min-width: 768px) {
     nav {
         justify-content: space-between; /* Distribución clara */
-        padding: 0 3rem; /* Más padding lateral */
+        padding: 0 2.5rem; /* Padding moderado */
     }
     
     .nav-menu {
@@ -118,6 +117,7 @@ nav {
         opacity: 1 !important;
         visibility: visible !important;
         margin-left: auto; /* Empuja completamente a la derecha */
+        gap: 1.8rem; /* Gap moderado */
     }
     
     .hamburger {
@@ -129,25 +129,43 @@ nav {
     }
 }
 
-/* 🔥 LAPTOPS Y PANTALLAS GRANDES - Mayor separación */
-@media screen and (min-width: 1024px) {
+/* 🔥 RESOLUCIONES MEDIANAS (1024px - 1366px) */
+@media screen and (min-width: 1024px) and (max-width: 1366px) {
     nav {
-        max-width: 1500px; /* Más ancho en pantallas grandes */
-        padding: 0 4rem; /* Más padding */
-        gap: 3rem; /* Gap mayor */
+        max-width: 1100px; /* Ancho controlado */
+        padding: 0 3rem;
+        gap: 1.5rem;
     }
     
     .nav-menu {
-        gap: 3rem; /* Más espacio entre elementos */
+        gap: 2rem; /* Gap equilibrado */
     }
     
     .nav-menu a {
-        font-size: 1.2rem; /* Restauramos tamaño original */
-        padding: 1rem 1rem; /* Más padding */
+        font-size: 1.1rem;
+        padding: 1rem 0.8rem;
+    }
+}
+
+/* 🔥 PANTALLAS GRANDES (1367px en adelante) */
+@media screen and (min-width: 1367px) {
+    nav {
+        max-width: 1300px;
+        padding: 0 3.5rem;
+        gap: 2rem;
+    }
+    
+    .nav-menu {
+        gap: 2.5rem;
+    }
+    
+    .nav-menu a {
+        font-size: 1.2rem;
+        padding: 1rem 1rem;
     }
     
     .logo {
-        font-size: 1.3rem; /* Logo ligeramente más grande */
+        font-size: 1.3rem;
     }
     
     .logo img {
@@ -156,16 +174,25 @@ nav {
     }
 }
 
-/* 🔥 PANTALLAS MUY GRANDES - Separación máxima */
-@media screen and (min-width: 1440px) {
+/* 🔥 FIX ESPECÍFICO PARA 1280x800 Y SIMILARES */
+@media screen and (min-width: 1200px) and (max-width: 1366px) and (max-height: 900px) {
     nav {
-        max-width: 1600px;
-        padding: 0 5rem;
-        gap: 4rem;
+        max-width: 1050px; /* Más compacto */
+        padding: 0 2rem;
+        gap: 1rem;
     }
     
     .nav-menu {
-        gap: 3.5rem;
+        gap: 1.5rem; /* Gap más ajustado */
+    }
+    
+    .nav-menu a {
+        font-size: 1rem;
+        padding: 1rem 0.5rem;
+    }
+    
+    .logo {
+        font-size: 1.1rem;
     }
 }
 
