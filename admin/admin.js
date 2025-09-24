@@ -186,13 +186,12 @@ function renderCarta() {
         pagoSection.appendChild(bancoGroup);
 
         // 🎯 PÁGINA 4 
-// 🎯 PÁGINA 4 - ÚLTIMO
         const pagina4Group = document.createElement("div");
         pagina4Group.className = "input-group";
         pagina4Group.style.marginTop = "20px";
         
         const labelPagina4 = document.createElement("label");
-        labelPagina4.textContent = "Texto Página 4 (NUEVA PÁGINA)";
+        labelPagina4.textContent = "Escribe texto para la página 4";
         labelPagina4.htmlFor = `pagina4-${idx}`;
         labelPagina4.style.fontWeight = "bold";
         
