@@ -327,6 +327,45 @@ nav {
     }
 }
 
+/* --- MENU INICIO --- */
+.inicio {
+    background: url("img/portada.avif") no-repeat center center/cover;
+    color: #fff;
+    height: 100vh;
+    background-size: cover;
+    background-position: center center;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+section {
+    padding-top: 80px;
+}
+
+.inicio {
+    padding-top: 0;
+}
+
+.inicio .contenido_seccion {
+    max-width: 1100px;
+    padding: 0 1rem; 
+}
+
+.inicio .info h2 {
+    font-size: 4rem;
+    letter-spacing: 3px;
+    margin-bottom: 20px; 
+}
+
+.inicio .info p {
+    font-size: 1.2rem; 
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
 /*LA CARTA*/
 .la-carta {
     min-height: 100vh;
