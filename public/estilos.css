@@ -147,21 +147,21 @@ nav {
     }
 }
 
-/* 🔥 PANTALLAS GRANDES (1367px en adelante) */
-@media screen and (min-width: 1367px) {
+/* 🔥 PANTALLAS GRANDES DE ESCRITORIO (1367px - 1599px) */
+@media screen and (min-width: 1367px) and (max-width: 1599px) {
     nav {
-        max-width: 1300px;
-        padding: 0 3.5rem;
-        gap: 2rem;
+        max-width: 1400px; /* Más ancho para aprovechar espacio */
+        padding: 0 4rem; /* Más padding lateral */
+        gap: 2.5rem; /* Gap mayor entre logo y menú */
     }
     
     .nav-menu {
-        gap: 2.5rem;
+        gap: 2.8rem; /* Más separación entre elementos */
     }
     
     .nav-menu a {
         font-size: 1.2rem;
-        padding: 1rem 1rem;
+        padding: 1rem 1.2rem; /* Más padding */
     }
     
     .logo {
@@ -171,6 +171,34 @@ nav {
     .logo img {
         width: 65px;
         height: 65px;
+    }
+}
+
+/* 🔥 PANTALLAS MUY GRANDES DE ESCRITORIO (1600px en adelante) */
+@media screen and (min-width: 1600px) {
+    nav {
+        max-width: 1600px; /* Ancho completo para monitores grandes */
+        padding: 0 5rem; /* Padding generoso */
+        gap: 3rem; /* Gap amplio */
+    }
+    
+    .nav-menu {
+        gap: 3.2rem; /* Separación amplia entre elementos */
+    }
+    
+    .nav-menu a {
+        font-size: 1.3rem; /* Texto más grande */
+        padding: 1rem 1.5rem; /* Padding generoso */
+    }
+    
+    .logo {
+        font-size: 1.4rem; /* Logo más grande */
+        gap: 1rem; /* Más espacio entre logo e imagen */
+    }
+    
+    .logo img {
+        width: 70px;
+        height: 70px;
     }
 }
 
@@ -297,45 +325,6 @@ nav {
         width: 50px;
         height: 50px;
     }
-}
-
-/* --- MENU INICIO --- */
-.inicio {
-    background: url("img/portada.avif") no-repeat center center/cover;
-    color: #fff;
-    height: 100vh;
-    background-size: cover;
-    background-position: center center;
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-}
-
-section {
-    padding-top: 80px;
-}
-
-.inicio {
-    padding-top: 0;
-}
-
-.inicio .contenido_seccion {
-    max-width: 1100px;
-    padding: 0 1rem; 
-}
-
-.inicio .info h2 {
-    font-size: 4rem;
-    letter-spacing: 3px;
-    margin-bottom: 20px; 
-}
-
-.inicio .info p {
-    font-size: 1.2rem; 
-    letter-spacing: 3px;
-    text-transform: uppercase;
 }
 
 /*LA CARTA*/
