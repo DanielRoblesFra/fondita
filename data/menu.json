@@ -37,32 +37,32 @@
     },
     {
       "dia": "Miércoles",
-      "fecha": "2025-09-24",
-      "imagen": "1758745660508.jpg",
+      "fecha": "2025-10-01",
+      "imagen": "1759017457614.jpg",
       "platillos": [
-        "Texto",
-        "Platillo",
-        "texto"
+        "Arroz rojo",
+        "Pollo al limón",
+        "Ensalada",
+        "Postre"
       ]
     },
     {
       "dia": "Jueves",
-      "fecha": "2025-09-25",
-      "imagen": "1758745676308.jpg",
+      "fecha": "2025-10-02",
+      "imagen": "1759017474160.jpg",
       "platillos": [
-        "Texto",
-        "Platillo",
-        "texto"
+        "Sopa de habas",
+        "Ceviche con tostadas",
+        "Postre"
       ]
     },
     {
       "dia": "Viernes",
-      "fecha": "2025-09-26",
-      "imagen": "1758745688021.jpg",
+      "fecha": "2025-10-03",
+      "imagen": "1759017495149.jpeg",
       "platillos": [
-        "Texto",
-        "Platillo",
-        "texto"
+        "Carne en su jugo (estilo Jalisco)",
+        "Postre"
       ]
     }
   ]
