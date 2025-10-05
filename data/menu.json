@@ -18,51 +18,52 @@
       "fecha": "2025-10-06",
       "imagen": "1759688754359.jpg",
       "platillos": [
-        "Arroz blanco",
-        "Mole encacahuetado",
-        "Frijoles de olla",
-        "Postre"
-      ]
-    },
-    {
-      "dia": "Martes",
-      "fecha": "2025-09-30",
-      "imagen": "1759689012357.jpeg",
-      "platillos": [
-        "Sopa de fideos",
-        "Salpicon de res",
-        "Frijoles de la olla",
-        "Postre"
-      ]
-    },
-    {
-      "dia": "Miércoles",
-      "fecha": "2025-10-01",
-      "imagen": "1759688994888.jpg",
-      "platillos": [
-        "Arroz rojo",
-        "Pollo al limón",
+        "Arroz blanco con elote",
+        "Tortitas de papa con atún",
         "Ensalada",
         "Postre"
       ]
     },
     {
+      "dia": "Martes",
+      "fecha": "2025-10-07",
+      "imagen": "1759689012357.jpeg",
+      "platillos": [
+        "Crema de zanahoria",
+        "Hamburguesas de carne de res",
+        "Ensalada",
+        "Postre"
+      ]
+    },
+    {
+      "dia": "Miércoles",
+      "fecha": "2025-10-08",
+      "imagen": "1759688994888.jpg",
+      "platillos": [
+        "Arroz rojo con verduras",
+        "Queso con rajas en salsa asada",
+        "Frijoles de la olla",
+        "Postre"
+      ]
+    },
+    {
       "dia": "Jueves",
-      "fecha": "2025-10-02",
+      "fecha": "2025-10-09",
       "imagen": "1759689410853.jpg",
       "platillos": [
-        "Sopa de habas",
-        "Ceviche con tostadas",
+        "Arroz blanco",
+        "Tortitas de camaron con nopales",
+        "Frijoles de la olla",
         "Postre"
       ]
     },
     {
       "dia": "Viernes",
-      "fecha": "2025-10-03",
+      "fecha": "2025-10-10",
       "imagen": "1759689424778.jpeg",
       "platillos": [
-        "Carne en su jugo (estilo Jalisco)",
-        "Postre"
+        "Lo sentimos este día no habrá servicio por cuestiones personales",
+        "agradecemos su comprensión."
       ]
     }
   ]
