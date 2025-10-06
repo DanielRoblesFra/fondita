@@ -230,7 +230,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Eliminar todas las imágenes existentes primero
-    console.log('🗑️ Eliminando imágenes anteriores...');
+ console.log('🗑️ Eliminando imágenes anteriores...');
     const destImgDir = path.join(PROD_REPO_DIR, 'img');
     if (fs.existsSync(destImgDir)) {
         const files = fs.readdirSync(destImgDir);
@@ -241,7 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Copiar TODAS las imágenes de la carpeta img
-    console.log('🖼️ Copiando todas las imágenes...');
+console.log('🖼️ Copiando todas las imágenes...');
     const srcImgDir = path.join(__dirname, '..', 'img');
     
     if (fs.existsSync(srcImgDir)) {
@@ -289,6 +289,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
 
 
 
