@@ -230,19 +230,40 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Eliminar todas las imágenes existentes primero
- console.log('🗑️ Eliminando imágenes anteriores...');
+ console.log('🗑️ Eliminando imágenes anteriores en producción...');
     const destImgDir = path.join(PROD_REPO_DIR, 'img');
+    
     if (fs.existsSync(destImgDir)) {
         const files = fs.readdirSync(destImgDir);
+        let deletedCount = 0;
+        
         for (const file of files) {
-            fs.unlinkSync(path.join(destImgDir, file));
-            console.log('✅ Eliminada: ' + file);
+            const filePath = path.join(destImgDir, file);
+            
+            // Solo eliminar archivos (no directorios) y que sean imágenes
+            if (fs.statSync(filePath).isFile() && 
+                file.match(/\.(jpg|jpeg|png|gif|svg|webp|avif|bmp|tiff)$/i)) {
+                
+                try {
+                    fs.unlinkSync(filePath);
+                    console.log('✅ Eliminada: ' + file);
+                    deletedCount++;
+                } catch (unlinkError) {
+                    console.log('⚠️  No se pudo eliminar: ' + file, unlinkError.message);
+                }
+            }
         }
+        
+        console.log(`🗑️  Total de imágenes eliminadas en producción: ${deletedCount}`);
+    } else {
+        console.log('ℹ️  Directorio de imágenes en producción no existe, se creará');
+        fs.mkdirSync(destImgDir, { recursive: true });
     }
 
-    // Copiar TODAS las imágenes de la carpeta img
-console.log('🖼️ Copiando todas las imágenes...');
+    // ✅ MEJORADO: Copiar TODAS las imágenes de forma más robusta
+    console.log('🖼️ Copiando todas las imágenes a producción...');
     const srcImgDir = path.join(__dirname, '..', 'img');
+    let copiedCount = 0;
     
     if (fs.existsSync(srcImgDir)) {
         const images = fs.readdirSync(srcImgDir);
@@ -254,12 +275,19 @@ console.log('🖼️ Copiando todas las imágenes...');
             if (fs.statSync(srcPath).isFile() && 
                 image.match(/\.(jpg|jpeg|png|gif|svg|webp|avif|bmp|tiff)$/i)) {
                 
-                fs.copyFileSync(srcPath, destPath);
-                console.log('✅ Copiada imagen: ' + image);
+                try {
+                    fs.copyFileSync(srcPath, destPath);
+                    console.log('✅ Copiada: ' + image);
+                    copiedCount++;
+                } catch (copyError) {
+                    console.log('⚠️  No se pudo copiar: ' + image, copyError.message);
+                }
             }
         }
+        
+        console.log(`🖼️  Total de imágenes copiadas a producción: ${copiedCount}`);
     } else {
-        console.log('⚠️  Advertencia: Directorio de imágenes no encontrado');
+        console.log('❌ ERROR: Directorio de imágenes fuente no encontrado:', srcImgDir);
     }
 
     // Forzar la detección de cambios y hacer commit
@@ -289,6 +317,7 @@ console.log('🖼️ Copiando todas las imágenes...');
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
 
 
 
