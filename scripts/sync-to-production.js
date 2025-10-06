@@ -229,8 +229,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Eliminar todas las imágenes existentes primero
- console.log('🗑️ Eliminando imágenes anteriores en producción...');
+    // ==================== SECCIÓN MODIFICADA - MANEJO DE IMÁGENES ====================
+    
+    // ✅ MEJORADO: Eliminar imágenes existentes en producción de forma más robusta
+    console.log('🗑️ Eliminando imágenes anteriores en producción...');
     const destImgDir = path.join(PROD_REPO_DIR, 'img');
     
     if (fs.existsSync(destImgDir)) {
@@ -290,6 +292,8 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log('❌ ERROR: Directorio de imágenes fuente no encontrado:', srcImgDir);
     }
 
+    // ==================== FIN DE SECCIÓN MODIFICADA ====================
+
     // Forzar la detección de cambios y hacer commit
     console.log('💾 Forzando detección de cambios...');
     
@@ -317,12 +321,3 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
-
-
-
-
-
-
-
-
-
