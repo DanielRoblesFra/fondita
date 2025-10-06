@@ -283,8 +283,14 @@ app.post('/api/upload-image', isLoggedIn, upload.single('imagen'), (req, res) =>
         return res.status(400).send('No se subió ningún archivo');
     }
 
-    if (req.body.oldFilename) {
+    console.log('📸 Imagen subida:', req.file.filename);
+    console.log('📦 Old filename recibido:', req.body.oldFilename);
+
+    // ✅ CORREGIDO: Eliminar imagen anterior SI existe
+    if (req.body.oldFilename && req.body.oldFilename.trim() !== '') {
         deleteOldImage(req.body.oldFilename);
+    } else {
+        console.log('ℹ️  No hay imagen anterior para eliminar');
     }
 
     // ✅ EJECUTAR COMMIT ESPECÍFICO PARA LA IMAGEN NUEVA
@@ -294,6 +300,16 @@ app.post('/api/upload-image', isLoggedIn, upload.single('imagen'), (req, res) =>
         
         // Agregar específicamente la imagen nueva
         execSync(`git add -f img/${req.file.filename}`, { stdio: 'inherit' });
+        
+        // ✅ NUEVO: También eliminar la imagen anterior del repositorio Git si existe
+        if (req.body.oldFilename && req.body.oldFilename.trim() !== '') {
+            try {
+                execSync(`git rm -f img/${req.body.oldFilename}`, { stdio: 'inherit' });
+                console.log('🗑️  Imagen anterior eliminada del repositorio Git:', req.body.oldFilename);
+            } catch (rmError) {
+                console.log('ℹ️  Imagen anterior no encontrada en Git:', req.body.oldFilename);
+            }
+        }
         
         // Verificar si hay cambios en imágenes
         const status = execSync('git status --porcelain img/').toString();
@@ -318,7 +334,6 @@ app.post('/api/upload-image', isLoggedIn, upload.single('imagen'), (req, res) =>
 
     res.json({ filename: req.file.filename });
 });
-
 // -------------------- NUEVO ENDPOINT PARA SINCRONIZACIÓN --------------------
 app.post('/api/sync-production', isLoggedIn, (req, res) => {
     console.log('🔁 Solicitada sincronización con repositorio de producción');
