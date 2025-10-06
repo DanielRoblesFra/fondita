@@ -111,15 +111,25 @@ const upload = multer({
 
 // Eliminar imágenes antiguas
 function deleteOldImage(filename) {
-    if (!filename) return;
+    if (!filename || filename.trim() === '') {
+        console.log('ℹ️  No hay nombre de archivo para eliminar');
+        return;
+    }
+    
     const filePath = path.join(__dirname, 'img', filename);
-    fs.unlink(filePath, (err) => {
-        if (err) {
-            console.log(`⚠️ No se pudo borrar la imagen: ${filename}`, err.message);
-        } else {
-            console.log(`🗑️ Imagen eliminada: ${filename}`);
-        }
-    });
+    
+    // Verificar que el archivo existe antes de intentar eliminarlo
+    if (fs.existsSync(filePath)) {
+        fs.unlink(filePath, (err) => {
+            if (err) {
+                console.log(`⚠️ No se pudo borrar la imagen: ${filename}`, err.message);
+            } else {
+                console.log(`🗑️ Imagen eliminada localmente: ${filename}`);
+            }
+        });
+    } else {
+        console.log(`ℹ️  Imagen no encontrada para eliminar: ${filename}`);
+    }
 }
 
 // -------------------- RUTA DE DIAGNÓSTICO --------------------
