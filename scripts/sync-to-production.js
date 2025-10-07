@@ -34,6 +34,21 @@ try {
         console.log('⚠️ Error en configuración Git:', error.message);
     }
 
+    // ✅ VERIFICAR CAMBIOS PENDIENTES EN REPOSITORIO PRINCIPAL
+    console.log('💾 Verificando cambios pendientes en repositorio principal...');
+    try {
+        const status = execSync('git status --porcelain').toString();
+        if (status.trim() !== '') {
+            console.log('📦 Hay cambios pendientes:', status);
+            // Opcional: hacer commit automático si quieres
+            // execSync('git add -A && git commit -m "Auto-sync: ' + new Date().toISOString() + '"', { stdio: 'inherit' });
+        } else {
+            console.log('✅ No hay cambios pendientes');
+        }
+    } catch (error) {
+        console.log('⚠️ Error verificando estado Git:', error.message);
+    }
+
     // ✅ LUEGO: Continuar con la sincronización normal
     const repoMatch = PROD_REPO_URL.match(/github\.com\/([^\/]+)\/([^\.]+)/);
     const GIT_USERNAME = repoMatch ? repoMatch[1] : '';
@@ -63,7 +78,7 @@ try {
     const filesToCopy = [
         { src: 'public/index.html', dest: 'index.html' },
         { src: 'public/estilos.css', dest: 'estilos.css' },
-         { src: 'public/menu.js', dest: 'menu.js' },
+        { src: 'public/menu.js', dest: 'menu.js' },
         { src: 'public/preguntas.js', dest: 'preguntas.js' },
         { src: 'public/scoll.js', dest: 'scoll.js' },
         { src: 'data/menu.json', dest: 'menu.json' }
@@ -74,38 +89,31 @@ try {
         fs.mkdirSync(path.join(PROD_REPO_DIR, 'img'));
     }
 
-   // ✅ NUEVO: Leer los datos del menú actual
+    // ✅ CORREGIDO: Leer los datos ACTUALES del menú UNA SOLA VEZ
+    console.log('📊 Cargando datos actuales del menú...');
     const menuPath = path.join(__dirname, '..', 'data', 'menu.json');
-    let menuData = JSON.parse(fs.readFileSync(menuPath, 'utf8')); // ← CAMBIAR const por let
-    console.log('📊 Datos del menú cargados correctamente');
+    let menuData = {};
 
-    // ✅ NUEVO: FORZAR ACTUALIZACIÓN - Regenerar menu.json con datos actuales
-    console.log('🔄 Regenerando menu.json con datos actualizados...');
-    
     try {
-        // Leer datos ACTUALES del menú desde el archivo recién guardado
-        const currentMenuPath = path.join(__dirname, '..', 'data', 'menu.json');
-        const currentMenuData = JSON.parse(fs.readFileSync(currentMenuPath, 'utf8'));
+        menuData = JSON.parse(fs.readFileSync(menuPath, 'utf8'));
+        console.log('✅ Datos del menú cargados correctamente');
         
-        console.log('📊 Datos actuales del menú cargados:');
-        if (currentMenuData.menu_semana) {
-            currentMenuData.menu_semana.forEach(dia => {
+        // Log para debugging
+        if (menuData.menu_semana) {
+            console.log('📅 Estado actual del menú semanal:');
+            menuData.menu_semana.forEach(dia => {
                 console.log(`   📅 ${dia.dia}: ${dia.imagen}`);
             });
         }
-        
-        // ✅ CORREGIDO: Usar Object.assign en lugar de reasignación
-        Object.assign(menuData, currentMenuData);
-        
-        console.log('✅ menu.json regenerado con datos actualizados');
     } catch (error) {
-        console.error('❌ Error regenerando menu.json:', error.message);
-        console.log('⚠️  Continuando con datos originales...');
+        console.error('❌ Error cargando menu.json:', error.message);
+        // Si hay error, usar datos vacíos
+        menuData = { carta: [], menu_semana: [] };
     }
 
     // ✅ NUEVO: Función para crear la-carta.js AUTÓNOMO
-function createAutonomousLaCarta() {
-    return `
+    function createAutonomousLaCarta() {
+        return `
 let currentPage = 0;
 const container = document.getElementById("bookContainer");
 let pages = [];
@@ -167,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
     cargarCarta();
 });
 `;
-}
+    }
 
     // ✅ NUEVO: Función para crear menu-semana.js AUTÓNOMO (VERSIÓN CORREGIDA)
     function createAutonomousMenuSemana() {
@@ -349,10 +357,3 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
-
-
-
-
-
-
-
