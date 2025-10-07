@@ -87,7 +87,7 @@ try {
     const menuData = JSON.parse(fs.readFileSync(menuPath, 'utf8'));
     console.log('📊 Datos del menú cargados correctamente');
 
-        // ✅ NUEVO: FORZAR ACTUALIZACIÓN - Regenerar menu.json con datos actuales
+// ✅ NUEVO: FORZAR ACTUALIZACIÓN - Regenerar menu.json con datos actuales
     console.log('🔄 Regenerando menu.json con datos actualizados...');
     
     try {
@@ -357,6 +357,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
 
 
 
