@@ -87,6 +87,30 @@ try {
     const menuData = JSON.parse(fs.readFileSync(menuPath, 'utf8'));
     console.log('📊 Datos del menú cargados correctamente');
 
+        // ✅ NUEVO: FORZAR ACTUALIZACIÓN - Regenerar menu.json con datos actuales
+    console.log('🔄 Regenerando menu.json con datos actualizados...');
+    
+    try {
+        // Leer datos ACTUALES del menú desde el archivo recién guardado
+        const currentMenuPath = path.join(__dirname, '..', 'data', 'menu.json');
+        const currentMenuData = JSON.parse(fs.readFileSync(currentMenuPath, 'utf8'));
+        
+        console.log('📊 Datos actuales del menú cargados:');
+        if (currentMenuData.menu_semana) {
+            currentMenuData.menu_semana.forEach(dia => {
+                console.log(`   📅 ${dia.dia}: ${dia.imagen}`);
+            });
+        }
+        
+        // Sobrescribir completamente el menuData con los datos actuales
+        menuData = currentMenuData;
+        
+        console.log('✅ menu.json regenerado con datos actualizados');
+    } catch (error) {
+        console.error('❌ Error regenerando menu.json:', error.message);
+        console.log('⚠️  Continuando con datos originales...');
+    }
+
     // ✅ NUEVO: Función para crear la-carta.js AUTÓNOMO
 function createAutonomousLaCarta() {
     return `
@@ -333,6 +357,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
 
 
 
