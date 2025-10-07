@@ -23,6 +23,18 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 
+// ✅ VARIABLE GLOBAL PARA DATOS DEL MENÚ
+let datosMenu = {};
+
+// Cargar datos al iniciar
+try {
+    const menuPath = path.join(__dirname, 'data', 'menu.json');
+    datosMenu = JSON.parse(fs.readFileSync(menuPath, 'utf-8'));
+    console.log('📊 Datos del menú cargados al iniciar servidor');
+} catch (error) {
+    console.error('❌ Error cargando menu.json:', error);
+}
+
 // ✅ CONFIGURAR GIT PARA RENDER (SOLUCIÓN AL ERROR)
 try {
     execSync('git config user.email "render@fondita.com"', { stdio: 'inherit' });
