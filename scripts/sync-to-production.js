@@ -34,14 +34,6 @@ try {
         console.log('⚠️ Error en configuración Git:', error.message);
     }
 
-    // ✅ PRIMERO: Guardar cambios en repositorio principal
-    console.log('💾 Guardando cambios en repositorio principal...');
-    try {
-        execSync('node scripts/force-commit.js', { stdio: 'inherit' });
-    } catch (error) {
-        console.log('⚠️ Continue despite commit errors');
-    }
-
     // ✅ LUEGO: Continuar con la sincronización normal
     const repoMatch = PROD_REPO_URL.match(/github\.com\/([^\/]+)\/([^\.]+)/);
     const GIT_USERNAME = repoMatch ? repoMatch[1] : '';
@@ -357,6 +349,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
 
 
 
