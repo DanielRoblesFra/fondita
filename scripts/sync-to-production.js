@@ -181,10 +181,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ✅ NUEVO: Función para corregir rutas de imágenes en HTML
     function fixImagePaths(content) {
+        console.log('🔄 Corrigiendo rutas de imágenes en HTML...');
+        
         // Cambiar rutas absolutas por relativas
-        return content
+        let fixedContent = content
             .replace(/src="\/img\//g, 'src="img/')
-            .replace(/src="https:\/\/fondita\.onrender\.com\/img\//g, 'src="img/');
+            .replace(/src='\/img\//g, "src='img/")
+            .replace(/src="https:\/\/fondita\.onrender\.com\/img\//g, 'src="img/')
+            .replace(/src='https:\/\/fondita\.onrender\.com\/img\//g, "src='img/")
+            // También corregir rutas en CSS
+            .replace(/url\("\/img\//g, 'url("img/')
+            .replace(/url\('\/img\//g, "url('img/")
+            .replace(/url\(\/img\//g, 'url(img/');
+        
+        console.log('✅ Rutas de imágenes corregidas');
+        return fixedContent;
     }
 
     // ✅ NUEVO: Función para agregar cache busting
@@ -321,3 +332,4 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
