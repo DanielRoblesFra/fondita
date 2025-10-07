@@ -82,12 +82,12 @@ try {
         fs.mkdirSync(path.join(PROD_REPO_DIR, 'img'));
     }
 
-    // ✅ NUEVO: Leer los datos del menú actual
+   // ✅ NUEVO: Leer los datos del menú actual
     const menuPath = path.join(__dirname, '..', 'data', 'menu.json');
-    const menuData = JSON.parse(fs.readFileSync(menuPath, 'utf8'));
+    let menuData = JSON.parse(fs.readFileSync(menuPath, 'utf8')); // ← CAMBIAR const por let
     console.log('📊 Datos del menú cargados correctamente');
 
-// ✅ NUEVO: FORZAR ACTUALIZACIÓN - Regenerar menu.json con datos actuales
+    // ✅ NUEVO: FORZAR ACTUALIZACIÓN - Regenerar menu.json con datos actuales
     console.log('🔄 Regenerando menu.json con datos actualizados...');
     
     try {
@@ -102,8 +102,8 @@ try {
             });
         }
         
-        // Sobrescribir completamente el menuData con los datos actuales
-        menuData = currentMenuData;
+        // ✅ CORREGIDO: Usar Object.assign en lugar de reasignación
+        Object.assign(menuData, currentMenuData);
         
         console.log('✅ menu.json regenerado con datos actualizados');
     } catch (error) {
@@ -357,6 +357,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
 
 
 
