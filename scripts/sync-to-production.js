@@ -73,7 +73,7 @@ try {
         { src: 'public/estilos.css', dest: 'estilos.css' },
          { src: 'public/menu.js', dest: 'menu.js' },
         { src: 'public/preguntas.js', dest: 'preguntas.js' },
-        { src: 'public/scoll.js', dest: 'scoll.js' }
+        { src: 'public/scoll.js', dest: 'scoll.js' },
         { src: 'data/menu.json', dest: 'menu.json' }
     ];
 
@@ -333,5 +333,6 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
 
 
