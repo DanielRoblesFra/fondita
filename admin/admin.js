@@ -283,7 +283,7 @@ function renderMenuSemana() {
         const imgPreview = document.createElement("img");
         imgPreview.className = "img-preview";
         if (dia.imagen) {
-            imgPreview.src = `/img/${dia.imagen}`;
+            imgPreview.src = `/img/${resp.filename}?v=${Date.now()}`;
         } else {
             imgPreview.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100' fill='none'%3E%3Crect width='100' height='100' fill='%23333'/%3E%3Cpath d='M35 40L50 25L65 40M30 65H70M40 50H60' stroke='%23555' stroke-width='2'/%3E%3C/svg%3E";
         }
