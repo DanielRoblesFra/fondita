@@ -96,6 +96,18 @@ function isLoggedIn(req, res, next) {
     }
 }
 
+// Middleware para manejar sesiones expiradas en API
+function manejarSesionExpirada(req, res, next) {
+    if (!req.session.loggedIn && req.path.startsWith('/api/')) {
+        console.log('🔐 Intento de acceso a API sin sesión:', req.path);
+        return res.status(401).json({ error: 'Sesión expirada' });
+    }
+    next();
+}
+
+// Usar el middleware en todas las rutas API
+app.use('/api', manejarSesionExpirada);
+
 // -------------------- CONFIGURAR MULTER --------------------
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -251,9 +263,19 @@ app.get('/admin/index.html', isLoggedIn, (req, res) => {
 
 // ⭐ API ROUTES
 app.get('/api/menu', (req, res) => {
-    const menuPath = path.join(__dirname, 'data', 'menu.json');
-    const menu = JSON.parse(fs.readFileSync(menuPath, 'utf-8'));
-    res.json(menu);
+    // Verificar sesión para esta ruta específica
+    if (!req.session.loggedIn) {
+        return res.status(401).json({ error: 'Sesión expirada' });
+    }
+    
+    try {
+        const menuPath = path.join(__dirname, 'data', 'menu.json');
+        const menu = JSON.parse(fs.readFileSync(menuPath, 'utf-8'));
+        res.json(menu);
+    } catch (error) {
+        console.error('Error cargando menu:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
 });
 
 app.post('/api/menu', isLoggedIn, (req, res) => {
