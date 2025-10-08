@@ -553,7 +553,7 @@ button:hover {
 .card-front p {
     font-size: 1.4rem;
     letter-spacing: 3px;
-    text-transform: uppercase;
+    text-transform: none;
 }
 
 .dish-image {
