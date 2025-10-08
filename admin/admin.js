@@ -71,7 +71,13 @@ window.addEventListener("DOMContentLoaded", () => {
             renderMenuSemana();
         })
         .catch(err => console.error("Error cargando menú:", err));
-});
+
+    // ✅ Event listener TEMPORAL - agregar aquí
+    document.getElementById("menuForm").addEventListener("submit", e => {
+        e.preventDefault();
+        guardarCambios();
+    });
+}); 
 
 //  Confimacion al salir de sesion
 const logoutLink = document.getElementById('logoutLink');
@@ -80,7 +86,6 @@ if (logoutLink) {
         if (!confirm('¿Cerrar sesión?')) e.preventDefault();
     });
 }
-
 // ------------------ Renderizar Carta ------------------
 function renderCarta() {
     const container = document.getElementById("cartaContainer");
