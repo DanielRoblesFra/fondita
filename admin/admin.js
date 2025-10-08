@@ -517,7 +517,7 @@ function guardarCambios() {
         });
 }
 
-// ✅ NUEVA FUNCIÓN: Guardar cambios automáticamente después de subir imagen (FUERA de guardarCambios)
+// Guardar cambios automáticamente después de subir imagen
 function guardarCambiosAutomaticos() {
     console.log('💾 Guardando cambios automáticamente después de subir imagen...');
     
@@ -566,38 +566,129 @@ function addSyncButton() {
     }
 }
     // ------------------ Función de Sincronización ------------------
-    function synchronizeWithProduction() {
+function synchronizeWithProduction() {
     const syncButton = document.getElementById("syncButton");
     const originalText = syncButton.textContent;
     
-    syncButton.textContent = "⏳ Sincronizando...";
+    // ✅ DESHABILITAR botón inmediatamente
     syncButton.disabled = true;
+    syncButton.textContent = "⏳ Preparando sincronización...";
     
+    // ✅ CREAR overlay de carga
+    const overlay = document.createElement("div");
+    overlay.style.position = "fixed";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.width = "100%";
+    overlay.style.height = "100%";
+    overlay.style.backgroundColor = "rgba(0,0,0,0.8)";
+    overlay.style.display = "flex";
+    overlay.style.flexDirection = "column";
+    overlay.style.justifyContent = "center";
+    overlay.style.alignItems = "center";
+    overlay.style.zIndex = "10000";
+    overlay.style.color = "white";
+    overlay.style.fontSize = "1.2rem";
+    
+    // ✅ CREAR contenedor de progreso
+    const progressContainer = document.createElement("div");
+    progressContainer.style.width = "80%";
+    progressContainer.style.maxWidth = "500px";
+    progressContainer.style.textAlign = "center";
+    
+    // ✅ CREAR barra de progreso
+    const progressBar = document.createElement("div");
+    progressBar.style.width = "100%";
+    progressBar.style.height = "20px";
+    progressBar.style.backgroundColor = "#333";
+    progressBar.style.borderRadius = "10px";
+    progressBar.style.margin = "20px 0";
+    progressBar.style.overflow = "hidden";
+    
+    const progressFill = document.createElement("div");
+    progressFill.style.width = "0%";
+    progressFill.style.height = "100%";
+    progressFill.style.backgroundColor = "#4CAF50";
+    progressFill.style.transition = "width 0.3s ease";
+    progressFill.style.borderRadius = "10px";
+    
+    progressBar.appendChild(progressFill);
+    
+    // ✅ CREAR texto de progreso
+    const progressText = document.createElement("div");
+    progressText.textContent = "0% - Iniciando sincronización...";
+    progressText.style.marginBottom = "10px";
+    
+    // ✅ CREAR tiempo estimado
+    const timeText = document.createElement("div");
+    timeText.textContent = "Tiempo estimado: 5 minutos";
+    timeText.style.fontSize = "0.9rem";
+    timeText.style.color = "#ccc";
+    timeText.style.marginBottom = "20px";
+    
+    // ✅ ENSAMBLAR overlay
+    progressContainer.appendChild(progressText);
+    progressContainer.appendChild(progressBar);
+    progressContainer.appendChild(timeText);
+    overlay.appendChild(progressContainer);
+    
+    // ✅ AGREGAR overlay al documento
+    document.body.appendChild(overlay);
+    
+    // ✅ SIMULAR progreso (5 minutos = 300 segundos)
+    let progress = 0;
+    const totalTime = 300; // 5 minutos en segundos
+    const interval = setInterval(() => {
+        progress += (100 / totalTime);
+        if (progress > 100) progress = 100;
+        
+        progressFill.style.width = progress + "%";
+        progressText.textContent = Math.round(progress) + "% - Sincronizando con repositorio de producción...";
+        
+        if (progress >= 100) {
+            clearInterval(interval);
+        }
+    }, 1000);
+    
+    // ✅ HACER la petición real
     fetch("/api/sync-production", {
         method: "POST",
         headers: {
-        "Content-Type": "application/json"
+            "Content-Type": "application/json"
         }
     })
     .then(response => response.json())
     .then(data => {
-        if (data.success) {
-        alert("✅ " + data.message);
-        console.log("✅ Sincronización exitosa");
-        } else {
-        alert("❌ " + data.message);
-        console.error("❌ Error en sincronización:", data.message);
-        }
+        clearInterval(interval);
+        progressFill.style.width = "100%";
+        progressText.textContent = "100% - ¡Sincronización completada!";
+        
+        // ✅ MOSTRAR resultado después de 2 segundos
+        setTimeout(() => {
+            document.body.removeChild(overlay);
+            
+            if (data.success) {
+                alert("✅ " + data.message + "\n\nEl menú ha sido actualizado exitosamente en el sitio público.");
+                console.log("✅ Sincronización exitosa");
+            } else {
+                alert("❌ " + data.message);
+                console.error("❌ Error en sincronización:", data.message);
+            }
+            
+            syncButton.textContent = originalText;
+            syncButton.disabled = false;
+        }, 2000);
     })
     .catch(error => {
+        clearInterval(interval);
+        document.body.removeChild(overlay);
+        
         console.error("Error en sincronización:", error);
-        alert("❌ Error de conexión al sincronizar");
-    })
-    .finally(() => {
+        alert("❌ Error de conexión al sincronizar. Intenta nuevamente.");
+        
         syncButton.textContent = originalText;
         syncButton.disabled = false;
     });
 }
-
 // Añadir el botón cuando se cargue el DOM
 addSyncButton();
