@@ -72,13 +72,6 @@ window.addEventListener("DOMContentLoaded", () => {
         })
         .catch(err => console.error("Error cargando menú:", err));
 
-    // Guardar cambios
-    document.getElementById("menuForm").addEventListener("submit", e => {
-        e.preventDefault();
-        guardarCambios();
-    });
-});
-
 //  Confimacion al salir de sesion
 const logoutLink = document.getElementById('logoutLink');
 if (logoutLink) {
@@ -547,28 +540,30 @@ function addSyncButton() {
     const menuForm = document.getElementById("menuForm");
     if (!menuForm) return;
     
-    const syncButton = document.createElement("button");
-    syncButton.type = "button";
-    syncButton.id = "syncButton";
-    syncButton.textContent = "🔄 Sincronizar con Producción";
-    syncButton.style.marginTop = "1rem";
-    syncButton.style.marginRight = "1rem";
-    syncButton.style.padding = "1rem 2rem";
-    syncButton.style.background = "linear-gradient(135deg, #4a5568 0%, #2d3748 100%)";
-    syncButton.style.color = "white";
-    syncButton.style.border = "none";
-    syncButton.style.borderRadius = "12px";
-    syncButton.style.cursor = "pointer";
-    syncButton.style.fontSize = "1.1rem";
-    syncButton.style.fontWeight = "600";
+    // ✅ TRANSFORMAR el botón "Guardar Cambios" en "Sincronizar"
+    const existingButton = menuForm.querySelector('button[type="submit"]');
     
-    syncButton.addEventListener("click", synchronizeWithProduction);
-    
-    // Insertar antes del botón de guardar
-    const submitButton = menuForm.querySelector('button[type="submit"]');
-    menuForm.insertBefore(syncButton, submitButton);
+    if (existingButton) {
+        // Cambiar el botón existente
+        existingButton.type = "button"; // De submit a button
+        existingButton.id = "syncButton";
+        existingButton.textContent = "🔄 Sincronizar con Producción";
+        existingButton.style.marginTop = "2rem";
+        existingButton.style.padding = "1.2rem 2.5rem";
+        existingButton.style.background = "linear-gradient(135deg, #4a5568 0%, #2d3748 100%)";
+        existingButton.style.color = "white";
+        existingButton.style.border = "none";
+        existingButton.style.borderRadius = "12px";
+        existingButton.style.cursor = "pointer";
+        existingButton.style.fontSize = "1.2rem";
+        existingButton.style.fontWeight = "600";
+        existingButton.style.width = "100%";
+        existingButton.style.boxShadow = "0 4px 15px rgba(0,0,0,0.2)";
+        
+        // Cambiar el evento
+        existingButton.onclick = synchronizeWithProduction;
+    }
 }
-
     // ------------------ Función de Sincronización ------------------
     function synchronizeWithProduction() {
     const syncButton = document.getElementById("syncButton");
