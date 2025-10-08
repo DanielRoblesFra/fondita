@@ -482,7 +482,7 @@ button:hover {
     color: #fff;
     padding-bottom: 70px;
     letter-spacing: 3px;
-    text-transform: uppercase;
+    text-transform: none;
 }
 
 #menuSemanaContainer {
@@ -572,7 +572,7 @@ button:hover {
 }
 
 .menu-list li {
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 3px;
     margin-bottom: 0.5rem;
 }
