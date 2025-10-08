@@ -71,12 +71,6 @@ window.addEventListener("DOMContentLoaded", () => {
             renderMenuSemana();
         })
         .catch(err => console.error("Error cargando menú:", err));
-
-    // Guardar cambios
-    document.getElementById("menuForm").addEventListener("submit", e => {
-        e.preventDefault();
-        guardarCambios();
-    });
 });
 
 //  Confimacion al salir de sesion
@@ -544,31 +538,48 @@ function guardarCambiosAutomaticos() {
 
 // ------------------ Botón de Sincronización ------------------
 function addSyncButton() {
-    const menuForm = document.getElementById("menuForm");
+    const menuForm = document.getElementById("menuForm");  !
     if (!menuForm) return;
     
+    // ✅ PASO 2: ELIMINAR el botón de "Guardar Cambios"
+    const submitButton = menuForm.querySelector('button[type="submit"]');
+    if (submitButton) {
+        submitButton.remove();
+    }
+    
+    // ✅ CREAR solo el botón de sincronización
     const syncButton = document.createElement("button");
     syncButton.type = "button";
     syncButton.id = "syncButton";
     syncButton.textContent = "🔄 Sincronizar con Producción";
-    syncButton.style.marginTop = "1rem";
-    syncButton.style.marginRight = "1rem";
-    syncButton.style.padding = "1rem 2rem";
+    syncButton.style.marginTop = "2rem";
+    syncButton.style.padding = "1.2rem 2.5rem";
     syncButton.style.background = "linear-gradient(135deg, #4a5568 0%, #2d3748 100%)";
     syncButton.style.color = "white";
     syncButton.style.border = "none";
     syncButton.style.borderRadius = "12px";
     syncButton.style.cursor = "pointer";
-    syncButton.style.fontSize = "1.1rem";
+    syncButton.style.fontSize = "1.2rem";
     syncButton.style.fontWeight = "600";
+    syncButton.style.width = "100%";
+    syncButton.style.boxShadow = "0 4px 15px rgba(0,0,0,0.2)";
     
     syncButton.addEventListener("click", synchronizeWithProduction);
     
-    // Insertar antes del botón de guardar
-    const submitButton = menuForm.querySelector('button[type="submit"]');
-    menuForm.insertBefore(syncButton, submitButton);
-}
-
+    // ✅ AGREGAR el botón al formulario
+    menuForm.appendChild(syncButton);
+    
+    // ✅ AGREGAR texto explicativo
+    const explanation = document.createElement("p");
+    explanation.textContent = "⚠️ Todos los cambios se guardan automáticamente. Este botón sincroniza con el sitio público.";
+    explanation.style.marginTop = "1rem";
+    explanation.style.color = "#666";
+    explanation.style.fontSize = "0.9rem";
+    explanation.style.textAlign = "center";
+    explanation.style.fontStyle = "italic";
+    
+    menuForm.appendChild(explanation);
+    
     // ------------------ Función de Sincronización ------------------
     function synchronizeWithProduction() {
     const syncButton = document.getElementById("syncButton");
