@@ -1,36 +1,64 @@
 // admin.js
 let datosMenu = {};
 
-// 🎯 FEATURE FLAGS SYSTEM - CONTROL TOTAL (AGREGAR ESTO)
-const FEATURE_FLAGS = {
-    PAGINA_4: false  // 🔘 FALSE = Oculto para usuarios normales
-};
+// 🛡️ DETECCIÓN DE SESIÓN EXPIRADA
+let lastActivity = Date.now();
+const SESSION_TIMEOUT = 15 * 60 * 1000; // 15 minutos en milisegundos
 
-// 🕵️‍♂️ DETECTAR SI ERES ADMINISTRADOR 
-function esAdministrador() {
-    return window.location.pathname.includes('/admin') || 
-           window.location.href.includes('?debug=true');
-}
-
-// 🔓 OBTENER ESTADO REAL DEL FEATURE
-function estaActivo(feature) {
-    const valorBase = FEATURE_FLAGS[feature];
+// Función para verificar sesión
+function verificarSesion() {
+    const tiempoInactivo = Date.now() - lastActivity;
     
-    // Si eres admin, puedes ver features aunque estén desactivados
-    if (esAdministrador()) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const forzarActivo = urlParams.get(feature);
-        
-        if (forzarActivo !== null) {
-            return forzarActivo === 'true';
-        }
-        return true; // Admin siempre ve los features
+    if (tiempoInactivo >= SESSION_TIMEOUT) {
+        console.log('🕒 Sesión expirada por inactividad');
+        cerrarSesionAutomaticamente();
+        return;
     }
-    
-    // Para usuarios normales, solo valor base
-    return valorBase;
+
+    // Verificar sesión con el servidor cada 30 segundos
+    fetch("/api/menu", {
+        method: "GET",
+        credentials: 'include'
+    })
+    .then(res => {
+        if (!res.ok) {
+            throw new Error('Sesión expirada');
+        }
+        return res.json();
+    })
+    .catch(err => {
+        console.log('🔐 Sesión expirada en servidor:', err.message);
+        cerrarSesionAutomaticamente();
+    });
 }
-// 🎯 FIN DE FEATURE FLAGS - CONTINÚA TU CÓDIGO NORMAL
+
+// Función para cerrar sesión automáticamente
+function cerrarSesionAutomaticamente() {
+    // Mostrar mensaje al usuario
+    alert('🕒 Tu sesión ha expirado por seguridad. Serás redirigido al login.');
+    
+    // Redirigir al login
+    window.location.href = '/login';
+}
+
+// Actualizar tiempo de actividad con cualquier interacción del usuario
+function actualizarActividad() {
+    lastActivity = Date.now();
+}
+
+// Event listeners para detectar actividad del usuario
+document.addEventListener('click', actualizarActividad);
+document.addEventListener('keypress', actualizarActividad);
+document.addEventListener('mousemove', actualizarActividad);
+document.addEventListener('scroll', actualizarActividad);
+
+// Verificar sesión periódicamente
+setInterval(verificarSesion, 30000); // Cada 30 segundos
+
+// También verificar al cargar la página
+window.addEventListener('load', () => {
+    setTimeout(verificarSesion, 1000);
+});
 
 
 // Cargar datos al iniciar
