@@ -144,6 +144,17 @@ function deleteOldImage(filename) {
     }
 }
 
+// ✅ FUNCIÓN PARA ACTUALIZAR DATOS MENÚ EN MEMORIA
+function actualizarDatosMenu() {
+    try {
+        const menuPath = path.join(__dirname, 'data', 'menu.json');
+        datosMenu = JSON.parse(fs.readFileSync(menuPath, 'utf-8'));
+        console.log('🔄 Datos del menú actualizados en memoria');
+    } catch (error) {
+        console.error('❌ Error actualizando datos en memoria:', error);
+    }
+}
+
 // -------------------- RUTA DE DIAGNÓSTICO --------------------
 app.get('/api/git-debug', isLoggedIn, (req, res) => {
     try {
@@ -249,6 +260,9 @@ app.post('/api/menu', isLoggedIn, (req, res) => {
     const menuPath = path.join(__dirname, 'data', 'menu.json');
     fs.writeFileSync(menuPath, JSON.stringify(req.body, null, 2));
     
+    // ✅ NUEVO: ACTUALIZAR DATOS EN MEMORIA
+    actualizarDatosMenu();
+    
     // ✅ FORZAR COMMIT MANUAL del menu.json
     try {
         const { execSync } = require('child_process');
@@ -289,7 +303,6 @@ app.post('/api/menu', isLoggedIn, (req, res) => {
     
     res.send('Menú actualizado, guardado en GitHub y sincronizado con producción');
 });
-
 app.post('/api/upload-image', isLoggedIn, upload.single('imagen'), (req, res) => {
     if (!req.file) {
         return res.status(400).send('No se subió ningún archivo');
