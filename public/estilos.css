@@ -547,7 +547,7 @@ button:hover {
 .card-front h1 {
     font-size: 2.5rem;
     margin-bottom: 1rem;
-    text-transform: uppercase;
+    text-transform: none;
 }
 
 .card-front p {
