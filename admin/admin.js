@@ -313,55 +313,58 @@ function renderMenuSemana() {
         inputImg.dataset.campo = "imagen";
         inputImg.className = "hidden-image-input";
 
-        // Manejo de la selección de archivo
-        fileInput.addEventListener("change", e => {
-            if (!e.target.files[0]) return;
-            
-            // Actualizar la interfaz
-            fileInputLabel.innerHTML = '<span class="file-input-icon">⏳</span> Subiendo...';
-            
-            const formData = new FormData();
-            formData.append("imagen", e.target.files[0]);
-            
-            // Enviamos el nombre de la imagen actual para que sea eliminada
-            const imagenAnterior = dia.imagen;
-            if (imagenAnterior && imagenAnterior.trim() !== "") {
-                formData.append("oldFilename", imagenAnterior);
-            }
+// Manejo de la selección de archivo
+fileInput.addEventListener("change", e => {
+    if (!e.target.files[0]) return;
+    
+    // Actualizar la interfaz
+    fileInputLabel.innerHTML = '<span class="file-input-icon">⏳</span> Subiendo...';
+    
+    const formData = new FormData();
+    formData.append("imagen", e.target.files[0]);
+    
+    // Enviamos el nombre de la imagen actual para que sea eliminada
+    const imagenAnterior = dia.imagen;
+    if (imagenAnterior && imagenAnterior.trim() !== "") {
+        formData.append("oldFilename", imagenAnterior);
+    }
 
-            fetch("/api/upload-image", {
-                method: "POST",
-                body: formData,
-                credentials: 'include'
-            })
-                .then(res => res.json())
-                .then(resp => {
-                    // Actualizar el input oculto con el nuevo nombre
-                    inputImg.value = resp.filename;
-                    
-                    // Actualizar los datos en memoria
-                    datosMenu.menu_semana[idx].imagen = resp.filename;
-                    
-                    // Actualizar preview de imagen
-                    imgPreview.src = `/img/${resp.filename}`;
-                    
-                    // Restaurar texto del botón
-                    fileInputLabel.innerHTML = '<span class="file-input-icon">✅</span> Imagen subida';
-                    
-                    // Resetear después de un tiempo
-                    setTimeout(() => {
-                        fileInputLabel.innerHTML = '<span class="file-input-icon">📷</span> Cambiar imagen';
-                    }, 2000);
-                })
-                .catch(err => {
-                    console.error("Error subiendo imagen:", err);
-                    fileInputLabel.innerHTML = '<span class="file-input-icon">❌</span> Error, intentar again';
-                    
-                    setTimeout(() => {
-                        fileInputLabel.innerHTML = '<span class="file-input-icon">📷</span> Seleccionar imagen';
-                    }, 2000);
-                });
+    fetch("/api/upload-image", {
+        method: "POST",
+        body: formData,
+        credentials: 'include'
+    })
+        .then(res => res.json())
+        .then(resp => {
+            // Actualizar el input oculto con el nuevo nombre
+            inputImg.value = resp.filename;
+            
+            // ✅ CORREGIDO: Actualizar los datos en memoria
+            datosMenu.menu_semana[idx].imagen = resp.filename;
+            
+            // ✅ NUEVO: Guardar los cambios automáticamente en el servidor
+            guardarCambiosAutomaticos();
+            
+            // Actualizar preview de imagen
+            imgPreview.src = `/img/${resp.filename}`;
+            
+            // Restaurar texto del botón
+            fileInputLabel.innerHTML = '<span class="file-input-icon">✅</span> Imagen subida';
+            
+            // Resetear después de un tiempo
+            setTimeout(() => {
+                fileInputLabel.innerHTML = '<span class="file-input-icon">📷</span> Cambiar imagen';
+            }, 2000);
+        })
+        .catch(err => {
+            console.error("Error subiendo imagen:", err);
+            fileInputLabel.innerHTML = '<span class="file-input-icon">❌</span> Error, intentar again';
+            
+            setTimeout(() => {
+                fileInputLabel.innerHTML = '<span class="file-input-icon">📷</span> Seleccionar imagen';
+            }, 2000);
         });
+});
 
         // Ensamblar controles de imagen
         imgPreviewContainer.appendChild(imgPreview);
@@ -489,6 +492,25 @@ function guardarCambios() {
                 btnGuardar.textContent = textoOriginal || "Guardar";
                 btnGuardar.disabled = false;
             }
+        });
+}
+
+// ✅ NUEVA FUNCIÓN: Guardar cambios automáticamente después de subir imagen (FUERA de guardarCambios)
+function guardarCambiosAutomaticos() {
+    console.log('💾 Guardando cambios automáticamente después de subir imagen...');
+    
+    fetch("/api/menu", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(datosMenu),
+        credentials: 'include'
+    })
+        .then(res => res.text())
+        .then(msg => {
+            console.log("✅ Cambios guardados automáticamente:", msg);
+        })
+        .catch(err => {
+            console.error("Error guardando cambios automáticos:", err);
         });
 }
 
