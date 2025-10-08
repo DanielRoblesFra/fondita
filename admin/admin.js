@@ -71,6 +71,7 @@ window.addEventListener("DOMContentLoaded", () => {
             renderMenuSemana();
         })
         .catch(err => console.error("Error cargando menú:", err));
+}); 
 
 //  Confimacion al salir de sesion
 const logoutLink = document.getElementById('logoutLink');
