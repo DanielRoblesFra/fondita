@@ -3,7 +3,7 @@ let datosMenu = {};
 
 // 🛡️ DETECCIÓN DE SESIÓN EXPIRADA
 let lastActivity = Date.now();
-const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutos en milisegundos
+const SESSION_TIMEOUT = 15 * 60 * 1000; // 15 minutos en milisegundos
 
 // Función para verificar sesión
 function verificarSesion() {
@@ -49,26 +49,17 @@ function actualizarActividad() {
 // Event listeners para detectar actividad del usuario
 document.addEventListener('click', actualizarActividad);
 document.addEventListener('keypress', actualizarActividad);
-//document.addEventListener('mousemove', actualizarActividad);
-//document.addEventListener('scroll', actualizarActividad);
+document.addEventListener('mousemove', actualizarActividad);
+document.addEventListener('scroll', actualizarActividad);
 
 // Verificar sesión periódicamente
 setInterval(verificarSesion, 30000); // Cada 30 segundos
 
 // También verificar al cargar la página
 window.addEventListener('load', () => {
-    setTimeout(verificarSesion, 120000);
+    setTimeout(verificarSesion, 1000);
 });
 
-
-//✅Para que no se cierre sesion a la hora de cambiar de pagina
-document.addEventListener('visibilitychange', function() {
-    if (!document.hidden) {
-        // El usuario volvió a la pestaña, actualizar actividad
-        actualizarActividad();
-        console.log('🔍 Usuario regresó a la pestaña');
-    }
-});
 
 // Cargar datos al iniciar
 window.addEventListener("DOMContentLoaded", () => {
@@ -574,7 +565,7 @@ function addSyncButton() {
         existingButton.onclick = synchronizeWithProduction;
     }
 }
-   // ------------------ Función de Sincronización MEJORADA (3 minutos EXACTOS) ------------------
+    // ------------------ Función de Sincronización ------------------
 function synchronizeWithProduction() {
     const syncButton = document.getElementById("syncButton");
     const originalText = syncButton.textContent;
@@ -628,9 +619,9 @@ function synchronizeWithProduction() {
     progressText.textContent = "0% - Iniciando sincronización...";
     progressText.style.marginBottom = "10px";
     
-    // ✅ CREAR tiempo estimado (3 MINUTOS EXACTOS)
+    // ✅ CREAR tiempo estimado
     const timeText = document.createElement("div");
-    timeText.textContent = "Tiempo estimado: 3 minutos (proceso automático)";
+    timeText.textContent = "Tiempo estimado: 5 minutos";
     timeText.style.fontSize = "0.9rem";
     timeText.style.color = "#ccc";
     timeText.style.marginBottom = "20px";
@@ -644,13 +635,22 @@ function synchronizeWithProduction() {
     // ✅ AGREGAR overlay al documento
     document.body.appendChild(overlay);
     
-    // ✅ VARIABLES para controlar el progreso
+    // ✅ SIMULAR progreso (5 minutos = 300 segundos)
     let progress = 0;
-    const totalTime = 180; // 3 minutos EXACTOS en segundos
-    let syncCompleted = false;
-    let syncResult = null;
+    const totalTime = 300; // 5 minutos en segundos
+    const interval = setInterval(() => {
+        progress += (100 / totalTime);
+        if (progress > 100) progress = 100;
+        
+        progressFill.style.width = progress + "%";
+        progressText.textContent = Math.round(progress) + "% - Sincronizando con repositorio de producción...";
+        
+        if (progress >= 100) {
+            clearInterval(interval);
+        }
+    }, 1000);
     
-    // ✅ INICIAR el sync real PERO NO DETENER la barra
+    // ✅ HACER la petición real
     fetch("/api/sync-production", {
         method: "POST",
         headers: {
@@ -659,64 +659,36 @@ function synchronizeWithProduction() {
     })
     .then(response => response.json())
     .then(data => {
-        syncCompleted = true;
-        syncResult = data;
-        console.log("✅ Sync real completado, pero la barra continuará...");
+        clearInterval(interval);
+        progressFill.style.width = "100%";
+        progressText.textContent = "100% - ¡Sincronización completada!";
+        
+        // ✅ MOSTRAR resultado después de 2 segundos
+        setTimeout(() => {
+            document.body.removeChild(overlay);
+            
+            if (data.success) {
+                alert("✅ " + data.message + "\n\nEl menú ha sido actualizado exitosamente en el sitio público.");
+                console.log("✅ Sincronización exitosa");
+            } else {
+                alert("❌ " + data.message);
+                console.error("❌ Error en sincronización:", data.message);
+            }
+            
+            syncButton.textContent = originalText;
+            syncButton.disabled = false;
+        }, 2000);
     })
     .catch(error => {
-        syncCompleted = true;
-        syncResult = { success: false, message: "Error de conexión: " + error.message };
-        console.error("❌ Error en sync real:", error);
+        clearInterval(interval);
+        document.body.removeChild(overlay);
+        
+        console.error("Error en sincronización:", error);
+        alert("❌ Error de conexión al sincronizar. Intenta nuevamente.");
+        
+        syncButton.textContent = originalText;
+        syncButton.disabled = false;
     });
-    
-    // ✅ BARRA DE PROGRESO que SIEMPRE dura 3 minutos EXACTOS
-    const interval = setInterval(() => {
-        progress += (100 / totalTime);
-        
-        // Forzar que no pase del 100%
-        if (progress > 100) {
-            progress = 100;
-            clearInterval(interval);
-            
-            // ✅ MOSTRAR resultado SOLO cuando la barra termine (3 minutos exactos)
-            setTimeout(() => {
-                document.body.removeChild(overlay);
-                
-                if (syncResult && syncResult.success) {
-                    alert("✅ " + syncResult.message + "\n\nEl menú ha sido actualizado exitosamente en el sitio público.");
-                    console.log("✅ Sincronización exitosa");
-                } else if (syncResult) {
-                    alert("❌ " + syncResult.message);
-                    console.error("❌ Error en sincronización:", syncResult.message);
-                } else {
-                    alert("⚠️ Sincronización completada, pero no se pudo verificar el resultado.");
-                }
-                
-                syncButton.textContent = originalText;
-                syncButton.disabled = false;
-            }, 500);
-        }
-        
-        // Actualizar barra y texto
-        progressFill.style.width = progress + "%";
-        
-        // Texto diferente según si el sync real ya terminó o no
-        if (syncCompleted) {
-            progressText.textContent = Math.round(progress) + "% - Procesando cambios...";
-        } else {
-            progressText.textContent = Math.round(progress) + "% - Sincronizando con repositorio...";
-        }
-        
-    }, 1000); // Actualizar cada segundo
-    
-    // ✅ TIMEOUT de seguridad por si hay algún error
-    setTimeout(() => {
-        if (!syncCompleted) {
-            console.log("⚠️ Sync tomó más de 3 minutos, forzando finalización...");
-            syncCompleted = true;
-            syncResult = { success: false, message: "El proceso tomó más tiempo del esperado" };
-        }
-    }, (totalTime + 10) * 1000); // 3 minutos + 10 segundos de margen
 }
 // Añadir el botón cuando se cargue el DOM
 addSyncButton();
