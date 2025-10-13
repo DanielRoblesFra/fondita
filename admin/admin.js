@@ -49,17 +49,26 @@ function actualizarActividad() {
 // Event listeners para detectar actividad del usuario
 document.addEventListener('click', actualizarActividad);
 document.addEventListener('keypress', actualizarActividad);
-document.addEventListener('mousemove', actualizarActividad);
-document.addEventListener('scroll', actualizarActividad);
+//document.addEventListener('mousemove', actualizarActividad);
+//document.addEventListener('scroll', actualizarActividad);
 
 // Verificar sesión periódicamente
 setInterval(verificarSesion, 30000); // Cada 30 segundos
 
 // También verificar al cargar la página
 window.addEventListener('load', () => {
-    setTimeout(verificarSesion, 1000);
+    setTimeout(verificarSesion, 120000);
 });
 
+
+//✅Para que no se cierre sesion a la hora de cambiar de pagina
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        // El usuario volvió a la pestaña, actualizar actividad
+        actualizarActividad();
+        console.log('🔍 Usuario regresó a la pestaña');
+    }
+});
 
 // Cargar datos al iniciar
 window.addEventListener("DOMContentLoaded", () => {
