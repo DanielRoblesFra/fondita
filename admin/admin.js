@@ -3,7 +3,7 @@ let datosMenu = {};
 
 // 🛡️ DETECCIÓN DE SESIÓN EXPIRADA
 let lastActivity = Date.now();
-const SESSION_TIMEOUT = 15 * 60 * 1000; // 15 minutos en milisegundos
+const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutos en milisegundos
 
 // Función para verificar sesión
 function verificarSesion() {
