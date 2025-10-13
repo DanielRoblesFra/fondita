@@ -308,22 +308,26 @@ app.post('/api/menu', isLoggedIn, (req, res) => {
             execSync(`git push https://DanielRoblesFra:${GH_TOKEN}@github.com/DanielRoblesFra/fondita.git main`, 
                     { stdio: 'inherit' });
             console.log('✅ Menú guardado en GitHub');
-            
-            // ✅ NUEVO: SINCRONIZACIÓN AUTOMÁTICA CON FONDITA-PRODUCTION
-            console.log('🔄 Iniciando sincronización automática con fondita-production...');
-            try {
-                execSync('node scripts/sync-to-production.js', { stdio: 'inherit', timeout: 60000 }); // 60 segundos timeout
-                console.log('✅ Sincronización automática completada');
-            } catch (syncError) {
-                console.error('⚠️ Error en sincronización automática:', syncError.message);
-                // NO fallar la respuesta principal por error de sync
-            }
         }
     } catch (error) {
         console.error('Error en commit del menú:', error);
     }
     
-    res.send('Menú actualizado, guardado en GitHub y sincronizado con producción');
+ // ✅ NUEVO: SINCRONIZACIÓN AUTOMÁTICA EN SEGUNDO PLANO
+ console.log('🔄 Iniciando sincronización automática con fondita-production...');
+ setTimeout(() => {
+    try {
+        execSync('node scripts/sync-to-production.js', { 
+            stdio: 'inherit', 
+            timeout: 120000 
+        });
+        console.log('✅ Sincronización automática completada');
+    } catch (syncError) {
+        console.error('⚠️ Error en sincronización automática:', syncError.message);
+    }
+}, 1000);
+
+res.send('Menú actualizado, guardado en GitHub. Sincronización con producción en progreso...');
 });
 app.post('/api/upload-image', isLoggedIn, upload.single('imagen'), (req, res) => {
     if (!req.file) {
