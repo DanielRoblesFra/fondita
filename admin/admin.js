@@ -428,6 +428,8 @@ fileInput.addEventListener("change", e => {
 
 // ------------------ Guardar Cambios ------------------
 function guardarCambios() {
+    console.log('💾 Iniciando proceso de guardado...');
+    
     // ✅ VALIDACIÓN DE CAMPOS OBLIGATORIOS
     const camposVacios = [];
     const todosLosCampos = document.querySelectorAll(
@@ -462,29 +464,51 @@ function guardarCambios() {
         return;
     }
 
-    // ✅ Si todos los campos están llenos, proceder a guardar
-    document.querySelectorAll("#cartaContainer input, #cartaContainer textarea, #menuContainer input, #menuContainer textarea, #menuContainer select")
-        .forEach(input => {
-            const tipo = input.dataset.tipo;
-            const idx = input.dataset.index;
-            const campo = input.dataset.campo;
-            let valor = input.value.trim();
+    // ✅ ACTUALIZAR datosMenu CON LOS VALORES ACTUALES DE LOS INPUTS
+    console.log('🔄 Actualizando datos en memoria...');
+    
+    // Actualizar CARTA
+    document.querySelectorAll("#cartaContainer input, #cartaContainer textarea").forEach(input => {
+        const tipo = input.dataset.tipo;
+        const idx = parseInt(input.dataset.index);
+        const campo = input.dataset.campo;
+        const valor = input.value.trim();
 
-            if (tipo === "carta") {
-                if (campo === "pago_mensaje") datosMenu.carta[idx].pago.mensaje = valor;
-                else if (campo === "pago_banco") datosMenu.carta[idx].pago.banco = valor;
-                else datosMenu.carta[idx][campo] = valor;
-            } else if (tipo === "menu") {
-                if (campo === "platillos") {
-                    const platillosLimpos = valor.split(",")
-                        .map(p => p.trim())
-                        .filter(p => p !== "");
-                    datosMenu.menu_semana[idx][campo] = platillosLimpos;
-                } else {
-                    datosMenu.menu_semana[idx][campo] = valor;
-                }
+        if (tipo === "carta" && datosMenu.carta[idx]) {
+            if (campo === "pago_mensaje") {
+                datosMenu.carta[idx].pago.mensaje = valor;
+            } else if (campo === "pago_banco") {
+                datosMenu.carta[idx].pago.banco = valor;
+            } else {
+                datosMenu.carta[idx][campo] = valor;
             }
-        });
+            console.log(`📝 Carta[${idx}].${campo} = "${valor}"`);
+        }
+    });
+
+    // Actualizar MENÚ SEMANAL
+    document.querySelectorAll("#menuContainer input, #menuContainer textarea, #menuContainer select").forEach(input => {
+        const tipo = input.dataset.tipo;
+        const idx = parseInt(input.dataset.index);
+        const campo = input.dataset.campo;
+        let valor = input.value.trim();
+
+        if (tipo === "menu" && datosMenu.menu_semana[idx]) {
+            if (campo === "platillos") {
+                const platillosLimpos = valor.split(",")
+                    .map(p => p.trim())
+                    .filter(p => p !== "");
+                datosMenu.menu_semana[idx][campo] = platillosLimpos;
+                console.log(`📝 Menu[${idx}].${campo} =`, platillosLimpos);
+            } else {
+                datosMenu.menu_semana[idx][campo] = valor;
+                console.log(`📝 Menu[${idx}].${campo} = "${valor}"`);
+            }
+        }
+    });
+
+    // ✅ DEBUG: Mostrar datos actualizados
+    console.log('📊 Datos actualizados:', JSON.stringify(datosMenu, null, 2));
 
     // Mostrar indicador de carga
     const btnGuardar = document.querySelector('button[type="submit"]');
@@ -494,20 +518,37 @@ function guardarCambios() {
         btnGuardar.disabled = true;
     }
 
+    // ✅ ENVIAR datosMenu ACTUALIZADO al servidor
     fetch("/api/menu", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(datosMenu),
         credentials: 'include'
     })
-        .then(res => res.text())
+        .then(res => {
+            if (!res.ok) {
+                throw new Error(`Error ${res.status}: ${res.statusText}`);
+            }
+            return res.text();
+        })
         .then(msg => {
+            console.log("✅ Respuesta del servidor:", msg);
             alert("✅ " + msg);
-            console.log("✅ Datos guardados correctamente");
+            
+            // Recargar datos para confirmar
+            setTimeout(() => {
+                fetch("/api/menu")
+                    .then(res => res.json())
+                    .then(data => {
+                        datosMenu = data;
+                        console.log("🔄 Datos recargados después de guardar");
+                    })
+                    .catch(err => console.error("Error recargando datos:", err));
+            }, 1000);
         })
         .catch(err => {
             console.error("Error guardando:", err);
-            alert("❌ Error al guardar los cambios. Intenta nuevamente.");
+            alert("❌ Error al guardar los cambios: " + err.message);
         })
         .finally(() => {
             if (btnGuardar) {
