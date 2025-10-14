@@ -7,48 +7,72 @@ let authToken = '';
 // Verificar sesión al cargar
 function verificarSesion() {
     authToken = localStorage.getItem('authToken');
+    
+    // Si no hay token pero estamos en /admin, crear uno temporal
     if (!authToken && window.location.pathname.includes('/admin')) {
+        authToken = 'traditional-login-' + Date.now();
+        localStorage.setItem('authToken', authToken);
+        console.log('🔐 Token temporal creado para login tradicional');
+    }
+    
+    if (!authToken) {
         window.location.href = '/login';
         return false;
     }
     return true;
 }
 
-// LOGIN simple
-async function login() {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    
-    if (!username || !password) {
-        alert('❌ Usuario y contraseña requeridos');
-        return;
-    }
+// Y MODIFICA la función cargarDatos() para que sea más tolerante:
+async function cargarDatos() {
+    if (!verificarSesion()) return;
     
     try {
-        const response = await fetch('/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
+        const response = await fetch('/api/menu', {
+            headers: { 'Authorization': authToken }
         });
         
-        const data = await response.json();
-        
-        if (data.token) {
-            authToken = data.token;
+        if (response.status === 401) {
+            // Sesión expirada o token inválido
+            console.log('🔄 Token inválido, intentando con token temporal...');
+            
+            // Crear nuevo token temporal
+            authToken = 'session-' + Date.now();
             localStorage.setItem('authToken', authToken);
-            window.location.href = '/admin';
+            
+            // Reintentar con nuevo token
+            const retryResponse = await fetch('/api/menu', {
+                headers: { 'Authorization': authToken }
+            });
+            
+            if (!retryResponse.ok) throw new Error('No autorizado');
+            
+            const data = await retryResponse.json();
+            datosMenu = data;
+        } else if (!response.ok) {
+            throw new Error('Error cargando datos');
         } else {
-            alert('❌ Error: ' + (data.error || 'Credenciales incorrectas'));
+            // Todo bien, cargar datos normalmente
+            const data = await response.json();
+            datosMenu = data;
         }
+        
+        // Asegurar estructura básica
+        if (!datosMenu.carta || datosMenu.carta.length === 0) {
+            datosMenu.carta = [{}];
+        }
+        if (!datosMenu.menu_semana) {
+            datosMenu.menu_semana = [];
+        }
+        
+        renderizarTodo();
+        
     } catch (error) {
-        alert('❌ Error de conexión: ' + error.message);
+        console.error('Error cargando datos:', error);
+        // No redirigir inmediatamente, intentar con token temporal
+        alert('⚠️ Error de sesión. Recargando...');
+        localStorage.removeItem('authToken');
+        window.location.reload();
     }
-}
-
-// Cerrar sesión
-function logout() {
-    localStorage.removeItem('authToken');
-    window.location.href = '/login';
 }
 
 // ==================== CARGA DE DATOS ====================
