@@ -317,51 +317,95 @@ app.post('/api/menu', isLoggedIn, (req, res) => {
         
         // ✅ 4. FORZAR COMMIT SIEMPRE
         console.log('💾 INICIANDO COMMIT FORZADO...');
-        
-        // 4.1. Crear archivo de timestamp para forzar cambio visible
-        const timestampPath = path.join(__dirname, 'data', 'deploy_trigger.txt');
-        const timestamp = `Última actualización: ${new Date().toISOString()}\nUser: Admin\nChanges: ${JSON.stringify(req.body).substring(0, 100)}...`;
-        fs.writeFileSync(timestampPath, timestamp);
-        console.log('🕒 TIMESTAMP CREADO:', new Date().toISOString());
-        
-        // 4.2. Agregar AMBOS archivos
-        execSync('git add data/menu.json data/deploy_trigger.txt', { stdio: 'inherit' });
-        
-        // 4.3. COMMIT SIEMPRE (con o sin cambios)
+
+        // 4.1. Agregar SOLO menu.json (sin deploy_trigger.txt)
+        execSync('git add data/menu.json', { stdio: 'inherit' });
+        console.log('📁 menu.json agregado al commit');
+
+        // 4.2. COMMIT SIEMPRE (con o sin cambios)
         const commitMessage = `🚀 DEPLOY: Actualizar menú - ${new Date().toLocaleString('es-MX')}`;
         execSync(`git commit -m "${commitMessage}"`, { stdio: 'inherit' });
-        
+
         console.log('📤 HACIENDO PUSH...');
         const GH_TOKEN = process.env.GH_TOKEN;
         if (!GH_TOKEN) {
             console.error('❌ GH_TOKEN no está definido');
             return res.send('Menú actualizado pero no se pudo guardar en GitHub (token faltante)');
         }
-        
+
         execSync(`git push https://DanielRoblesFra:${GH_TOKEN}@github.com/DanielRoblesFra/fondita.git main`, 
                 { stdio: 'inherit' });
         console.log('✅ PUSH EXITOSO - Render debería detectar el cambio');
         
         // ✅ 5. SINCRONIZACIÓN AUTOMÁTICA
-        console.log('🔄 Iniciando sincronización automática con fondita-production...');
-        setTimeout(() => {
-        try {
-        console.log('⏰ Esperando 5 segundos para asegurar que menu.json esté guardado...');
-        setTimeout(() => {
+console.log('🔄 Iniciando sincronización automática con fondita-production...');
+
+// Función para verificar si GitHub está actualizado
+function waitForGitHubUpdate() {
+    return new Promise((resolve) => {
+        console.log('⏳ Esperando a que GitHub procese los cambios...');
+        let attempts = 0;
+        const maxAttempts = 12; // 12 intentos * 5 segundos = 60 segundos máximo
+        
+        const checkGitHub = () => {
+            attempts++;
+            console.log(`🔍 Verificando GitHub (intento ${attempts}/${maxAttempts})...`);
+            
             try {
-                execSync('node scripts/sync-to-production.js', { 
-                    stdio: 'inherit', 
-                    timeout: 120000 
-                });
-                console.log('✅ Sincronización automática completada');
-            } catch (syncError) {
-                console.error('⚠️ Error en sincronización automática:', syncError.message);
+                // Hacer fetch y verificar el estado
+                execSync('git fetch origin', { stdio: 'pipe' });
+                const status = execSync('git status -uno', { encoding: 'utf8' });
+                
+                if (status.includes('Your branch is up to date')) {
+                    console.log('✅ GitHub está actualizado - procediendo con sincronización');
+                    resolve(true);
+                } else {
+                    console.log('⏱️  GitHub aún no está actualizado...');
+                    
+                    if (attempts >= maxAttempts) {
+                        console.log('⚠️  Timeout después de 60 segundos, continuando...');
+                        resolve(false);
+                    } else {
+                        setTimeout(checkGitHub, 5000); // Esperar 5 segundos entre intentos
+                    }
+                }
+            } catch (error) {
+                console.log('⚠️  Error verificando GitHub:', error.message);
+                if (attempts >= maxAttempts) {
+                    console.log('⚠️  Timeout por errores, continuando...');
+                    resolve(false);
+                } else {
+                    setTimeout(checkGitHub, 5000);
+                }
             }
-        }, 5000); // 5 segundos extra de espera
-    } catch (error) {
-        console.error('❌ Error en timer de sincronización:', error);
+        };
+        
+        // Primer intento después de 3 segundos
+        setTimeout(checkGitHub, 3000);
+    });
+}
+
+// Ejecutar la verificación y luego sincronizar
+setTimeout(async () => {
+    try {
+        const isUpdated = await waitForGitHubUpdate();
+        
+        if (isUpdated) {
+            console.log('🚀 GitHub confirmado - ejecutando sync-to-production.js');
+        } else {
+            console.log('🚀 Continuando aunque GitHub no esté completamente actualizado');
+        }
+        
+        execSync('node scripts/sync-to-production.js', { 
+            stdio: 'inherit', 
+            timeout: 120000 
+        });
+        console.log('✅ Sincronización automática completada');
+        
+    } catch (syncError) {
+        console.error('❌ Error en sincronización automática:', syncError.message);
     }
-}, 5000);
+}, 2000);
 
         // ✅ 6. RESPONDER ÉXITO
         res.send('Menú actualizado, guardado en GitHub. Sincronización con producción en progreso...');
