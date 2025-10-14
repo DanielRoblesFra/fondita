@@ -10,6 +10,45 @@ const BRANCH = 'main';
 
 console.log('🔄 Iniciando sincronización optimizada...');
 
+// ✅ FUNCIÓN PARA FORZAR ACTUALIZACIÓN COMPLETA Y ELIMINAR CACHE
+function forceCompleteUpdate() {
+    console.log('🔄 FORZANDO ACTUALIZACIÓN COMPLETA DEL REPOSITORIO...');
+    try {
+        // 1. Cambiar al directorio del repo
+        process.chdir(PROD_REPO_DIR);
+        
+        // 2. Reset completo y forzado
+        execSync('git fetch origin', { stdio: 'inherit' });
+        execSync('git reset --hard origin/main', { stdio: 'inherit' });
+        execSync('git clean -fd', { stdio: 'inherit' });
+        
+        // 3. Volver al directorio original
+        process.chdir(path.join(__dirname, '..'));
+        
+        console.log('✅ REPOSITORIO COMPLETAMENTE ACTUALIZADO Y LIMPIO');
+        return true;
+    } catch (error) {
+        console.log('❌ Error en actualización forzada:', error.message);
+        
+        // Si falla, intentar solución alternativa
+        try {
+            console.log('🔄 Intentando solución alternativa...');
+            
+            // Eliminar y reclonar completamente
+            if (fs.existsSync(PROD_REPO_DIR)) {
+                fs.rmSync(PROD_REPO_DIR, { recursive: true, force: true });
+            }
+            
+            execSync(`git clone ${AUTH_REPO_URL} ${PROD_REPO_DIR}`, { stdio: 'inherit' });
+            console.log('✅ Repositorio reclonado completamente');
+            return true;
+        } catch (cloneError) {
+            console.log('❌ Error en reclonación:', cloneError.message);
+            return false;
+        }
+    }
+}
+
 try {
     // ✅ CONFIGURACIÓN INICIAL (mantenemos esto)
     try {
@@ -45,8 +84,9 @@ try {
         console.log('📦 Clonando repositorio de producción (primera vez)...');
         execSync(`git clone ${AUTH_REPO_URL} ${PROD_REPO_DIR}`, { stdio: 'inherit' });
     } else {
-        console.log('📥 Actualizando repositorio existente...');
-        execSync(`cd ${PROD_REPO_DIR} && git fetch origin && git reset --hard origin/${BRANCH} && git clean -fd`, { stdio: 'inherit' });
+        console.log('📥 ACTUALIZANDO repositorio existente CON FUNCIÓN FORZADA...');
+        // ✅ REEMPLAZA la línea vieja con la función nueva
+        forceCompleteUpdate();
     }
 
     // Configurar Git para commits en el repo de producción
@@ -311,5 +351,6 @@ document.addEventListener("DOMContentLoaded", cargarCarta);
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
 
 
