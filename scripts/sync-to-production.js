@@ -45,6 +45,13 @@ function verificarCambiosReales() {
 // ✅ FUNCIÓN PARA FORZAR ACTUALIZACIÓN COMPLETA Y ELIMINAR CACHE
 function forceCompleteUpdate() {
     console.log('🔄 FORZANDO ACTUALIZACIÓN COMPLETA DEL REPOSITORIO...');
+    
+    // ✅ DEFINIR AUTH_REPO_URL AQUÍ TAMBIÉN
+    const repoMatch = PROD_REPO_URL.match(/github\.com\/([^\/]+)\/([^\.]+)/);
+    const GIT_USERNAME = repoMatch ? repoMatch[1] : '';
+    const REPO_NAME = repoMatch ? repoMatch[2] : '';
+    const AUTH_REPO_URL = `https://${GIT_USERNAME}:${GH_TOKEN}@github.com/${GIT_USERNAME}/${REPO_NAME}.git`;
+    
     try {
         // 1. Cambiar al directorio del repo
         process.chdir(PROD_REPO_DIR);
@@ -389,6 +396,7 @@ if (hayCambiosReales) {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
 
 
 
