@@ -160,10 +160,21 @@ function deleteOldImage(filename) {
 function actualizarDatosMenu() {
     try {
         const menuPath = path.join(__dirname, 'data', 'menu.json');
-        datosMenu = JSON.parse(fs.readFileSync(menuPath, 'utf-8'));
-        console.log('🔄 Datos del menú actualizados en memoria');
+        if (fs.existsSync(menuPath)) {
+            const contenido = fs.readFileSync(menuPath, 'utf-8');
+            datosMenu = JSON.parse(contenido);
+            console.log('🔄 Datos del menú actualizados en memoria desde menu.json');
+            console.log('📊 Estado actual:', {
+                carta: datosMenu.carta?.length || 0,
+                menu_semana: datosMenu.menu_semana?.length || 0
+            });
+        } else {
+            console.log('⚠️  menu.json no existe, usando datos por defecto');
+            datosMenu = { carta: [], menu_semana: [] };
+        }
     } catch (error) {
         console.error('❌ Error actualizando datos en memoria:', error);
+        datosMenu = { carta: [], menu_semana: [] };
     }
 }
 
@@ -282,64 +293,76 @@ app.post('/api/menu', isLoggedIn, (req, res) => {
     console.log('🎯 RECIBIENDO DATOS EN /api/menu - VERIFICANDO...');
     console.log('📦 CUERPO DE LA PETICIÓN:', JSON.stringify(req.body, null, 2));
     
-    // Verificar si los datos son diferentes a los actuales
     const menuPath = path.join(__dirname, 'data', 'menu.json');
-    const contenidoActual = fs.existsSync(menuPath) ? fs.readFileSync(menuPath, 'utf8') : '';
-    const nuevoContenido = JSON.stringify(req.body, null, 2);
     
-    console.log('🔍 ¿HAY CAMBIOS REALES?', contenidoActual !== nuevoContenido ? '✅ SÍ' : '❌ NO');
-    
-    // ✅ ACTUALIZAR DATOS EN MEMORIA
-    actualizarDatosMenu();
-    
-    // ✅ FORZAR COMMIT SIEMPRE
-try {
-    const { execSync } = require('child_process');
-    console.log('💾 INICIANDO COMMIT FORZADO...');
-    
-    // 1. Crear archivo de timestamp para forzar cambio visible
-    const timestampPath = path.join(__dirname, 'data', 'deploy_trigger.txt');
-    const timestamp = `Última actualización: ${new Date().toISOString()}\nUser: Admin\nChanges: ${JSON.stringify(req.body).substring(0, 100)}...`;
-    fs.writeFileSync(timestampPath, timestamp);
-    console.log('🕒 TIMESTAMP CREADO:', new Date().toISOString());
-    
-    // 2. Agregar AMBOS archivos
-    execSync('git add data/menu.json data/deploy_trigger.txt', { stdio: 'inherit' });
-    
-    // 3. COMMIT SIEMPRE (con o sin cambios)
-    const commitMessage = `🚀 DEPLOY: Actualizar menú - ${new Date().toLocaleString('es-MX')}`;
-    execSync(`git commit -m "${commitMessage}"`, { stdio: 'inherit' });
-    
-    console.log('📤 HACIENDO PUSH...');
-    const GH_TOKEN = process.env.GH_TOKEN;
-    if (!GH_TOKEN) {
-        console.error('❌ GH_TOKEN no está definido');
-        return res.send('Menú actualizado pero no se pudo guardar en GitHub (token faltante)');
-    }
-    
-    execSync(`git push https://DanielRoblesFra:${GH_TOKEN}@github.com/DanielRoblesFra/fondita.git main`, 
-            { stdio: 'inherit' });
-    console.log('✅ PUSH EXITOSO - Render debería detectar el cambio');
-    
-} catch (error) {
-    console.error('❌ Error en commit:', error);
-}
-    
-    // ✅ SINCRONIZACIÓN AUTOMÁTICA
-    console.log('🔄 Iniciando sincronización automática con fondita-production...');
-    setTimeout(() => {
-        try {
-            execSync('node scripts/sync-to-production.js', { 
-                stdio: 'inherit', 
-                timeout: 120000 
-            });
-            console.log('✅ Sincronización automática completada');
-        } catch (syncError) {
-            console.error('⚠️ Error en sincronización automática:', syncError.message);
+    try {
+        // ✅ 1. VERIFICAR SI HAY CAMBIOS REALES
+        const contenidoActual = fs.existsSync(menuPath) ? fs.readFileSync(menuPath, 'utf8') : '';
+        const nuevoContenido = JSON.stringify(req.body, null, 2);
+        
+        console.log('🔍 ¿HAY CAMBIOS REALES?', contenidoActual !== nuevoContenido ? '✅ SÍ' : '❌ NO');
+        
+        if (contenidoActual === nuevoContenido) {
+            console.log('ℹ️  No hay cambios en los datos, omitiendo escritura');
+            return res.send('No se detectaron cambios en el menú');
         }
-    }, 2000);
+        
+        // ✅ 2. GUARDAR EN ARCHIVO menu.json
+        console.log('💾 GUARDANDO EN menu.json...');
+        fs.writeFileSync(menuPath, nuevoContenido, 'utf8');
+        console.log('✅ menu.json ACTUALIZADO EXITOSAMENTE');
+        
+        // ✅ 3. ACTUALIZAR DATOS EN MEMORIA
+        actualizarDatosMenu();
+        
+        // ✅ 4. FORZAR COMMIT SIEMPRE
+        console.log('💾 INICIANDO COMMIT FORZADO...');
+        
+        // 4.1. Crear archivo de timestamp para forzar cambio visible
+        const timestampPath = path.join(__dirname, 'data', 'deploy_trigger.txt');
+        const timestamp = `Última actualización: ${new Date().toISOString()}\nUser: Admin\nChanges: ${JSON.stringify(req.body).substring(0, 100)}...`;
+        fs.writeFileSync(timestampPath, timestamp);
+        console.log('🕒 TIMESTAMP CREADO:', new Date().toISOString());
+        
+        // 4.2. Agregar AMBOS archivos
+        execSync('git add data/menu.json data/deploy_trigger.txt', { stdio: 'inherit' });
+        
+        // 4.3. COMMIT SIEMPRE (con o sin cambios)
+        const commitMessage = `🚀 DEPLOY: Actualizar menú - ${new Date().toLocaleString('es-MX')}`;
+        execSync(`git commit -m "${commitMessage}"`, { stdio: 'inherit' });
+        
+        console.log('📤 HACIENDO PUSH...');
+        const GH_TOKEN = process.env.GH_TOKEN;
+        if (!GH_TOKEN) {
+            console.error('❌ GH_TOKEN no está definido');
+            return res.send('Menú actualizado pero no se pudo guardar en GitHub (token faltante)');
+        }
+        
+        execSync(`git push https://DanielRoblesFra:${GH_TOKEN}@github.com/DanielRoblesFra/fondita.git main`, 
+                { stdio: 'inherit' });
+        console.log('✅ PUSH EXITOSO - Render debería detectar el cambio');
+        
+        // ✅ 5. SINCRONIZACIÓN AUTOMÁTICA
+        console.log('🔄 Iniciando sincronización automática con fondita-production...');
+        setTimeout(() => {
+            try {
+                execSync('node scripts/sync-to-production.js', { 
+                    stdio: 'inherit', 
+                    timeout: 120000 
+                });
+                console.log('✅ Sincronización automática completada');
+            } catch (syncError) {
+                console.error('⚠️ Error en sincronización automática:', syncError.message);
+            }
+        }, 2000);
 
-    res.send('Menú actualizado, guardado en GitHub. Sincronización con producción en progreso...');
+        // ✅ 6. RESPONDER ÉXITO
+        res.send('Menú actualizado, guardado en GitHub. Sincronización con producción en progreso...');
+        
+    } catch (error) {
+        console.error('❌ ERROR GUARDANDO menu.json:', error);
+        res.status(500).send('Error al guardar el menú: ' + error.message);
+    }
 });
 
 app.post('/api/upload-image', isLoggedIn, upload.single('imagen'), (req, res) => {
