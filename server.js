@@ -345,6 +345,9 @@ app.post('/api/menu', isLoggedIn, (req, res) => {
         // ✅ 5. SINCRONIZACIÓN AUTOMÁTICA
         console.log('🔄 Iniciando sincronización automática con fondita-production...');
         setTimeout(() => {
+        try {
+        console.log('⏰ Esperando 5 segundos para asegurar que menu.json esté guardado...');
+        setTimeout(() => {
             try {
                 execSync('node scripts/sync-to-production.js', { 
                     stdio: 'inherit', 
@@ -354,7 +357,11 @@ app.post('/api/menu', isLoggedIn, (req, res) => {
             } catch (syncError) {
                 console.error('⚠️ Error en sincronización automática:', syncError.message);
             }
-        }, 2000);
+        }, 5000); // 5 segundos extra de espera
+    } catch (error) {
+        console.error('❌ Error en timer de sincronización:', error);
+    }
+}, 1000);
 
         // ✅ 6. RESPONDER ÉXITO
         res.send('Menú actualizado, guardado en GitHub. Sincronización con producción en progreso...');
