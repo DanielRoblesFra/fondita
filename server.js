@@ -279,41 +279,50 @@ app.get('/api/menu', (req, res) => {
 });
 
 app.post('/api/menu', isLoggedIn, (req, res) => {
+    console.log('📥 Recibiendo datos del menú:', JSON.stringify(req.body, null, 2));
+    
     const menuPath = path.join(__dirname, 'data', 'menu.json');
     fs.writeFileSync(menuPath, JSON.stringify(req.body, null, 2));
     
-    // ✅ NUEVO: ACTUALIZAR DATOS EN MEMORIA
+    // ✅ ACTUALIZAR DATOS EN MEMORIA
     actualizarDatosMenu();
     
-    // ✅ FORZAR COMMIT MANUAL del menu.json
+    // ✅ FORZAR COMMIT SIEMPRE
     try {
         const { execSync } = require('child_process');
-        console.log('💾 Guardando menu.json específicamente...');
+        console.log('💾 Guardando cambios en GitHub...');
         
-        // Agregar solo el archivo modificado
+        // Agregar menu.json SIEMPRE
         execSync('git add data/menu.json', { stdio: 'inherit' });
         
-        const status = execSync('git status --porcelain data/menu.json').toString();
+        // Verificar cambios
+        const status = execSync('git status --porcelain').toString();
+        console.log('📋 Estado de Git:', status || 'Sin cambios detectados');
+        
         if (status.trim() !== '') {
             const commitMessage = `Actualizar menú: ${new Date().toLocaleString('es-MX')}`;
             execSync(`git commit -m "${commitMessage}"`, { stdio: 'inherit' });
-            
-            // Usar autenticación directa - VERIFICAR QUE GH_TOKEN EXISTA
-            const GH_TOKEN = process.env.GH_TOKEN;
-            if (!GH_TOKEN) {
-                console.error('❌ GH_TOKEN no está definido');
-                return res.send('Menú actualizado pero no se pudo guardar en GitHub (token faltante)');
-            }
-            
-            execSync(`git push https://DanielRoblesFra:${GH_TOKEN}@github.com/DanielRoblesFra/fondita.git main`, 
-                    { stdio: 'inherit' });
-            console.log('✅ Menú guardado en GitHub');
+        } else {
+            // Forzar commit vacío si no hay cambios
+            const commitMessage = `Forzar actualización: ${new Date().toLocaleString('es-MX')}`;
+            execSync(`git commit --allow-empty -m "${commitMessage}"`, { stdio: 'inherit' });
         }
+        
+        const GH_TOKEN = process.env.GH_TOKEN;
+        if (!GH_TOKEN) {
+            console.error('❌ GH_TOKEN no está definido');
+            return res.send('Menú actualizado pero no se pudo guardar en GitHub (token faltante)');
+        }
+        
+        execSync(`git push https://DanielRoblesFra:${GH_TOKEN}@github.com/DanielRoblesFra/fondita.git main`, 
+                { stdio: 'inherit' });
+        console.log('✅ Menú guardado en GitHub');
+        
     } catch (error) {
         console.error('Error en commit del menú:', error);
     }
     
-    // ✅ NUEVO: SINCRONIZACIÓN AUTOMÁTICA EN SEGUNDO PLANO
+    // ✅ SINCRONIZACIÓN AUTOMÁTICA
     console.log('🔄 Iniciando sincronización automática con fondita-production...');
     setTimeout(() => {
         try {
@@ -325,7 +334,7 @@ app.post('/api/menu', isLoggedIn, (req, res) => {
         } catch (syncError) {
             console.error('⚠️ Error en sincronización automática:', syncError.message);
         }
-    }, 1000);
+    }, 2000);
 
     res.send('Menú actualizado, guardado en GitHub. Sincronización con producción en progreso...');
 });
