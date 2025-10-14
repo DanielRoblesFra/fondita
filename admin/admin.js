@@ -428,53 +428,32 @@ fileInput.addEventListener("change", e => {
 
 // ------------------ Guardar Cambios ------------------
 function guardarCambios() {
-    console.log('💾 Iniciando proceso de guardado...');
+    console.log('💾 INICIANDO GUARDADO - VERIFICANDO CAMBIOS...');
     
-    // ✅ VALIDACIÓN DE CAMPOS OBLIGATORIOS
-    const camposVacios = [];
-    const todosLosCampos = document.querySelectorAll(
-        "#cartaContainer input[required], #cartaContainer textarea[required], #menuContainer input[required], #menuContainer textarea[required], #menuContainer select[required]"
-    );
+    // ✅ 1. CREAR COPIA DE LOS DATOS ACTUALES PARA COMPARAR
+    const datosOriginales = JSON.parse(JSON.stringify(datosMenu));
     
-    todosLosCampos.forEach((campo, index) => {
-        const valor = campo.value.trim();
-        
-        if (!valor || valor === "") {
-            campo.style.borderColor = "#e74c3c";
-            campo.style.backgroundColor = "#fdf2f2";
-            
-            const label = campo.previousElementSibling;
-            const nombreCampo = label ? label.textContent : `Campo ${index + 1}`;
-            camposVacios.push(nombreCampo);
-        } else {
-            campo.style.borderColor = "#ddd";
-            campo.style.backgroundColor = "#fff";
-        }
-    });
-
-    if (camposVacios.length > 0) {
-        alert(`❌ Por favor completa todos los campos obligatorios:\n\n${camposVacios.join('\n')}`);
-        const primerCampoVacio = document.querySelector(
-            "#cartaContainer input[required], #cartaContainer textarea[required], #menuContainer input[required], #menuContainer textarea[required], #menuContainer select[required]"
-        );
-        if (primerCampoVacio && primerCampoVacio.style.borderColor === "rgb(231, 76, 60)") {
-            primerCampoVacio.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            primerCampoVacio.focus();
-        }
-        return;
-    }
-
-    // ✅ ACTUALIZAR datosMenu CON LOS VALORES ACTUALES DE LOS INPUTS
-    console.log('🔄 Actualizando datos en memoria...');
+    // ✅ 2. ACTUALIZAR datosMenu CON LOS VALORES ACTUALES
+    console.log('🔄 Sincronizando formularios con datos en memoria...');
     
     // Actualizar CARTA
+    let cambiosCarta = false;
     document.querySelectorAll("#cartaContainer input, #cartaContainer textarea").forEach(input => {
         const tipo = input.dataset.tipo;
         const idx = parseInt(input.dataset.index);
         const campo = input.dataset.campo;
         const valor = input.value.trim();
 
-        if (tipo === "carta" && datosMenu.carta[idx]) {
+        if (tipo === "carta" && datosMenu.carta && datosMenu.carta[idx]) {
+            const valorOriginal = campo === "pago_mensaje" ? datosMenu.carta[idx].pago.mensaje :
+                               campo === "pago_banco" ? datosMenu.carta[idx].pago.banco :
+                               datosMenu.carta[idx][campo];
+            
+            if (valor !== valorOriginal) {
+                cambiosCarta = true;
+                console.log(`🔄 CAMBIO DETECTADO - Carta[${idx}].${campo}: "${valorOriginal}" → "${valor}"`);
+            }
+
             if (campo === "pago_mensaje") {
                 datosMenu.carta[idx].pago.mensaje = valor;
             } else if (campo === "pago_banco") {
@@ -482,33 +461,54 @@ function guardarCambios() {
             } else {
                 datosMenu.carta[idx][campo] = valor;
             }
-            console.log(`📝 Carta[${idx}].${campo} = "${valor}"`);
         }
     });
 
     // Actualizar MENÚ SEMANAL
+    let cambiosMenu = false;
     document.querySelectorAll("#menuContainer input, #menuContainer textarea, #menuContainer select").forEach(input => {
         const tipo = input.dataset.tipo;
         const idx = parseInt(input.dataset.index);
         const campo = input.dataset.campo;
         let valor = input.value.trim();
 
-        if (tipo === "menu" && datosMenu.menu_semana[idx]) {
+        if (tipo === "menu" && datosMenu.menu_semana && datosMenu.menu_semana[idx]) {
+            let valorOriginal;
+            
             if (campo === "platillos") {
-                const platillosLimpos = valor.split(",")
-                    .map(p => p.trim())
-                    .filter(p => p !== "");
+                valorOriginal = datosMenu.menu_semana[idx][campo].join(", ");
+                const platillosLimpos = valor.split(",").map(p => p.trim()).filter(p => p !== "");
+                
+                if (JSON.stringify(platillosLimpos) !== JSON.stringify(datosMenu.menu_semana[idx][campo])) {
+                    cambiosMenu = true;
+                    console.log(`🔄 CAMBIO DETECTADO - Menu[${idx}].${campo}:`, datosMenu.menu_semana[idx][campo], "→", platillosLimpos);
+                }
+                
                 datosMenu.menu_semana[idx][campo] = platillosLimpos;
-                console.log(`📝 Menu[${idx}].${campo} =`, platillosLimpos);
             } else {
+                valorOriginal = datosMenu.menu_semana[idx][campo];
+                
+                if (valor !== valorOriginal) {
+                    cambiosMenu = true;
+                    console.log(`🔄 CAMBIO DETECTADO - Menu[${idx}].${campo}: "${valorOriginal}" → "${valor}"`);
+                }
+                
                 datosMenu.menu_semana[idx][campo] = valor;
-                console.log(`📝 Menu[${idx}].${campo} = "${valor}"`);
             }
         }
     });
 
-    // ✅ DEBUG: Mostrar datos actualizados
-    console.log('📊 Datos actualizados:', JSON.stringify(datosMenu, null, 2));
+    // ✅ 3. VERIFICAR SI REALMENTE HAY CAMBIOS
+    const hayCambiosReales = cambiosCarta || cambiosMenu;
+    
+    if (!hayCambiosReales) {
+        console.log('ℹ️  No se detectaron cambios reales en los datos');
+        alert('ℹ️  No se detectaron cambios para guardar');
+        return;
+    }
+
+    console.log('✅ CAMBIOS DETECTADOS - Procediendo a guardar...');
+    console.log('📊 DATOS ACTUALIZADOS:', JSON.stringify(datosMenu, null, 2));
 
     // Mostrar indicador de carga
     const btnGuardar = document.querySelector('button[type="submit"]');
@@ -560,7 +560,15 @@ function guardarCambios() {
 
 // Guardar cambios automáticamente después de subir imagen
 function guardarCambiosAutomaticos() {
-    console.log('💾 Guardando cambios automáticamente después de subir imagen...');
+    console.log('💾 GUARDADO AUTOMÁTICO - Imagen subida, guardando cambios...');
+    
+    // ✅ VERIFICAR QUE datosMenu ESTÉ ACTUALIZADO
+    if (!datosMenu || !datosMenu.menu_semana) {
+        console.error('❌ datosMenu no está disponible para guardar');
+        return;
+    }
+    
+    console.log('📊 Enviando datos actualizados:', JSON.stringify(datosMenu, null, 2));
     
     fetch("/api/menu", {
         method: "POST",
@@ -568,13 +576,13 @@ function guardarCambiosAutomaticos() {
         body: JSON.stringify(datosMenu),
         credentials: 'include'
     })
-        .then(res => res.text())
-        .then(msg => {
-            console.log("✅ Cambios guardados automáticamente:", msg);
-        })
-        .catch(err => {
-            console.error("Error guardando cambios automáticos:", err);
-        });
+    .then(res => res.text())
+    .then(msg => {
+        console.log("✅ Cambios automáticos guardados:", msg);
+    })
+    .catch(err => {
+        console.error("❌ Error guardando cambios automáticos:", err);
+    });
 }
 
 // ------------------ Botón de Sincronización ------------------
