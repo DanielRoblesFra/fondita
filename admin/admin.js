@@ -1,4 +1,4 @@
-// admin.js - VERSIÓN OPTIMIZADA
+// admin.js
 let datosMenu = { carta: [{}], menu_semana: [] };
 let authToken = '';
 
@@ -22,7 +22,46 @@ function verificarSesion() {
     return true;
 }
 
-// Y MODIFICA la función cargarDatos() para que sea más tolerante:
+// LOGIN simple
+async function login() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    
+    if (!username || !password) {
+        alert('❌ Usuario y contraseña requeridos');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.token) {
+            authToken = data.token;
+            localStorage.setItem('authToken', authToken);
+            window.location.href = '/admin';
+        } else {
+            alert('❌ Error: ' + (data.error || 'Credenciales incorrectas'));
+        }
+    } catch (error) {
+        alert('❌ Error de conexión: ' + error.message);
+    }
+}
+
+// Cerrar sesión
+function logout() {
+    localStorage.removeItem('authToken');
+    window.location.href = '/login';
+}
+
+// ==================== CARGA DE DATOS ====================
+
+// Cargar datos al iniciar - VERSIÓN CORREGIDA
 async function cargarDatos() {
     if (!verificarSesion()) return;
     
@@ -68,42 +107,9 @@ async function cargarDatos() {
         
     } catch (error) {
         console.error('Error cargando datos:', error);
-        // No redirigir inmediatamente, intentar con token temporal
         alert('⚠️ Error de sesión. Recargando...');
         localStorage.removeItem('authToken');
         window.location.reload();
-    }
-}
-
-// ==================== CARGA DE DATOS ====================
-
-// Cargar datos al iniciar
-async function cargarDatos() {
-    if (!verificarSesion()) return;
-    
-    try {
-        const response = await fetch('/api/menu', {
-            headers: { 'Authorization': authToken }
-        });
-        
-        if (!response.ok) throw new Error('Sesión expirada');
-        
-        const data = await response.json();
-        datosMenu = data;
-        
-        // Asegurar estructura básica
-        if (!datosMenu.carta || datosMenu.carta.length === 0) {
-            datosMenu.carta = [{}];
-        }
-        if (!datosMenu.menu_semana) {
-            datosMenu.menu_semana = [];
-        }
-        
-        renderizarTodo();
-    } catch (error) {
-        console.error('Error cargando datos:', error);
-        localStorage.removeItem('authToken');
-        window.location.href = '/login';
     }
 }
 
