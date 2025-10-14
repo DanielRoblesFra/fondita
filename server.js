@@ -338,86 +338,27 @@ app.post('/api/menu', isLoggedIn, (req, res) => {
         console.log('✅ PUSH EXITOSO - Render debería detectar el cambio');
         
         // ✅ 5. SINCRONIZACIÓN AUTOMÁTICA
+// ✅ 5. SINCRONIZACIÓN AUTOMÁTICA CON ESPERA FIABLE
 console.log('🔄 Iniciando sincronización automática con fondita-production...');
 
-// Función para verificar que el CONTENIDO ESPECÍFICO esté en GitHub
-function waitForSpecificContent(expectedContent, maxAttempts = 15) {
+function waitForGitHubSimple() {
     return new Promise((resolve) => {
-        console.log('⏳ Verificando que los cambios específicos estén en GitHub...');
-        let attempts = 0;
+        console.log('⏳ Esperando 15 segundos para GitHub (solución simple)...');
         
-        const checkContent = () => {
-            attempts++;
-            console.log(`🔍 Verificando contenido (intento ${attempts}/${maxAttempts})...`);
-            
-            try {
-                // Descargar temporalmente el menu.json de GitHub
-                execSync('git fetch origin', { stdio: 'pipe' });
-                execSync('git checkout origin/main -- data/menu.json', { stdio: 'pipe' });
-                
-                const downloadedContent = fs.readFileSync(path.join(__dirname, 'data', 'menu.json'), 'utf8');
-                const downloadedData = JSON.parse(downloadedContent);
-                
-                // Verificar si el contenido esperado está presente
-                // Buscamos el texto específico que acabamos de guardar
-                const contentString = JSON.stringify(downloadedData);
-                const hasExpectedContent = contentString.includes(expectedContent);
-                
-                if (hasExpectedContent) {
-                    console.log('✅ Contenido específico verificado en GitHub - procediendo');
-                    resolve(true);
-                } else {
-                    console.log('⏱️  Contenido específico aún no está en GitHub...');
-                    console.log('   Esperado:', expectedContent.substring(0, 50) + '...');
-                    console.log('   Encontrado:', contentString.includes(expectedContent) ? 'SÍ' : 'NO');
-                    
-                    if (attempts >= maxAttempts) {
-                        console.log('⚠️  Timeout después de 75 segundos, continuando...');
-                        resolve(false);
-                    } else {
-                        setTimeout(checkContent, 5000); // 5 segundos entre intentos
-                    }
-                }
-            } catch (error) {
-                console.log('⚠️  Error verificando contenido:', error.message);
-                if (attempts >= maxAttempts) {
-                    console.log('⚠️  Timeout por errores, continuando...');
-                    resolve(false);
-                } else {
-                    setTimeout(checkContent, 5000);
-                }
-            }
-        };
-        
-        setTimeout(checkContent, 3000);
+        // Simplemente esperar tiempo fijo - más confiable
+        setTimeout(() => {
+            console.log('✅ Tiempo de espera completado - procediendo con sincronización');
+            resolve(true);
+        }, 15000); // 15 segundos
     });
 }
 
-// Extraer un fragmento único del contenido que debería estar en GitHub
-function getContentFingerprint(data) {
-    // Usar el primer texto significativo que cambiamos
-    if (data.carta && data.carta.length > 0 && data.carta[0].nombre) {
-        return data.carta[0].nombre.substring(0, 30); // Primeros 30 caracteres del nombre
-    } else if (data.menu_semana && data.menu_semana.length > 0 && data.menu_semana[0].platillos) {
-        return data.menu_semana[0].platillos[0].substring(0, 30); // Primer platillo
-    }
-    return 'default_content_' + Date.now();
-}
-
-// Ejecutar la verificación de contenido
+// Ejecutar con espera simple pero confiable
 setTimeout(async () => {
     try {
-        const contentFingerprint = getContentFingerprint(req.body);
-        console.log('🔍 Huella digital del contenido:', contentFingerprint);
+        await waitForGitHubSimple();
         
-        const isContentVerified = await waitForSpecificContent(contentFingerprint);
-        
-        if (isContentVerified) {
-            console.log('🚀 Contenido específico verificado - ejecutando sync-to-production.js');
-        } else {
-            console.log('🚀 Continuando aunque el contenido no esté completamente verificado');
-        }
-        
+        console.log('🚀 Ejecutando sync-to-production.js...');
         execSync('node scripts/sync-to-production.js', { 
             stdio: 'inherit', 
             timeout: 120000 
