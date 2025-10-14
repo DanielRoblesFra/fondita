@@ -340,60 +340,82 @@ app.post('/api/menu', isLoggedIn, (req, res) => {
         // ✅ 5. SINCRONIZACIÓN AUTOMÁTICA
 console.log('🔄 Iniciando sincronización automática con fondita-production...');
 
-// Función para verificar si GitHub está actualizado
-function waitForGitHubUpdate() {
+// Función para verificar que el CONTENIDO ESPECÍFICO esté en GitHub
+function waitForSpecificContent(expectedContent, maxAttempts = 15) {
     return new Promise((resolve) => {
-        console.log('⏳ Esperando a que GitHub procese los cambios...');
+        console.log('⏳ Verificando que los cambios específicos estén en GitHub...');
         let attempts = 0;
-        const maxAttempts = 12; // 12 intentos * 5 segundos = 60 segundos máximo
         
-        const checkGitHub = () => {
+        const checkContent = () => {
             attempts++;
-            console.log(`🔍 Verificando GitHub (intento ${attempts}/${maxAttempts})...`);
+            console.log(`🔍 Verificando contenido (intento ${attempts}/${maxAttempts})...`);
             
             try {
-                // Hacer fetch y verificar el estado
+                // Descargar temporalmente el menu.json de GitHub
                 execSync('git fetch origin', { stdio: 'pipe' });
-                const status = execSync('git status -uno', { encoding: 'utf8' });
+                execSync('git checkout origin/main -- data/menu.json', { stdio: 'pipe' });
                 
-                if (status.includes('Your branch is up to date')) {
-                    console.log('✅ GitHub está actualizado - procediendo con sincronización');
+                const downloadedContent = fs.readFileSync(path.join(__dirname, 'data', 'menu.json'), 'utf8');
+                const downloadedData = JSON.parse(downloadedContent);
+                
+                // Verificar si el contenido esperado está presente
+                // Buscamos el texto específico que acabamos de guardar
+                const contentString = JSON.stringify(downloadedData);
+                const hasExpectedContent = contentString.includes(expectedContent);
+                
+                if (hasExpectedContent) {
+                    console.log('✅ Contenido específico verificado en GitHub - procediendo');
                     resolve(true);
                 } else {
-                    console.log('⏱️  GitHub aún no está actualizado...');
+                    console.log('⏱️  Contenido específico aún no está en GitHub...');
+                    console.log('   Esperado:', expectedContent.substring(0, 50) + '...');
+                    console.log('   Encontrado:', contentString.includes(expectedContent) ? 'SÍ' : 'NO');
                     
                     if (attempts >= maxAttempts) {
-                        console.log('⚠️  Timeout después de 60 segundos, continuando...');
+                        console.log('⚠️  Timeout después de 75 segundos, continuando...');
                         resolve(false);
                     } else {
-                        setTimeout(checkGitHub, 5000); // Esperar 5 segundos entre intentos
+                        setTimeout(checkContent, 5000); // 5 segundos entre intentos
                     }
                 }
             } catch (error) {
-                console.log('⚠️  Error verificando GitHub:', error.message);
+                console.log('⚠️  Error verificando contenido:', error.message);
                 if (attempts >= maxAttempts) {
                     console.log('⚠️  Timeout por errores, continuando...');
                     resolve(false);
                 } else {
-                    setTimeout(checkGitHub, 5000);
+                    setTimeout(checkContent, 5000);
                 }
             }
         };
         
-        // Primer intento después de 3 segundos
-        setTimeout(checkGitHub, 3000);
+        setTimeout(checkContent, 3000);
     });
 }
 
-// Ejecutar la verificación y luego sincronizar
+// Extraer un fragmento único del contenido que debería estar en GitHub
+function getContentFingerprint(data) {
+    // Usar el primer texto significativo que cambiamos
+    if (data.carta && data.carta.length > 0 && data.carta[0].nombre) {
+        return data.carta[0].nombre.substring(0, 30); // Primeros 30 caracteres del nombre
+    } else if (data.menu_semana && data.menu_semana.length > 0 && data.menu_semana[0].platillos) {
+        return data.menu_semana[0].platillos[0].substring(0, 30); // Primer platillo
+    }
+    return 'default_content_' + Date.now();
+}
+
+// Ejecutar la verificación de contenido
 setTimeout(async () => {
     try {
-        const isUpdated = await waitForGitHubUpdate();
+        const contentFingerprint = getContentFingerprint(req.body);
+        console.log('🔍 Huella digital del contenido:', contentFingerprint);
         
-        if (isUpdated) {
-            console.log('🚀 GitHub confirmado - ejecutando sync-to-production.js');
+        const isContentVerified = await waitForSpecificContent(contentFingerprint);
+        
+        if (isContentVerified) {
+            console.log('🚀 Contenido específico verificado - ejecutando sync-to-production.js');
         } else {
-            console.log('🚀 Continuando aunque GitHub no esté completamente actualizado');
+            console.log('🚀 Continuando aunque el contenido no esté completamente verificado');
         }
         
         execSync('node scripts/sync-to-production.js', { 
