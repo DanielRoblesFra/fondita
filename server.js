@@ -361,7 +361,7 @@ app.post('/api/menu', isLoggedIn, (req, res) => {
     } catch (error) {
         console.error('❌ Error en timer de sincronización:', error);
     }
-}, 1000);
+}, 5000);
 
         // ✅ 6. RESPONDER ÉXITO
         res.send('Menú actualizado, guardado en GitHub. Sincronización con producción en progreso...');
