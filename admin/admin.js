@@ -60,7 +60,6 @@ window.addEventListener('load', () => {
     setTimeout(verificarSesion, 1000);
 });
 
-
 // Cargar datos al iniciar
 window.addEventListener("DOMContentLoaded", () => {
     fetch("/api/menu")
@@ -73,7 +72,7 @@ window.addEventListener("DOMContentLoaded", () => {
         .catch(err => console.error("Error cargando menú:", err));
 }); 
 
-//  Confimacion al salir de sesion
+// Confimacion al salir de sesion
 const logoutLink = document.getElementById('logoutLink');
 if (logoutLink) {
     logoutLink.addEventListener('click', (e) => {
@@ -240,6 +239,7 @@ function renderCarta() {
         container.appendChild(div);
     }); 
 } 
+
 // ------------------ Renderizar Menú de la Semana ------------------
 function renderMenuSemana() {
     const container = document.getElementById("menuContainer");
@@ -335,58 +335,58 @@ function renderMenuSemana() {
         inputImg.dataset.campo = "imagen";
         inputImg.className = "hidden-image-input";
 
-// Manejo de la selección de archivo
-fileInput.addEventListener("change", e => {
-    if (!e.target.files[0]) return;
-    
-    // Actualizar la interfaz
-    fileInputLabel.innerHTML = '<span class="file-input-icon">⏳</span> Subiendo...';
-    
-    const formData = new FormData();
-    formData.append("imagen", e.target.files[0]);
-    
-    // Enviamos el nombre de la imagen actual para que sea eliminada
-    const imagenAnterior = dia.imagen;
-    if (imagenAnterior && imagenAnterior.trim() !== "") {
-        formData.append("oldFilename", imagenAnterior);
-    }
+        // Manejo de la selección de archivo
+        fileInput.addEventListener("change", e => {
+            if (!e.target.files[0]) return;
+            
+            // Actualizar la interfaz
+            fileInputLabel.innerHTML = '<span class="file-input-icon">⏳</span> Subiendo...';
+            
+            const formData = new FormData();
+            formData.append("imagen", e.target.files[0]);
+            
+            // Enviamos el nombre de la imagen actual para que sea eliminada
+            const imagenAnterior = dia.imagen;
+            if (imagenAnterior && imagenAnterior.trim() !== "") {
+                formData.append("oldFilename", imagenAnterior);
+            }
 
-    fetch("/api/upload-image", {
-        method: "POST",
-        body: formData,
-        credentials: 'include'
-    })
-        .then(res => res.json())
-        .then(resp => {
-            // Actualizar el input oculto con el nuevo nombre
-            inputImg.value = resp.filename;
-            
-            // ✅ CORREGIDO: Actualizar los datos en memoria
-            datosMenu.menu_semana[idx].imagen = resp.filename;
-            
-            // ✅ NUEVO: Guardar los cambios automáticamente en el servidor
-            guardarCambiosAutomaticos();
-            
-            // Actualizar preview de imagen
-            imgPreview.src = `/img/${resp.filename}`;
-            
-            // Restaurar texto del botón
-            fileInputLabel.innerHTML = '<span class="file-input-icon">✅</span> Imagen subida';
-            
-            // Resetear después de un tiempo
-            setTimeout(() => {
-                fileInputLabel.innerHTML = '<span class="file-input-icon">📷</span> Cambiar imagen';
-            }, 2000);
-        })
-        .catch(err => {
-            console.error("Error subiendo imagen:", err);
-            fileInputLabel.innerHTML = '<span class="file-input-icon">❌</span> Error, intentar again';
-            
-            setTimeout(() => {
-                fileInputLabel.innerHTML = '<span class="file-input-icon">📷</span> Seleccionar imagen';
-            }, 2000);
+            fetch("/api/upload-image", {
+                method: "POST",
+                body: formData,
+                credentials: 'include'
+            })
+                .then(res => res.json())
+                .then(resp => {
+                    // Actualizar el input oculto con el nuevo nombre
+                    inputImg.value = resp.filename;
+                    
+                    // ✅ CORREGIDO: Actualizar los datos en memoria
+                    datosMenu.menu_semana[idx].imagen = resp.filename;
+                    
+                    // ✅ NUEVO: Guardar los cambios automáticamente
+                    guardarCambios();
+                    
+                    // Actualizar preview de imagen
+                    imgPreview.src = `/img/${resp.filename}`;
+                    
+                    // Restaurar texto del botón
+                    fileInputLabel.innerHTML = '<span class="file-input-icon">✅</span> Imagen subida';
+                    
+                    // Resetear después de un tiempo
+                    setTimeout(() => {
+                        fileInputLabel.innerHTML = '<span class="file-input-icon">📷</span> Cambiar imagen';
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error("Error subiendo imagen:", err);
+                    fileInputLabel.innerHTML = '<span class="file-input-icon">❌</span> Error, intentar again';
+                    
+                    setTimeout(() => {
+                        fileInputLabel.innerHTML = '<span class="file-input-icon">📷</span> Seleccionar imagen';
+                    }, 2000);
+                });
         });
-});
 
         // Ensamblar controles de imagen
         imgPreviewContainer.appendChild(imgPreview);
@@ -426,89 +426,58 @@ fileInput.addEventListener("change", e => {
     });
 }
 
-// ------------------ Guardar Cambios ------------------
+// ------------------ Guardar Cambios (FUNCIÓN PRINCIPAL) ------------------
 function guardarCambios() {
-    console.log('💾 INICIANDO GUARDADO - VERIFICANDO CAMBIOS...');
+    console.log('💾 INICIANDO GUARDADO - CAPTURANDO DATOS ACTUALES...');
     
-    // ✅ 1. CREAR COPIA DE LOS DATOS ACTUALES PARA COMPARAR
-    const datosOriginales = JSON.parse(JSON.stringify(datosMenu));
-    
-    // ✅ 2. ACTUALIZAR datosMenu CON LOS VALORES ACTUALES
-    console.log('🔄 Sincronizando formularios con datos en memoria...');
-    
-    // Actualizar CARTA
-    let cambiosCarta = false;
-    document.querySelectorAll("#cartaContainer input, #cartaContainer textarea").forEach(input => {
-        const tipo = input.dataset.tipo;
-        const idx = parseInt(input.dataset.index);
-        const campo = input.dataset.campo;
-        const valor = input.value.trim();
+    // ✅ 1. CAPTURAR DATOS ACTUALES DE LOS FORMULARIOS
+    const datosActualizados = {
+        carta: [],
+        menu_semana: []
+    };
 
-        if (tipo === "carta" && datosMenu.carta && datosMenu.carta[idx]) {
-            const valorOriginal = campo === "pago_mensaje" ? datosMenu.carta[idx].pago.mensaje :
-                               campo === "pago_banco" ? datosMenu.carta[idx].pago.banco :
-                               datosMenu.carta[idx][campo];
-            
-            if (valor !== valorOriginal) {
-                cambiosCarta = true;
-                console.log(`🔄 CAMBIO DETECTADO - Carta[${idx}].${campo}: "${valorOriginal}" → "${valor}"`);
+    // CAPTURAR CARTA ACTUAL
+    document.querySelectorAll("#cartaContainer .hoja").forEach((hoja, idx) => {
+        const item = {
+            nombre: hoja.querySelector(`input[data-campo="nombre"]`)?.value || "",
+            descripcion: hoja.querySelector(`textarea[data-campo="descripcion"]`)?.value || "",
+            precio: hoja.querySelector(`input[data-campo="precio"]`)?.value || "",
+            tituloCarta: hoja.querySelector(`input[data-campo="tituloCarta"]`)?.value || "",
+            pagina4: hoja.querySelector(`textarea[data-campo="pagina4"]`)?.value || "",
+            pago: {
+                mensaje: hoja.querySelector(`input[data-campo="pago_mensaje"]`)?.value || "",
+                banco: hoja.querySelector(`input[data-campo="pago_banco"]`)?.value || ""
             }
-
-            if (campo === "pago_mensaje") {
-                datosMenu.carta[idx].pago.mensaje = valor;
-            } else if (campo === "pago_banco") {
-                datosMenu.carta[idx].pago.banco = valor;
-            } else {
-                datosMenu.carta[idx][campo] = valor;
-            }
-        }
+        };
+        datosActualizados.carta.push(item);
     });
 
-    // Actualizar MENÚ SEMANAL
-    let cambiosMenu = false;
-    document.querySelectorAll("#menuContainer input, #menuContainer textarea, #menuContainer select").forEach(input => {
-        const tipo = input.dataset.tipo;
-        const idx = parseInt(input.dataset.index);
-        const campo = input.dataset.campo;
-        let valor = input.value.trim();
-
-        if (tipo === "menu" && datosMenu.menu_semana && datosMenu.menu_semana[idx]) {
-            let valorOriginal;
-            
-            if (campo === "platillos") {
-                valorOriginal = datosMenu.menu_semana[idx][campo].join(", ");
-                const platillosLimpos = valor.split(",").map(p => p.trim()).filter(p => p !== "");
-                
-                if (JSON.stringify(platillosLimpos) !== JSON.stringify(datosMenu.menu_semana[idx][campo])) {
-                    cambiosMenu = true;
-                    console.log(`🔄 CAMBIO DETECTADO - Menu[${idx}].${campo}:`, datosMenu.menu_semana[idx][campo], "→", platillosLimpos);
-                }
-                
-                datosMenu.menu_semana[idx][campo] = platillosLimpos;
-            } else {
-                valorOriginal = datosMenu.menu_semana[idx][campo];
-                
-                if (valor !== valorOriginal) {
-                    cambiosMenu = true;
-                    console.log(`🔄 CAMBIO DETECTADO - Menu[${idx}].${campo}: "${valorOriginal}" → "${valor}"`);
-                }
-                
-                datosMenu.menu_semana[idx][campo] = valor;
-            }
-        }
+    // CAPTURAR MENÚ SEMANAL ACTUAL
+    document.querySelectorAll("#menuContainer .dia").forEach((diaElem, idx) => {
+        const platillosText = diaElem.querySelector(`textarea[data-campo="platillos"]`)?.value || "";
+        const platillosArray = platillosText.split(",").map(p => p.trim()).filter(p => p !== "");
+        
+        const dia = {
+            dia: diaElem.querySelector(`select[data-campo="dia"]`)?.value || "",
+            fecha: diaElem.querySelector(`input[data-campo="fecha"]`)?.value || "",
+            imagen: diaElem.querySelector(`input.hidden-image-input`)?.value || "",
+            platillos: platillosArray
+        };
+        datosActualizados.menu_semana.push(dia);
     });
 
-    // ✅ 3. VERIFICAR SI REALMENTE HAY CAMBIOS
-    const hayCambiosReales = cambiosCarta || cambiosMenu;
+    console.log('📊 DATOS CAPTURADOS:', JSON.stringify(datosActualizados, null, 2));
+
+    // ✅ 2. VERIFICAR SI HAY CAMBIOS REALES COMPARANDO CON LOS DATOS ORIGINALES
+    const hayCambios = JSON.stringify(datosActualizados) !== JSON.stringify(datosMenu);
     
-    if (!hayCambiosReales) {
+    if (!hayCambios) {
         console.log('ℹ️  No se detectaron cambios reales en los datos');
         alert('ℹ️  No se detectaron cambios para guardar');
         return;
     }
 
     console.log('✅ CAMBIOS DETECTADOS - Procediendo a guardar...');
-    console.log('📊 DATOS ACTUALIZADOS:', JSON.stringify(datosMenu, null, 2));
 
     // Mostrar indicador de carga
     const btnGuardar = document.querySelector('button[type="submit"]');
@@ -518,70 +487,50 @@ function guardarCambios() {
         btnGuardar.disabled = true;
     }
 
-    // ✅ ENVIAR datosMenu ACTUALIZADO al servidor
-    fetch("/api/menu", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(datosMenu),
-        credentials: 'include'
-    })
-        .then(res => {
-            if (!res.ok) {
-                throw new Error(`Error ${res.status}: ${res.statusText}`);
-            }
-            return res.text();
-        })
-        .then(msg => {
-            console.log("✅ Respuesta del servidor:", msg);
-            alert("✅ " + msg);
-            
-            // Recargar datos para confirmar
-            setTimeout(() => {
-                fetch("/api/menu")
-                    .then(res => res.json())
-                    .then(data => {
-                        datosMenu = data;
-                        console.log("🔄 Datos recargados después de guardar");
-                    })
-                    .catch(err => console.error("Error recargando datos:", err));
-            }, 1000);
-        })
-        .catch(err => {
-            console.error("Error guardando:", err);
-            alert("❌ Error al guardar los cambios: " + err.message);
-        })
-        .finally(() => {
-            if (btnGuardar) {
-                btnGuardar.textContent = textoOriginal || "Guardar";
-                btnGuardar.disabled = false;
-            }
-        });
-}
+    // ✅ 3. ACTUALIZAR datosMenu EN MEMORIA
+    datosMenu = datosActualizados;
 
-// Guardar cambios automáticamente después de subir imagen
-function guardarCambiosAutomaticos() {
-    console.log('💾 GUARDADO AUTOMÁTICO - Imagen subida, guardando cambios...');
-    
-    // ✅ VERIFICAR QUE datosMenu ESTÉ ACTUALIZADO
-    if (!datosMenu || !datosMenu.menu_semana) {
-        console.error('❌ datosMenu no está disponible para guardar');
-        return;
-    }
-    
-    console.log('📊 Enviando datos actualizados:', JSON.stringify(datosMenu, null, 2));
-    
+    // ✅ 4. ENVIAR AL SERVIDOR
     fetch("/api/menu", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(datosMenu),
+        headers: { 
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+        },
+        body: JSON.stringify(datosActualizados),
         credentials: 'include'
     })
-    .then(res => res.text())
+    .then(async res => {
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Error ${res.status}: ${errorText}`);
+        }
+        return res.text();
+    })
     .then(msg => {
-        console.log("✅ Cambios automáticos guardados:", msg);
+        console.log("✅ Respuesta del servidor:", msg);
+        alert("✅ " + msg);
+        
+        // Recargar datos del servidor para confirmar sincronización
+        setTimeout(() => {
+            fetch("/api/menu")
+                .then(res => res.json())
+                .then(data => {
+                    datosMenu = data;
+                    console.log("🔄 Datos recargados y sincronizados con servidor");
+                })
+                .catch(err => console.error("Error recargando datos:", err));
+        }, 1000);
     })
     .catch(err => {
-        console.error("❌ Error guardando cambios automáticos:", err);
+        console.error("Error guardando:", err);
+        alert("❌ Error al guardar los cambios: " + err.message);
+    })
+    .finally(() => {
+        if (btnGuardar) {
+            btnGuardar.textContent = textoOriginal || "Guardar";
+            btnGuardar.disabled = false;
+        }
     });
 }
 
@@ -615,7 +564,7 @@ function addSyncButton() {
     }
 }
 
-// ------------------ FUNCIÓN ÚNICA PARA TODO ------------------
+// ------------------ FUNCIÓN ÚNICA PARA SINCRONIZACIÓN ------------------
 function synchronizeAllChanges() {
     console.log('🚀 INICIANDO PROCESO COMPLETO...');
     
@@ -626,7 +575,7 @@ function synchronizeAllChanges() {
     syncButton.disabled = true;
     syncButton.textContent = "⏳ Guardando cambios locales...";
     
-    // ✅ 2. PRIMERO GUARDAR CAMBIOS LOCALES (texto, fechas, etc.)
+    // ✅ 2. PRIMERO GUARDAR CAMBIOS LOCALES
     guardarCambiosLocales()
         .then(() => {
             // ✅ 3. SI EL GUARDADO LOCAL ES EXITOSO, PROCEDER CON SINCRONIZACIÓN
@@ -649,12 +598,12 @@ function synchronizeAllChanges() {
         });
 }
 
-// ------------------ GUARDAR CAMBIOS LOCALES ------------------
+// ------------------ GUARDAR CAMBIOS LOCALES (PARA SINCRONIZACIÓN) ------------------
 function guardarCambiosLocales() {
     return new Promise((resolve, reject) => {
-        console.log('💾 GUARDANDO CAMBIOS LOCALES...');
+        console.log('💾 GUARDANDO CAMBIOS LOCALES PARA SINCRONIZACIÓN...');
         
-        // ✅ CAPTURAR DATOS ACTUALES DE LOS FORMULARIOS
+        // ✅ USAR LA MISMA LÓGICA DE guardarCambios PERO EN FORMA DE PROMESA
         const datosActualizados = {
             carta: [],
             menu_semana: []
@@ -690,7 +639,7 @@ function guardarCambiosLocales() {
             datosActualizados.menu_semana.push(dia);
         });
 
-        console.log('📊 DATOS A GUARDAR:', JSON.stringify(datosActualizados, null, 2));
+        console.log('📊 DATOS PARA SINCRONIZACIÓN:', JSON.stringify(datosActualizados, null, 2));
 
         // ✅ COMPARAR CON DATOS ORIGINALES
         const hayCambios = JSON.stringify(datosActualizados) !== JSON.stringify(datosMenu);
@@ -837,7 +786,6 @@ function synchronizeWithProduction() {
         });
     });
 }
-
 
 // Añadir el botón cuando se cargue el DOM
 addSyncButton();
