@@ -279,10 +279,15 @@ app.get('/api/menu', (req, res) => {
 });
 
 app.post('/api/menu', isLoggedIn, (req, res) => {
-    console.log('📥 Recibiendo datos del menú:', JSON.stringify(req.body, null, 2));
+    console.log('🎯 RECIBIENDO DATOS EN /api/menu - VERIFICANDO...');
+    console.log('📦 CUERPO DE LA PETICIÓN:', JSON.stringify(req.body, null, 2));
     
+    // Verificar si los datos son diferentes a los actuales
     const menuPath = path.join(__dirname, 'data', 'menu.json');
-    fs.writeFileSync(menuPath, JSON.stringify(req.body, null, 2));
+    const contenidoActual = fs.existsSync(menuPath) ? fs.readFileSync(menuPath, 'utf8') : '';
+    const nuevoContenido = JSON.stringify(req.body, null, 2);
+    
+    console.log('🔍 ¿HAY CAMBIOS REALES?', contenidoActual !== nuevoContenido ? '✅ SÍ' : '❌ NO');
     
     // ✅ ACTUALIZAR DATOS EN MEMORIA
     actualizarDatosMenu();
