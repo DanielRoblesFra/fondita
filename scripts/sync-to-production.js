@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Configuración
-const PROD_REPO_URL = process.env.PROD_REPO_URL;
+const PROD_REPO_URL = "https://github.com/DanielRoblesFra/fondita-production.git";
 const GH_TOKEN = process.env.GH_TOKEN;
 const PROD_REPO_DIR = path.join(__dirname, '..', 'production-repo');
 const BRANCH = 'main';
@@ -303,3 +303,4 @@ document.addEventListener("DOMContentLoaded", cargarCarta);
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
