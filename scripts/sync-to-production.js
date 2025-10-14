@@ -10,6 +10,38 @@ const BRANCH = 'main';
 
 console.log('🔄 Iniciando sincronización optimizada...');
 
+// ✅ FUNCIÓN PARA VERIFICAR CAMBIOS REALES
+function verificarCambiosReales() {
+    console.log('🔍 VERIFICANDO CAMBIOS REALES...');
+    
+    const menuPath = path.join(__dirname, '..', 'data', 'menu.json');
+    const prodMenuPath = path.join(PROD_REPO_DIR, 'menu.json');
+    
+    try {
+        // Leer ambos archivos
+        const currentMenu = fs.readFileSync(menuPath, 'utf8');
+        let prodMenu = '';
+        
+        if (fs.existsSync(prodMenuPath)) {
+            prodMenu = fs.readFileSync(prodMenuPath, 'utf8');
+        }
+        
+        // Comparar contenido
+        const hayCambios = currentMenu !== prodMenu;
+        
+        console.log('📊 Comparación de cambios:', {
+            'menu.json actual': JSON.parse(currentMenu).carta?.[0]?.nombre || 'No hay carta',
+            'menu.json producción': prodMenu ? (JSON.parse(prodMenu).carta?.[0]?.nombre || 'No hay carta') : 'No existe',
+            'hayCambios': hayCambios
+        });
+        
+        return hayCambios;
+    } catch (error) {
+        console.error('❌ Error verificando cambios:', error);
+        return true; // Si hay error, asumir que hay cambios
+    }
+}
+
 // ✅ FUNCIÓN PARA FORZAR ACTUALIZACIÓN COMPLETA Y ELIMINAR CACHE
 function forceCompleteUpdate() {
     console.log('🔄 FORZANDO ACTUALIZACIÓN COMPLETA DEL REPOSITORIO...');
@@ -330,27 +362,34 @@ document.addEventListener("DOMContentLoaded", cargarCarta);
 
     // ==================== COMMIT Y PUSH ====================
 
-    console.log('💾 Forzando detección de cambios...');
+console.log('💾 Verificando cambios reales...');
+const hayCambiosReales = verificarCambiosReales();
+
+if (hayCambiosReales) {
+    console.log('💾 Haciendo commit de los cambios...');
     execSync('cd ' + PROD_REPO_DIR + ' && git add -A', { stdio: 'inherit' });
     
     const status = execSync('cd ' + PROD_REPO_DIR + ' && git status --porcelain').toString();
     
     if (status.trim() !== '') {
-        console.log('💾 Haciendo commit de los cambios...');
         const commitMessage = 'Actualización automática: ' + new Date().toLocaleString();
         execSync('cd ' + PROD_REPO_DIR + ' && git commit -m "' + commitMessage + '"', { stdio: 'inherit' });
 
         console.log('🚀 Subiendo cambios...');
         execSync('cd ' + PROD_REPO_DIR + ' && git push ' + AUTH_REPO_URL + ' ' + BRANCH, { stdio: 'inherit' });
 
-        console.log('✅ Sincronización optimizada completada!');
+        console.log('✅ Sincronización completada con cambios reales!');
     } else {
-        console.log('✅ No hay cambios detectados. Todo está actualizado.');
+        console.log('✅ No hay cambios detectados después de verificación.');
     }
+} else {
+    console.log('✅ No hay cambios reales. Todo está sincronizado.');
+}
 } catch (error) {
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
 
 
 
