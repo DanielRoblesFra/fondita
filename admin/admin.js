@@ -590,14 +590,14 @@ function addSyncButton() {
     const menuForm = document.getElementById("menuForm");
     if (!menuForm) return;
     
-    // ✅ TRANSFORMAR el botón "Guardar Cambios" en "Sincronizar"
+    // ✅ TRANSFORMAR el botón existente en nuestro botón único
     const existingButton = menuForm.querySelector('button[type="submit"]');
     
     if (existingButton) {
-        // Cambiar el botón existente
-        existingButton.type = "button"; // De submit a button
+        // Configurar el botón único
+        existingButton.type = "button"; // Cambiar de submit a button
         existingButton.id = "syncButton";
-        existingButton.textContent = "🔄 Sincronizar con Producción";
+        existingButton.textContent = "🚀 Sincronizar Cambios con Producción";
         existingButton.style.marginTop = "2rem";
         existingButton.style.padding = "1.2rem 2.5rem";
         existingButton.style.background = "linear-gradient(135deg, #4a5568 0%, #2d3748 100%)";
@@ -610,134 +610,234 @@ function addSyncButton() {
         existingButton.style.width = "100%";
         existingButton.style.boxShadow = "0 4px 15px rgba(0,0,0,0.2)";
         
-        // Cambiar el evento
-        existingButton.onclick = synchronizeWithProduction;
+        // ✅ ASIGNAR LA FUNCIÓN UNIFICADA
+        existingButton.onclick = synchronizeAllChanges;
     }
 }
-    // ------------------ Función de Sincronización ------------------
-function synchronizeWithProduction() {
+
+// ------------------ FUNCIÓN ÚNICA PARA TODO ------------------
+function synchronizeAllChanges() {
+    console.log('🚀 INICIANDO PROCESO COMPLETO...');
+    
     const syncButton = document.getElementById("syncButton");
     const originalText = syncButton.textContent;
     
-    // ✅ DESHABILITAR botón inmediatamente
+    // ✅ 1. DESHABILITAR BOTÓN INMEDIATAMENTE
     syncButton.disabled = true;
-    syncButton.textContent = "⏳ Preparando sincronización...";
+    syncButton.textContent = "⏳ Guardando cambios locales...";
     
-    // ✅ CREAR overlay de carga
-    const overlay = document.createElement("div");
-    overlay.style.position = "fixed";
-    overlay.style.top = "0";
-    overlay.style.left = "0";
-    overlay.style.width = "100%";
-    overlay.style.height = "100%";
-    overlay.style.backgroundColor = "rgba(0,0,0,0.8)";
-    overlay.style.display = "flex";
-    overlay.style.flexDirection = "column";
-    overlay.style.justifyContent = "center";
-    overlay.style.alignItems = "center";
-    overlay.style.zIndex = "10000";
-    overlay.style.color = "white";
-    overlay.style.fontSize = "1.2rem";
-    
-    // ✅ CREAR contenedor de progreso
-    const progressContainer = document.createElement("div");
-    progressContainer.style.width = "80%";
-    progressContainer.style.maxWidth = "500px";
-    progressContainer.style.textAlign = "center";
-    
-    // ✅ CREAR barra de progreso
-    const progressBar = document.createElement("div");
-    progressBar.style.width = "100%";
-    progressBar.style.height = "20px";
-    progressBar.style.backgroundColor = "#333";
-    progressBar.style.borderRadius = "10px";
-    progressBar.style.margin = "20px 0";
-    progressBar.style.overflow = "hidden";
-    
-    const progressFill = document.createElement("div");
-    progressFill.style.width = "0%";
-    progressFill.style.height = "100%";
-    progressFill.style.backgroundColor = "#4CAF50";
-    progressFill.style.transition = "width 0.3s ease";
-    progressFill.style.borderRadius = "10px";
-    
-    progressBar.appendChild(progressFill);
-    
-    // ✅ CREAR texto de progreso
-    const progressText = document.createElement("div");
-    progressText.textContent = "0% - Iniciando sincronización...";
-    progressText.style.marginBottom = "10px";
-    
-    // ✅ CREAR tiempo estimado
-    const timeText = document.createElement("div");
-    timeText.textContent = "Tiempo estimado: 5 minutos";
-    timeText.style.fontSize = "0.9rem";
-    timeText.style.color = "#ccc";
-    timeText.style.marginBottom = "20px";
-    
-    // ✅ ENSAMBLAR overlay
-    progressContainer.appendChild(progressText);
-    progressContainer.appendChild(progressBar);
-    progressContainer.appendChild(timeText);
-    overlay.appendChild(progressContainer);
-    
-    // ✅ AGREGAR overlay al documento
-    document.body.appendChild(overlay);
-    
-    // ✅ SIMULAR progreso (5 minutos = 300 segundos)
-    let progress = 0;
-    const totalTime = 300; // 5 minutos en segundos
-    const interval = setInterval(() => {
-        progress += (100 / totalTime);
-        if (progress > 100) progress = 100;
-        
-        progressFill.style.width = progress + "%";
-        progressText.textContent = Math.round(progress) + "% - Sincronizando con repositorio de producción...";
-        
-        if (progress >= 100) {
-            clearInterval(interval);
-        }
-    }, 1000);
-    
-    // ✅ HACER la petición real
-    fetch("/api/sync-production", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        clearInterval(interval);
-        progressFill.style.width = "100%";
-        progressText.textContent = "100% - ¡Sincronización completada!";
-        
-        // ✅ MOSTRAR resultado después de 2 segundos
-        setTimeout(() => {
-            document.body.removeChild(overlay);
-            
-            if (data.success) {
-                alert("✅ " + data.message + "\n\nEl menú ha sido actualizado exitosamente en el sitio público.");
-                console.log("✅ Sincronización exitosa");
-            } else {
-                alert("❌ " + data.message);
-                console.error("❌ Error en sincronización:", data.message);
-            }
-            
+    // ✅ 2. PRIMERO GUARDAR CAMBIOS LOCALES (texto, fechas, etc.)
+    guardarCambiosLocales()
+        .then(() => {
+            // ✅ 3. SI EL GUARDADO LOCAL ES EXITOSO, PROCEDER CON SINCRONIZACIÓN
+            syncButton.textContent = "🔄 Sincronizando con producción...";
+            return synchronizeWithProduction();
+        })
+        .then(() => {
+            // ✅ 4. TODO COMPLETADO EXITOSAMENTE
+            console.log('✅ PROCESO COMPLETADO EXITOSAMENTE');
+        })
+        .catch(error => {
+            // ✅ 5. MANEJO DE ERRORES
+            console.error('❌ Error en el proceso:', error);
+            alert('❌ Error: ' + error.message);
+        })
+        .finally(() => {
+            // ✅ 6. RESTAURAR BOTÓN
             syncButton.textContent = originalText;
             syncButton.disabled = false;
-        }, 2000);
-    })
-    .catch(error => {
-        clearInterval(interval);
-        document.body.removeChild(overlay);
+        });
+}
+
+// ------------------ GUARDAR CAMBIOS LOCALES ------------------
+function guardarCambiosLocales() {
+    return new Promise((resolve, reject) => {
+        console.log('💾 GUARDANDO CAMBIOS LOCALES...');
         
-        console.error("Error en sincronización:", error);
-        alert("❌ Error de conexión al sincronizar. Intenta nuevamente.");
+        // ✅ CAPTURAR DATOS ACTUALES DE LOS FORMULARIOS
+        const datosActualizados = {
+            carta: [],
+            menu_semana: []
+        };
+
+        // CAPTURAR CARTA ACTUAL
+        document.querySelectorAll("#cartaContainer .hoja").forEach((hoja, idx) => {
+            const item = {
+                nombre: hoja.querySelector(`input[data-campo="nombre"]`)?.value || "",
+                descripcion: hoja.querySelector(`textarea[data-campo="descripcion"]`)?.value || "",
+                precio: hoja.querySelector(`input[data-campo="precio"]`)?.value || "",
+                tituloCarta: hoja.querySelector(`input[data-campo="tituloCarta"]`)?.value || "",
+                pagina4: hoja.querySelector(`textarea[data-campo="pagina4"]`)?.value || "",
+                pago: {
+                    mensaje: hoja.querySelector(`input[data-campo="pago_mensaje"]`)?.value || "",
+                    banco: hoja.querySelector(`input[data-campo="pago_banco"]`)?.value || ""
+                }
+            };
+            datosActualizados.carta.push(item);
+        });
+
+        // CAPTURAR MENÚ SEMANAL ACTUAL
+        document.querySelectorAll("#menuContainer .dia").forEach((diaElem, idx) => {
+            const platillosText = diaElem.querySelector(`textarea[data-campo="platillos"]`)?.value || "";
+            const platillosArray = platillosText.split(",").map(p => p.trim()).filter(p => p !== "");
+            
+            const dia = {
+                dia: diaElem.querySelector(`select[data-campo="dia"]`)?.value || "",
+                fecha: diaElem.querySelector(`input[data-campo="fecha"]`)?.value || "",
+                imagen: diaElem.querySelector(`input.hidden-image-input`)?.value || "",
+                platillos: platillosArray
+            };
+            datosActualizados.menu_semana.push(dia);
+        });
+
+        console.log('📊 DATOS A GUARDAR:', JSON.stringify(datosActualizados, null, 2));
+
+        // ✅ COMPARAR CON DATOS ORIGINALES
+        const hayCambios = JSON.stringify(datosActualizados) !== JSON.stringify(datosMenu);
         
-        syncButton.textContent = originalText;
-        syncButton.disabled = false;
+        if (!hayCambios) {
+            console.log('ℹ️  No hay cambios locales para guardar');
+            resolve(); // Resolvemos igual para continuar con la sincronización
+            return;
+        }
+
+        // ✅ ACTUALIZAR datosMenu EN MEMORIA
+        datosMenu = datosActualizados;
+
+        // ✅ ENVIAR AL SERVIDOR
+        fetch("/api/menu", {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            body: JSON.stringify(datosActualizados),
+            credentials: 'include'
+        })
+        .then(async res => {
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(`Error ${res.status}: ${errorText}`);
+            }
+            return res.text();
+        })
+        .then(msg => {
+            console.log("✅ Cambios locales guardados:", msg);
+            resolve(); // ✅ ÉXITO - continuar con sincronización
+        })
+        .catch(err => {
+            console.error("❌ Error guardando cambios locales:", err);
+            reject(new Error("No se pudieron guardar los cambios locales: " + err.message));
+        });
     });
 }
+
+// ------------------ SINCRONIZAR CON PRODUCCIÓN ------------------
+function synchronizeWithProduction() {
+    return new Promise((resolve, reject) => {
+        console.log('🌐 INICIANDO SINCRONIZACIÓN CON PRODUCCIÓN...');
+        
+        // ✅ CREAR OVERLAY DE CARGA
+        const overlay = document.createElement("div");
+        overlay.style.position = "fixed";
+        overlay.style.top = "0";
+        overlay.style.left = "0";
+        overlay.style.width = "100%";
+        overlay.style.height = "100%";
+        overlay.style.backgroundColor = "rgba(0,0,0,0.8)";
+        overlay.style.display = "flex";
+        overlay.style.flexDirection = "column";
+        overlay.style.justifyContent = "center";
+        overlay.style.alignItems = "center";
+        overlay.style.zIndex = "10000";
+        overlay.style.color = "white";
+        overlay.style.fontSize = "1.2rem";
+        
+        // ✅ CONTENEDOR DE PROGRESO
+        const progressContainer = document.createElement("div");
+        progressContainer.style.width = "80%";
+        progressContainer.style.maxWidth = "500px";
+        progressContainer.style.textAlign = "center";
+        
+        // ✅ BARRA DE PROGRESO
+        const progressBar = document.createElement("div");
+        progressBar.style.width = "100%";
+        progressBar.style.height = "20px";
+        progressBar.style.backgroundColor = "#333";
+        progressBar.style.borderRadius = "10px";
+        progressBar.style.margin = "20px 0";
+        progressBar.style.overflow = "hidden";
+        
+        const progressFill = document.createElement("div");
+        progressFill.style.width = "0%";
+        progressFill.style.height = "100%";
+        progressFill.style.backgroundColor = "#4CAF50";
+        progressFill.style.transition = "width 0.3s ease";
+        progressFill.style.borderRadius = "10px";
+        
+        progressBar.appendChild(progressFill);
+        
+        // ✅ TEXTO DE PROGRESO
+        const progressText = document.createElement("div");
+        progressText.textContent = "0% - Iniciando sincronización...";
+        progressText.style.marginBottom = "10px";
+        
+        // ✅ ENSAMBLAR OVERLAY
+        progressContainer.appendChild(progressText);
+        progressContainer.appendChild(progressBar);
+        overlay.appendChild(progressContainer);
+        document.body.appendChild(overlay);
+        
+        // ✅ SIMULAR PROGRESO
+        let progress = 0;
+        const totalTime = 180; // 3 minutos en segundos
+        const interval = setInterval(() => {
+            progress += (100 / totalTime);
+            if (progress > 95) progress = 95; // Máximo 95% hasta que termine
+            
+            progressFill.style.width = progress + "%";
+            progressText.textContent = Math.round(progress) + "% - Sincronizando con producción...";
+        }, 1000);
+        
+        // ✅ HACER PETICIÓN REAL
+        fetch("/api/sync-production", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Error ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            clearInterval(interval);
+            progressFill.style.width = "100%";
+            progressText.textContent = "100% - ¡Completado!";
+            
+            setTimeout(() => {
+                document.body.removeChild(overlay);
+                
+                if (data.success) {
+                    console.log("✅ Sincronización exitosa:", data.message);
+                    alert("✅ " + data.message + "\n\nTodos los cambios han sido aplicados en el sitio público.");
+                    resolve(); // ✅ ÉXITO
+                } else {
+                    reject(new Error(data.message || "Error en sincronización"));
+                }
+            }, 2000);
+        })
+        .catch(error => {
+            clearInterval(interval);
+            document.body.removeChild(overlay);
+            console.error("❌ Error en sincronización:", error);
+            reject(new Error("Error de conexión: " + error.message));
+        });
+    });
+}
+
+
 // Añadir el botón cuando se cargue el DOM
 addSyncButton();
