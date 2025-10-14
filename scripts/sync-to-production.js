@@ -56,24 +56,32 @@ try {
     console.log('🗂️ Copiando archivos estáticos...');
 
     // ✅ CARGAR DATOS DEL MENÚ (mantenemos esto)
-    console.log('📊 Cargando datos actuales del menú...');
-    const menuPath = path.join(__dirname, '..', 'data', 'menu.json');
-    let menuData = {};
+console.log('📊 Cargando datos ACTUALIZADOS del menú...');
+const menuPath = path.join(__dirname, '..', 'data', 'menu.json');
+let menuData = {};
 
-    try {
-        menuData = JSON.parse(fs.readFileSync(menuPath, 'utf8'));
-        console.log('✅ Datos del menú cargados correctamente');
-        
-        if (menuData.menu_semana) {
-            console.log('📅 Estado actual del menú semanal:');
-            menuData.menu_semana.forEach(dia => {
-                console.log(`   📅 ${dia.dia}: ${dia.imagen}`);
-            });
-        }
-    } catch (error) {
-        console.error('❌ Error cargando menu.json:', error.message);
-        menuData = { carta: [], menu_semana: [] };
+try {
+    // ✅ FORZAR LECTURA FRESCA - no usar caché
+    const menuContent = fs.readFileSync(menuPath, 'utf8');
+    menuData = JSON.parse(menuContent);
+    console.log('✅ Datos ACTUALIZADOS del menú cargados correctamente');
+    
+    if (menuData.menu_semana) {
+        console.log('📅 Estado ACTUAL del menú semanal:');
+        menuData.menu_semana.forEach(dia => {
+            console.log(`   📅 ${dia.dia}: ${dia.imagen} - ${dia.platillos.length} platillos`);
+        });
     }
+    
+    // ✅ DEBUG: Mostrar contenido actual
+    console.log('🔍 Contenido actual de menu.json:');
+    console.log('   Carta:', menuData.carta?.[0]?.nombre || 'No hay carta');
+    console.log('   Días menu_semana:', menuData.menu_semana?.length || 0);
+    
+} catch (error) {
+    console.error('❌ Error cargando menu.json ACTUALIZADO:', error.message);
+    menuData = { carta: [], menu_semana: [] };
+}
 
     // ✅ FUNCIONES PARA ARCHIVOS AUTÓNOMOS (mantenemos)
     function createAutonomousLaCarta() {
@@ -303,4 +311,5 @@ document.addEventListener("DOMContentLoaded", cargarCarta);
     console.error('Error en sincronización:', error);
     process.exit(1);
 }
+
 
