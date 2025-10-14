@@ -12,7 +12,7 @@ if (process.env.NODE_ENV === 'production') {
         console.error('❌ ERROR: Variables de entorno faltantes:', missingVars);
         process.exit(1);
     }
-    }
+}
 
 const { execSync } = require('child_process');
 const express = require('express');
@@ -22,8 +22,6 @@ const MemoryStore = require('memorystore')(session);
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
-
-
 
 // ✅ VARIABLE GLOBAL PARA DATOS DEL MENÚ
 let datosMenu = {};
@@ -68,6 +66,7 @@ app.use((req, res, next) => {
     
     next();
 });
+
 // -------------------- MIDDLEWARES --------------------
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -299,7 +298,10 @@ app.post('/api/menu', isLoggedIn, (req, res) => {
     
     try {
         // ✅ 1. VERIFICAR SI HAY CAMBIOS REALES
-        const contenidoActual = fs.existsSync(menuPath) ? fs.readFileSync(menuPath, 'utf8') : '';
+        let contenidoActual = '';
+        if (fs.existsSync(menuPath)) {
+            contenidoActual = fs.readFileSync(menuPath, 'utf8');
+        }
         const nuevoContenido = JSON.stringify(req.body, null, 2);
         
         console.log('🔍 ¿HAY CAMBIOS REALES?', contenidoActual !== nuevoContenido ? '✅ SÍ' : '❌ NO');
@@ -314,19 +316,23 @@ app.post('/api/menu', isLoggedIn, (req, res) => {
         fs.writeFileSync(menuPath, nuevoContenido, 'utf8');
         console.log('✅ menu.json ACTUALIZADO EXITOSAMENTE');
         
-        // ✅ 3. ACTUALIZAR DATOS EN MEMORIA
-        actualizarDatosMenu();
+        // ✅ 3. ACTUALIZAR DATOS EN MEMORIA DEL SERVIDOR
+        datosMenu = req.body;
         
-        // ✅ 4. FORZAR COMMIT SIEMPRE
-        console.log('💾 INICIANDO COMMIT FORZADO...');
-
-        // 4.1. Agregar SOLO menu.json (sin deploy_trigger.txt)
+        // ✅ 4. COMMIT Y PUSH AL REPOSITORIO PRINCIPAL
+        console.log('💾 INICIANDO COMMIT...');
+        
+        // Agregar SOLO menu.json
         execSync('git add data/menu.json', { stdio: 'inherit' });
         console.log('📁 menu.json agregado al commit');
 
-        // 4.2. COMMIT SIEMPRE (con o sin cambios)
-        const commitMessage = `🚀 DEPLOY: Actualizar menú - ${new Date().toLocaleString('es-MX')}`;
-        execSync(`git commit -m "${commitMessage}"`, { stdio: 'inherit' });
+        // COMMIT SIEMPRE (con o sin cambios)
+        const commitMessage = `📝 Actualizar menú - ${new Date().toLocaleString('es-MX')}`;
+        try {
+            execSync(`git commit -m "${commitMessage}"`, { stdio: 'inherit' });
+        } catch (commitError) {
+            console.log('ℹ️  No hay cambios para commit:', commitError.message);
+        }
 
         console.log('📤 HACIENDO PUSH...');
         const GH_TOKEN = process.env.GH_TOKEN;
@@ -335,45 +341,36 @@ app.post('/api/menu', isLoggedIn, (req, res) => {
             return res.send('Menú actualizado pero no se pudo guardar en GitHub (token faltante)');
         }
 
-        execSync(`git push https://DanielRoblesFra:${GH_TOKEN}@github.com/DanielRoblesFra/fondita.git main`, 
-                { stdio: 'inherit' });
-        console.log('✅ PUSH EXITOSO - Render debería detectar el cambio');
+        try {
+            execSync(`git push https://DanielRoblesFra:${GH_TOKEN}@github.com/DanielRoblesFra/fondita.git main`, 
+                    { stdio: 'inherit' });
+            console.log('✅ PUSH EXITOSO');
+        } catch (pushError) {
+            console.log('⚠️  Error en push (puede ser normal si no hay cambios):', pushError.message);
+        }
         
-        // ✅ 5. SINCRONIZACIÓN AUTOMÁTICA
-// ✅ 5. SINCRONIZACIÓN AUTOMÁTICA CON ESPERA FIABLE
-console.log('🔄 Iniciando sincronización automática con fondita-production...');
-
-function waitForGitHubSimple() {
-    return new Promise((resolve) => {
-        console.log('⏳ Esperando 15 segundos para GitHub (solución simple)...');
-        
-        // Simplemente esperar tiempo fijo - más confiable
-        setTimeout(() => {
-            console.log('✅ Tiempo de espera completado - procediendo con sincronización');
-            resolve(true);
-        }, 15000); // 15 segundos
-    });
-}
-
-// Ejecutar con espera simple pero confiable
-setTimeout(async () => {
-    try {
-        await waitForGitHubSimple();
-        
-        console.log('🚀 Ejecutando sync-to-production.js...');
-        execSync('node scripts/sync-to-production.js', { 
-            stdio: 'inherit', 
-            timeout: 120000 
-        });
-        console.log('✅ Sincronización automática completada');
-        
-    } catch (syncError) {
-        console.error('❌ Error en sincronización automática:', syncError.message);
-    }
-}, 2000);
-
-        // ✅ 6. RESPONDER ÉXITO
-        res.send('Menú actualizado, guardado en GitHub. Sincronización con producción en progreso...');
+        // ✅ 5. SINCRONIZACIÓN CON PRODUCCIÓN - SOLO SI HUBO CAMBIOS REALES
+        if (contenidoActual !== nuevoContenido) {
+            console.log('🔄 Iniciando sincronización con fondita-production...');
+            
+            // Ejecutar sincronización después de un breve delay
+            setTimeout(() => {
+                try {
+                    console.log('🚀 Ejecutando sync-to-production.js...');
+                    execSync('node scripts/sync-to-production.js', { 
+                        stdio: 'inherit', 
+                        timeout: 120000 
+                    });
+                    console.log('✅ Sincronización con producción completada');
+                } catch (syncError) {
+                    console.error('❌ Error en sincronización automática:', syncError.message);
+                }
+            }, 3000);
+            
+            res.send('Menú actualizado y sincronización con producción iniciada...');
+        } else {
+            res.send('Menú actualizado');
+        }
         
     } catch (error) {
         console.error('❌ ERROR GUARDANDO menu.json:', error);
@@ -437,6 +434,7 @@ app.post('/api/upload-image', isLoggedIn, upload.single('imagen'), (req, res) =>
 
     res.json({ filename: req.file.filename });
 });
+
 // -------------------- NUEVO ENDPOINT PARA SINCRONIZACIÓN --------------------
 app.post('/api/sync-production', isLoggedIn, (req, res) => {
     console.log('🔁 Solicitada sincronización con repositorio de producción');
