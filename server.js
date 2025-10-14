@@ -293,39 +293,37 @@ app.post('/api/menu', isLoggedIn, (req, res) => {
     actualizarDatosMenu();
     
     // ✅ FORZAR COMMIT SIEMPRE
-    try {
-        const { execSync } = require('child_process');
-        console.log('💾 Guardando cambios en GitHub...');
-        
-        // Agregar menu.json SIEMPRE
-        execSync('git add data/menu.json', { stdio: 'inherit' });
-        
-        // Verificar cambios
-        const status = execSync('git status --porcelain').toString();
-        console.log('📋 Estado de Git:', status || 'Sin cambios detectados');
-        
-        if (status.trim() !== '') {
-            const commitMessage = `Actualizar menú: ${new Date().toLocaleString('es-MX')}`;
-            execSync(`git commit -m "${commitMessage}"`, { stdio: 'inherit' });
-        } else {
-            // Forzar commit vacío si no hay cambios
-            const commitMessage = `Forzar actualización: ${new Date().toLocaleString('es-MX')}`;
-            execSync(`git commit --allow-empty -m "${commitMessage}"`, { stdio: 'inherit' });
-        }
-        
-        const GH_TOKEN = process.env.GH_TOKEN;
-        if (!GH_TOKEN) {
-            console.error('❌ GH_TOKEN no está definido');
-            return res.send('Menú actualizado pero no se pudo guardar en GitHub (token faltante)');
-        }
-        
-        execSync(`git push https://DanielRoblesFra:${GH_TOKEN}@github.com/DanielRoblesFra/fondita.git main`, 
-                { stdio: 'inherit' });
-        console.log('✅ Menú guardado en GitHub');
-        
-    } catch (error) {
-        console.error('Error en commit del menú:', error);
+try {
+    const { execSync } = require('child_process');
+    console.log('💾 INICIANDO COMMIT FORZADO...');
+    
+    // 1. Crear archivo de timestamp para forzar cambio visible
+    const timestampPath = path.join(__dirname, 'data', 'deploy_trigger.txt');
+    const timestamp = `Última actualización: ${new Date().toISOString()}\nUser: Admin\nChanges: ${JSON.stringify(req.body).substring(0, 100)}...`;
+    fs.writeFileSync(timestampPath, timestamp);
+    console.log('🕒 TIMESTAMP CREADO:', new Date().toISOString());
+    
+    // 2. Agregar AMBOS archivos
+    execSync('git add data/menu.json data/deploy_trigger.txt', { stdio: 'inherit' });
+    
+    // 3. COMMIT SIEMPRE (con o sin cambios)
+    const commitMessage = `🚀 DEPLOY: Actualizar menú - ${new Date().toLocaleString('es-MX')}`;
+    execSync(`git commit -m "${commitMessage}"`, { stdio: 'inherit' });
+    
+    console.log('📤 HACIENDO PUSH...');
+    const GH_TOKEN = process.env.GH_TOKEN;
+    if (!GH_TOKEN) {
+        console.error('❌ GH_TOKEN no está definido');
+        return res.send('Menú actualizado pero no se pudo guardar en GitHub (token faltante)');
     }
+    
+    execSync(`git push https://DanielRoblesFra:${GH_TOKEN}@github.com/DanielRoblesFra/fondita.git main`, 
+            { stdio: 'inherit' });
+    console.log('✅ PUSH EXITOSO - Render debería detectar el cambio');
+    
+} catch (error) {
+    console.error('❌ Error en commit:', error);
+}
     
     // ✅ SINCRONIZACIÓN AUTOMÁTICA
     console.log('🔄 Iniciando sincronización automática con fondita-production...');
