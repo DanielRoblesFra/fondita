@@ -1,791 +1,369 @@
-// admin.js
-let datosMenu = {};
+// admin.js - VERSIÓN OPTIMIZADA
+let datosMenu = { carta: [{}], menu_semana: [] };
+let authToken = '';
 
-// 🛡️ DETECCIÓN DE SESIÓN EXPIRADA
-let lastActivity = Date.now();
-const SESSION_TIMEOUT = 15 * 60 * 1000; // 15 minutos en milisegundos
+// ==================== MANEJO DE SESIÓN ====================
 
-// Función para verificar sesión
+// Verificar sesión al cargar
 function verificarSesion() {
-    const tiempoInactivo = Date.now() - lastActivity;
-    
-    if (tiempoInactivo >= SESSION_TIMEOUT) {
-        console.log('🕒 Sesión expirada por inactividad');
-        cerrarSesionAutomaticamente();
-        return;
+    authToken = localStorage.getItem('authToken');
+    if (!authToken && window.location.pathname.includes('/admin')) {
+        window.location.href = '/login';
+        return false;
     }
-
-    // Verificar sesión con el servidor cada 30 segundos
-    fetch("/api/menu", {
-        method: "GET",
-        credentials: 'include'
-    })
-    .then(res => {
-        if (!res.ok) {
-            throw new Error('Sesión expirada');
-        }
-        return res.json();
-    })
-    .catch(err => {
-        console.log('🔐 Sesión expirada en servidor:', err.message);
-        cerrarSesionAutomaticamente();
-    });
+    return true;
 }
 
-// Función para cerrar sesión automáticamente
-function cerrarSesionAutomaticamente() {
-    // Mostrar mensaje al usuario
-    alert('🕒 Tu sesión ha expirado por seguridad. Serás redirigido al login.');
+// LOGIN simple
+async function login() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
     
-    // Redirigir al login
+    if (!username || !password) {
+        alert('❌ Usuario y contraseña requeridos');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.token) {
+            authToken = data.token;
+            localStorage.setItem('authToken', authToken);
+            window.location.href = '/admin';
+        } else {
+            alert('❌ Error: ' + (data.error || 'Credenciales incorrectas'));
+        }
+    } catch (error) {
+        alert('❌ Error de conexión: ' + error.message);
+    }
+}
+
+// Cerrar sesión
+function logout() {
+    localStorage.removeItem('authToken');
     window.location.href = '/login';
 }
 
-// Actualizar tiempo de actividad con cualquier interacción del usuario
-function actualizarActividad() {
-    lastActivity = Date.now();
-}
-
-// Event listeners para detectar actividad del usuario
-document.addEventListener('click', actualizarActividad);
-document.addEventListener('keypress', actualizarActividad);
-document.addEventListener('mousemove', actualizarActividad);
-document.addEventListener('scroll', actualizarActividad);
-
-// Verificar sesión periódicamente
-setInterval(verificarSesion, 30000); // Cada 30 segundos
-
-// También verificar al cargar la página
-window.addEventListener('load', () => {
-    setTimeout(verificarSesion, 1000);
-});
+// ==================== CARGA DE DATOS ====================
 
 // Cargar datos al iniciar
-window.addEventListener("DOMContentLoaded", () => {
-    fetch("/api/menu")
-        .then(res => res.json())
-        .then(data => {
-            datosMenu = data;
-            renderCarta();
-            renderMenuSemana();
-        })
-        .catch(err => console.error("Error cargando menú:", err));
-}); 
-
-// Confimacion al salir de sesion
-const logoutLink = document.getElementById('logoutLink');
-if (logoutLink) {
-    logoutLink.addEventListener('click', (e) => {
-        if (!confirm('¿Cerrar sesión?')) e.preventDefault();
-    });
+async function cargarDatos() {
+    if (!verificarSesion()) return;
+    
+    try {
+        const response = await fetch('/api/menu', {
+            headers: { 'Authorization': authToken }
+        });
+        
+        if (!response.ok) throw new Error('Sesión expirada');
+        
+        const data = await response.json();
+        datosMenu = data;
+        
+        // Asegurar estructura básica
+        if (!datosMenu.carta || datosMenu.carta.length === 0) {
+            datosMenu.carta = [{}];
+        }
+        if (!datosMenu.menu_semana) {
+            datosMenu.menu_semana = [];
+        }
+        
+        renderizarTodo();
+    } catch (error) {
+        console.error('Error cargando datos:', error);
+        localStorage.removeItem('authToken');
+        window.location.href = '/login';
+    }
 }
 
-// ------------------ Renderizar Carta ------------------
+// ==================== RENDERIZADO ====================
+
+function renderizarTodo() {
+    renderCarta();
+    renderMenuSemana();
+}
+
 function renderCarta() {
     const container = document.getElementById("cartaContainer");
-    container.innerHTML = "";
-
-    datosMenu.carta.forEach((item, idx) => {
-        const div = document.createElement("div");
-        div.className = "hoja";
-        
-        // Grupo para Título "Carta del día"
-        const tituloCartaGroup = document.createElement("div");
-        tituloCartaGroup.className = "input-group";
-        const labelTituloCarta = document.createElement("label");
-        labelTituloCarta.textContent = "Título de la Carta";
-        labelTituloCarta.htmlFor = `titulo-carta-${idx}`;
-        const inputTituloCarta = document.createElement("input");
-        inputTituloCarta.type = "text";
-        inputTituloCarta.id = `titulo-carta-${idx}`;
-        inputTituloCarta.value = item.tituloCarta || "Titulo";
-        inputTituloCarta.dataset.tipo = "carta";
-        inputTituloCarta.dataset.index = idx;
-        inputTituloCarta.dataset.campo = "tituloCarta";
-        inputTituloCarta.placeholder = "Ej: Titulo del libro";
-        tituloCartaGroup.appendChild(labelTituloCarta);
-        tituloCartaGroup.appendChild(inputTituloCarta);
-
-        
-        // Grupo para Nombre
-        const nombreGroup = document.createElement("div");
-        nombreGroup.className = "input-group";
-        const labelNombre = document.createElement("label");
-        labelNombre.textContent = "Nombre del platillo";
-        labelNombre.htmlFor = `nombre-${idx}`;
-        const inputNombre = document.createElement("input");
-        inputNombre.type = "text";
-        inputNombre.id = `nombre-${idx}`;
-        inputNombre.value = item.nombre;
-        inputNombre.dataset.tipo = "carta";
-        inputNombre.dataset.index = idx;
-        inputNombre.dataset.campo = "nombre";
-        inputNombre.placeholder = "Ej: Texto";
-        nombreGroup.appendChild(labelNombre);
-        nombreGroup.appendChild(inputNombre);
-
-        // Grupo para Descripción
-        const descGroup = document.createElement("div");
-        descGroup.className = "input-group";
-        const labelDesc = document.createElement("label");
-        labelDesc.textContent = "Descripción";
-        labelDesc.htmlFor = `desc-${idx}`;
-        const textareaDesc = document.createElement("textarea");
-        textareaDesc.id = `desc-${idx}`;
-        textareaDesc.value = item.descripcion;
-        textareaDesc.dataset.tipo = "carta";
-        textareaDesc.dataset.index = idx;
-        textareaDesc.dataset.campo = "descripcion";
-        textareaDesc.placeholder = "Ej: Pasta con salsa cremosa de queso parmesano...";
-        textareaDesc.rows = 3;
-        descGroup.appendChild(labelDesc);
-        descGroup.appendChild(textareaDesc);
-
-        // Grupo para Precio
-        const precioGroup = document.createElement("div");
-        precioGroup.className = "input-group";
-        const labelPrecio = document.createElement("label");
-        labelPrecio.textContent = "Precio";
-        labelPrecio.htmlFor = `precio-${idx}`;
-        const inputPrecio = document.createElement("input");
-        inputPrecio.type = "text";
-        inputPrecio.id = `precio-${idx}`;
-        inputPrecio.value = item.precio;
-        inputPrecio.dataset.tipo = "carta";
-        inputPrecio.dataset.index = idx;
-        inputPrecio.dataset.campo = "precio";
-        inputPrecio.placeholder = "Ej: $100";
-        precioGroup.appendChild(labelPrecio);
-        precioGroup.appendChild(inputPrecio);
-
-        // Grupo para Información de Pago
-        const pagoSection = document.createElement("div");
-        pagoSection.className = "pago-section";
-        
-        const pagoTitle = document.createElement("h3");
-        pagoTitle.textContent = "Información de Pago";
-        pagoTitle.style.color = "#ccc";
-        pagoTitle.style.marginBottom = "1rem";
-        pagoTitle.style.fontSize = "1.1rem";
-        pagoSection.appendChild(pagoTitle);
-
-         // Mensaje de pago
-        const pagoMensajeGroup = document.createElement("div");
-        pagoMensajeGroup.className = "input-group";
-        const labelPago = document.createElement("label");
-        labelPago.textContent = "Mensaje de pago";
-        labelPago.htmlFor = `pago-msg-${idx}`;
-        const inputPago = document.createElement("input");
-        inputPago.type = "text";
-        inputPago.id = `pago-msg-${idx}`;
-        inputPago.value = item.pago.mensaje;
-        inputPago.dataset.tipo = "carta";
-        inputPago.dataset.index = idx;
-        inputPago.dataset.campo = "pago_mensaje";
-        inputPago.placeholder = "Ej: Transferencia a: Claudia";
-        pagoMensajeGroup.appendChild(labelPago);
-        pagoMensajeGroup.appendChild(inputPago);
-
-        // Banco
-        const bancoGroup = document.createElement("div");
-        bancoGroup.className = "input-group";
-        const labelBanco = document.createElement("label");
-        labelBanco.textContent = "Banco";
-        labelBanco.htmlFor = `banco-${idx}`;
-        const inputBanco = document.createElement("input");
-        inputBanco.type = "text";
-        inputBanco.id = `banco-${idx}`;
-        inputBanco.value = item.pago.banco;
-        inputBanco.dataset.tipo = "carta";
-        inputBanco.dataset.index = idx;
-        inputBanco.dataset.campo = "pago_banco";
-        inputBanco.placeholder = "Ej: BBVA: ***********59";
-        bancoGroup.appendChild(labelBanco);
-        bancoGroup.appendChild(inputBanco);
-
-        pagoSection.appendChild(pagoMensajeGroup);
-        pagoSection.appendChild(bancoGroup);
-
-        // 🎯 PÁGINA 4 
-        const pagina4Group = document.createElement("div");
-        pagina4Group.className = "input-group";
-        pagina4Group.style.marginTop = "20px";
-        
-        const labelPagina4 = document.createElement("label");
-        labelPagina4.textContent = "Escribe texto para la página 4";
-        labelPagina4.htmlFor = `pagina4-${idx}`;
-        labelPagina4.style.fontWeight = "bold";
-        
-        const textareaPagina4 = document.createElement("textarea");
-        textareaPagina4.id = `pagina4-${idx}`;
-        textareaPagina4.value = item.pagina4 || "";
-        textareaPagina4.dataset.tipo = "carta";
-        textareaPagina4.dataset.index = idx;
-        textareaPagina4.dataset.campo = "pagina4";
-        textareaPagina4.placeholder = "Ej: Mensaje para la hoja 4";
-        textareaPagina4.rows = 4;
-        textareaPagina4.style.width = "100%";
-        
-        pagina4Group.appendChild(labelPagina4);
-        pagina4Group.appendChild(textareaPagina4);
-
-        div.appendChild(tituloCartaGroup);
-        div.appendChild(nombreGroup);
-        div.appendChild(descGroup);
-        div.appendChild(precioGroup); 
-        div.appendChild(pagoSection);
-        div.appendChild(pagina4Group);
+    if (!container) return;
     
-        container.appendChild(div);
-    }); 
-} 
+    const item = datosMenu.carta[0] || {};
+    
+    container.innerHTML = `
+        <div class="hoja">
+            <div class="input-group">
+                <label>Título de la Carta</label>
+                <input type="text" value="${item.tituloCarta || ''}" 
+                       onchange="actualizarCarta('tituloCarta', this.value)"
+                       placeholder="Título del libro">
+            </div>
+            
+            <div class="input-group">
+                <label>Nombre del platillo</label>
+                <input type="text" value="${item.nombre || ''}"
+                       onchange="actualizarCarta('nombre', this.value)"
+                       placeholder="Nombre del platillo">
+            </div>
+            
+            <div class="input-group">
+                <label>Descripción</label>
+                <textarea onchange="actualizarCarta('descripcion', this.value)"
+                          placeholder="Descripción del platillo...">${item.descripcion || ''}</textarea>
+            </div>
+            
+            <div class="input-group">
+                <label>Precio</label>
+                <input type="text" value="${item.precio || ''}"
+                       onchange="actualizarCarta('precio', this.value)"
+                       placeholder="$100">
+            </div>
+            
+            <div class="pago-section">
+                <h3>Información de Pago</h3>
+                <div class="input-group">
+                    <label>Mensaje de pago</label>
+                    <input type="text" value="${item.pago?.mensaje || ''}"
+                           onchange="actualizarCarta('pago_mensaje', this.value)"
+                           placeholder="Transferencia a: Claudia">
+                </div>
+                
+                <div class="input-group">
+                    <label>Banco</label>
+                    <input type="text" value="${item.pago?.banco || ''}"
+                           onchange="actualizarCarta('pago_banco', this.value)"
+                           placeholder="BBVA: ***********59">
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label>Texto página 4</label>
+                <textarea onchange="actualizarCarta('pagina4', this.value)"
+                          placeholder="Mensaje adicional para la última página...">${item.pagina4 || ''}</textarea>
+            </div>
+        </div>
+    `;
+}
 
-// ------------------ Renderizar Menú de la Semana ------------------
 function renderMenuSemana() {
     const container = document.getElementById("menuContainer");
-    container.innerHTML = "";
-
-    // Array con los días de la semana en español
+    if (!container) return;
+    
     const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
-
-    datosMenu.menu_semana.forEach((dia, idx) => {
-        const div = document.createElement("div");
-        div.className = "dia";
-
-        // Día - ahora como select
-        const labelDia = document.createElement("label");
-        labelDia.textContent = "Día de la semana";
-        labelDia.htmlFor = `dia-${idx}`;
-        
-        const selectDia = document.createElement("select");
-        selectDia.id = `dia-${idx}`;
-        selectDia.dataset.tipo = "menu";
-        selectDia.dataset.index = idx;
-        selectDia.dataset.campo = "dia";
-        
-        // Opciones para los días de la semana
-        diasSemana.forEach(diaOption => {
-            const option = document.createElement("option");
-            option.value = diaOption;
-            option.textContent = diaOption;
-            if (dia.dia === diaOption) {
-                option.selected = true;
-            }
-            selectDia.appendChild(option);
+    
+    // Asegurar 7 días
+    while (datosMenu.menu_semana.length < 7) {
+        datosMenu.menu_semana.push({ 
+            dia: diasSemana[datosMenu.menu_semana.length] || '',
+            fecha: '',
+            imagen: '',
+            platillos: []
         });
-
-        // Fecha - ahora con tipo date
-        const labelFecha = document.createElement("label");
-        labelFecha.textContent = "Fecha";
-        labelFecha.htmlFor = `fecha-${idx}`;
-        
-        const inputFecha = document.createElement("input");
-        inputFecha.type = "date";
-        inputFecha.id = `fecha-${idx}`;
-        inputFecha.value = dia.fecha || "";
-        inputFecha.dataset.tipo = "menu";
-        inputFecha.dataset.index = idx;
-        inputFecha.dataset.campo = "fecha";
-
-        // Imagen - interfaz mejorada
-        const imagenSection = document.createElement("div");
-        imagenSection.className = "imagen-section";
-        
-        const labelImg = document.createElement("label");
-        labelImg.textContent = "Imagen del día";
-        
-        // Contenedor para la previsualización y controles
-        const imagenControls = document.createElement("div");
-        imagenControls.className = "imagen-controls";
-        
-        // Preview de imagen actual
-        const imgPreviewContainer = document.createElement("div");
-        imgPreviewContainer.className = "img-preview-container";
-        
-        const imgPreview = document.createElement("img");
-        imgPreview.className = "img-preview";
-        if (dia.imagen) {
-            imgPreview.src = `/img/${dia.imagen}?v=${Date.now()}`;
-        } else {
-            imgPreview.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100' fill='none'%3E%3Crect width='100' height='100' fill='%23333'/%3E%3Cpath d='M35 40L50 25L65 40M30 65H70M40 50H60' stroke='%23555' stroke-width='2'/%3E%3C/svg%3E";
-        }
-        imgPreview.alt = "Vista previa de la imagen";
-        
-        // Botón personalizado para subir imagen
-        const fileInputContainer = document.createElement("div");
-        fileInputContainer.className = "file-input-container";
-        
-        const fileInput = document.createElement("input");
-        fileInput.type = "file";
-        fileInput.id = `imagen-${idx}`;
-        fileInput.accept = ".jpg,.jpeg,.png";
-        fileInput.className = "file-input";
-        
-        const fileInputLabel = document.createElement("label");
-        fileInputLabel.htmlFor = `imagen-${idx}`;
-        fileInputLabel.className = "file-input-label";
-        fileInputLabel.innerHTML = '<span class="file-input-icon">📷</span> Seleccionar imagen';
-        
-        // Input oculto para el nombre del archivo
-        const inputImg = document.createElement("input");
-        inputImg.type = "hidden";
-        inputImg.value = dia.imagen;
-        inputImg.dataset.tipo = "menu";
-        inputImg.dataset.index = idx;
-        inputImg.dataset.campo = "imagen";
-        inputImg.className = "hidden-image-input";
-
-        // Manejo de la selección de archivo
-        fileInput.addEventListener("change", e => {
-            if (!e.target.files[0]) return;
+    }
+    
+    container.innerHTML = datosMenu.menu_semana.map((dia, idx) => `
+        <div class="dia">
+            <div class="input-group">
+                <label>Día de la semana</label>
+                <select onchange="actualizarMenu(${idx}, 'dia', this.value)">
+                    ${diasSemana.map(d => 
+                        `<option value="${d}" ${d === dia.dia ? 'selected' : ''}>${d}</option>`
+                    ).join('')}
+                </select>
+            </div>
             
-            // Actualizar la interfaz
-            fileInputLabel.innerHTML = '<span class="file-input-icon">⏳</span> Subiendo...';
+            <div class="input-group">
+                <label>Fecha</label>
+                <input type="date" value="${dia.fecha || ''}"
+                       onchange="actualizarMenu(${idx}, 'fecha', this.value)">
+            </div>
             
-            const formData = new FormData();
-            formData.append("imagen", e.target.files[0]);
+            <div class="input-group">
+                <label>Imagen del día</label>
+                <div class="imagen-controls">
+                    ${dia.imagen ? `
+                        <div class="img-preview-container">
+                            <img src="/img/${dia.imagen}?t=${Date.now()}" class="img-preview" alt="Vista previa">
+                        </div>
+                    ` : ''}
+                    <input type="file" 
+                           accept="image/jpeg, image/png" 
+                           onchange="subirImagen(${idx}, this)"
+                           style="margin-top: 10px;">
+                    ${dia.imagen ? `
+                        <button type="button" onclick="eliminarImagen(${idx})" 
+                                style="margin-top: 5px; background: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+                            🗑️ Eliminar imagen
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
             
-            // Enviamos el nombre de la imagen actual para que sea eliminada
-            const imagenAnterior = dia.imagen;
-            if (imagenAnterior && imagenAnterior.trim() !== "") {
-                formData.append("oldFilename", imagenAnterior);
-            }
-
-            fetch("/api/upload-image", {
-                method: "POST",
-                body: formData,
-                credentials: 'include'
-            })
-                .then(res => res.json())
-                .then(resp => {
-                    // Actualizar el input oculto con el nuevo nombre
-                    inputImg.value = resp.filename;
-                    
-                    // ✅ CORREGIDO: Actualizar los datos en memoria
-                    datosMenu.menu_semana[idx].imagen = resp.filename;
-                    
-                    // ✅ NUEVO: Guardar los cambios automáticamente
-                    guardarCambios();
-                    
-                    // Actualizar preview de imagen
-                    imgPreview.src = `/img/${resp.filename}`;
-                    
-                    // Restaurar texto del botón
-                    fileInputLabel.innerHTML = '<span class="file-input-icon">✅</span> Imagen subida';
-                    
-                    // Resetear después de un tiempo
-                    setTimeout(() => {
-                        fileInputLabel.innerHTML = '<span class="file-input-icon">📷</span> Cambiar imagen';
-                    }, 2000);
-                })
-                .catch(err => {
-                    console.error("Error subiendo imagen:", err);
-                    fileInputLabel.innerHTML = '<span class="file-input-icon">❌</span> Error, intentar again';
-                    
-                    setTimeout(() => {
-                        fileInputLabel.innerHTML = '<span class="file-input-icon">📷</span> Seleccionar imagen';
-                    }, 2000);
-                });
-        });
-
-        // Ensamblar controles de imagen
-        imgPreviewContainer.appendChild(imgPreview);
-        fileInputContainer.appendChild(fileInput);
-        fileInputContainer.appendChild(fileInputLabel);
-        
-        imagenControls.appendChild(imgPreviewContainer);
-        imagenControls.appendChild(fileInputContainer);
-        
-        imagenSection.appendChild(labelImg);
-        imagenSection.appendChild(imagenControls);
-
-        // Platillos (lista)
-        const labelPlat = document.createElement("label");
-        labelPlat.textContent = "Platillos (separados por coma)";
-        labelPlat.htmlFor = `platillos-${idx}`;
-        
-        const textareaPlat = document.createElement("textarea");
-        textareaPlat.id = `platillos-${idx}`;
-        textareaPlat.value = dia.platillos.join(", ");
-        textareaPlat.dataset.tipo = "menu";
-        textareaPlat.dataset.index = idx;
-        textareaPlat.dataset.campo = "platillos";
-        textareaPlat.placeholder = "Ej: Sopa de verduras, Pollo asado, Arroz blanco";
-
-        // Añadir todos los elementos al contenedor del día
-        div.appendChild(labelDia);
-        div.appendChild(selectDia);
-        div.appendChild(labelFecha);
-        div.appendChild(inputFecha);
-        div.appendChild(imagenSection);
-        div.appendChild(inputImg); // Input oculto
-        div.appendChild(labelPlat);
-        div.appendChild(textareaPlat);
-
-        container.appendChild(div);
-    });
+            <div class="input-group">
+                <label>Platillos (separados por coma)</label>
+                <textarea onchange="actualizarMenu(${idx}, 'platillos', this.value)"
+                          placeholder="Sopa de verduras, Pollo asado, Arroz blanco, Agua de fruta">${dia.platillos?.join(', ') || ''}</textarea>
+            </div>
+        </div>
+    `).join('');
 }
 
-// ------------------ Guardar Cambios (FUNCIÓN PRINCIPAL) ------------------
-function guardarCambios() {
-    console.log('💾 INICIANDO GUARDADO - CAPTURANDO DATOS ACTUALES...');
+// ==================== ACTUALIZACIÓN DE DATOS ====================
+
+function actualizarCarta(campo, valor) {
+    if (!datosMenu.carta[0]) datosMenu.carta[0] = {};
     
-    // ✅ 1. CAPTURAR DATOS ACTUALES DE LOS FORMULARIOS
-    const datosActualizados = {
-        carta: [],
-        menu_semana: []
-    };
+    if (campo === 'pago_mensaje') {
+        if (!datosMenu.carta[0].pago) datosMenu.carta[0].pago = {};
+        datosMenu.carta[0].pago.mensaje = valor;
+    } else if (campo === 'pago_banco') {
+        if (!datosMenu.carta[0].pago) datosMenu.carta[0].pago = {};
+        datosMenu.carta[0].pago.banco = valor;
+    } else {
+        datosMenu.carta[0][campo] = valor;
+    }
+}
 
-    // CAPTURAR CARTA ACTUAL
-    document.querySelectorAll("#cartaContainer .hoja").forEach((hoja, idx) => {
-        const item = {
-            nombre: hoja.querySelector(`input[data-campo="nombre"]`)?.value || "",
-            descripcion: hoja.querySelector(`textarea[data-campo="descripcion"]`)?.value || "",
-            precio: hoja.querySelector(`input[data-campo="precio"]`)?.value || "",
-            tituloCarta: hoja.querySelector(`input[data-campo="tituloCarta"]`)?.value || "",
-            pagina4: hoja.querySelector(`textarea[data-campo="pagina4"]`)?.value || "",
-            pago: {
-                mensaje: hoja.querySelector(`input[data-campo="pago_mensaje"]`)?.value || "",
-                banco: hoja.querySelector(`input[data-campo="pago_banco"]`)?.value || ""
-            }
-        };
-        datosActualizados.carta.push(item);
-    });
-
-    // CAPTURAR MENÚ SEMANAL ACTUAL
-    document.querySelectorAll("#menuContainer .dia").forEach((diaElem, idx) => {
-        const platillosText = diaElem.querySelector(`textarea[data-campo="platillos"]`)?.value || "";
-        const platillosArray = platillosText.split(",").map(p => p.trim()).filter(p => p !== "");
-        
-        const dia = {
-            dia: diaElem.querySelector(`select[data-campo="dia"]`)?.value || "",
-            fecha: diaElem.querySelector(`input[data-campo="fecha"]`)?.value || "",
-            imagen: diaElem.querySelector(`input.hidden-image-input`)?.value || "",
-            platillos: platillosArray
-        };
-        datosActualizados.menu_semana.push(dia);
-    });
-
-    console.log('📊 DATOS CAPTURADOS:', JSON.stringify(datosActualizados, null, 2));
-
-    // ✅ 2. VERIFICAR SI HAY CAMBIOS REALES COMPARANDO CON LOS DATOS ORIGINALES
-    const hayCambios = JSON.stringify(datosActualizados) !== JSON.stringify(datosMenu);
+function actualizarMenu(idx, campo, valor) {
+    if (!datosMenu.menu_semana[idx]) {
+        datosMenu.menu_semana[idx] = { platillos: [] };
+    }
     
-    if (!hayCambios) {
-        console.log('ℹ️  No se detectaron cambios reales en los datos');
-        alert('ℹ️  No se detectaron cambios para guardar');
+    if (campo === 'platillos') {
+        datosMenu.menu_semana[idx].platillos = valor.split(',').map(p => p.trim()).filter(p => p !== '');
+    } else {
+        datosMenu.menu_semana[idx][campo] = valor;
+    }
+}
+
+// ==================== MANEJO DE IMÁGENES ====================
+
+async function subirImagen(idx, fileInput) {
+    const archivo = fileInput.files[0];
+    if (!archivo) return;
+    
+    // Validar tipo de archivo
+    if (!archivo.type.match('image/jpeg') && !archivo.type.match('image/png')) {
+        alert('❌ Solo se permiten imágenes JPEG o PNG');
         return;
     }
-
-    console.log('✅ CAMBIOS DETECTADOS - Procediendo a guardar...');
-
-    // Mostrar indicador de carga
-    const btnGuardar = document.querySelector('button[type="submit"]');
-    const textoOriginal = btnGuardar ? btnGuardar.textContent : "";
-    if (btnGuardar) {
-        btnGuardar.textContent = "Guardando...";
-        btnGuardar.disabled = true;
+    
+    // Validar tamaño (2MB)
+    if (archivo.size > 2 * 1024 * 1024) {
+        alert('❌ La imagen debe ser menor a 2MB');
+        return;
     }
-
-    // ✅ 3. ACTUALIZAR datosMenu EN MEMORIA
-    datosMenu = datosActualizados;
-
-    // ✅ 4. ENVIAR AL SERVIDOR
-    fetch("/api/menu", {
-        method: "POST",
-        headers: { 
-            "Content-Type": "application/json",
-            "X-Requested-With": "XMLHttpRequest"
-        },
-        body: JSON.stringify(datosActualizados),
-        credentials: 'include'
-    })
-    .then(async res => {
-        if (!res.ok) {
-            const errorText = await res.text();
-            throw new Error(`Error ${res.status}: ${errorText}`);
-        }
-        return res.text();
-    })
-    .then(msg => {
-        console.log("✅ Respuesta del servidor:", msg);
-        alert("✅ " + msg);
-        
-        // Recargar datos del servidor para confirmar sincronización
-        setTimeout(() => {
-            fetch("/api/menu")
-                .then(res => res.json())
-                .then(data => {
-                    datosMenu = data;
-                    console.log("🔄 Datos recargados y sincronizados con servidor");
-                })
-                .catch(err => console.error("Error recargando datos:", err));
-        }, 1000);
-    })
-    .catch(err => {
-        console.error("Error guardando:", err);
-        alert("❌ Error al guardar los cambios: " + err.message);
-    })
-    .finally(() => {
-        if (btnGuardar) {
-            btnGuardar.textContent = textoOriginal || "Guardar";
-            btnGuardar.disabled = false;
-        }
-    });
-}
-
-// ------------------ Botón de Sincronización ------------------
-function addSyncButton() {
-    const menuForm = document.getElementById("menuForm");
-    if (!menuForm) return;
     
-    // ✅ TRANSFORMAR el botón existente en nuestro botón único
-    const existingButton = menuForm.querySelector('button[type="submit"]');
+    const formData = new FormData();
+    formData.append('imagen', archivo);
     
-    if (existingButton) {
-        // Configurar el botón único
-        existingButton.type = "button"; // Cambiar de submit a button
-        existingButton.id = "syncButton";
-        existingButton.textContent = "🚀 Sincronizar Cambios con Producción";
-        existingButton.style.marginTop = "2rem";
-        existingButton.style.padding = "1.2rem 2.5rem";
-        existingButton.style.background = "linear-gradient(135deg, #4a5568 0%, #2d3748 100%)";
-        existingButton.style.color = "white";
-        existingButton.style.border = "none";
-        existingButton.style.borderRadius = "12px";
-        existingButton.style.cursor = "pointer";
-        existingButton.style.fontSize = "1.2rem";
-        existingButton.style.fontWeight = "600";
-        existingButton.style.width = "100%";
-        existingButton.style.boxShadow = "0 4px 15px rgba(0,0,0,0.2)";
+    // Enviar imagen anterior para eliminación
+    const imagenAnterior = datosMenu.menu_semana[idx]?.imagen;
+    if (imagenAnterior) {
+        formData.append('oldFilename', imagenAnterior);
+    }
+    
+    try {
+        const response = await fetch('/api/upload-image', {
+            method: 'POST',
+            headers: { 'Authorization': authToken },
+            body: formData
+        });
         
-        // ✅ ASIGNAR LA FUNCIÓN UNIFICADA
-        existingButton.onclick = synchronizeAllChanges;
+        const data = await response.json();
+        if (data.filename) {
+            datosMenu.menu_semana[idx].imagen = data.filename;
+            alert('✅ Imagen subida correctamente');
+            // Recargar la vista para mostrar nueva imagen
+            renderMenuSemana();
+        } else {
+            alert('❌ Error al subir imagen');
+        }
+    } catch (error) {
+        console.error('Error subiendo imagen:', error);
+        alert('❌ Error de conexión al subir imagen');
     }
 }
 
-// ------------------ FUNCIÓN ÚNICA PARA SINCRONIZACIÓN ------------------
-function synchronizeAllChanges() {
-    console.log('🚀 INICIANDO PROCESO COMPLETO...');
-    
-    const syncButton = document.getElementById("syncButton");
-    const originalText = syncButton.textContent;
-    
-    // ✅ 1. DESHABILITAR BOTÓN INMEDIATAMENTE
-    syncButton.disabled = true;
-    syncButton.textContent = "⏳ Guardando cambios locales...";
-    
-    // ✅ 2. PRIMERO GUARDAR CAMBIOS LOCALES
-    guardarCambiosLocales()
-        .then(() => {
-            // ✅ 3. SI EL GUARDADO LOCAL ES EXITOSO, PROCEDER CON SINCRONIZACIÓN
-            syncButton.textContent = "🔄 Sincronizando con producción...";
-            return synchronizeWithProduction();
-        })
-        .then(() => {
-            // ✅ 4. TODO COMPLETADO EXITOSAMENTE
-            console.log('✅ PROCESO COMPLETADO EXITOSAMENTE');
-        })
-        .catch(error => {
-            // ✅ 5. MANEJO DE ERRORES
-            console.error('❌ Error en el proceso:', error);
-            alert('❌ Error: ' + error.message);
-        })
-        .finally(() => {
-            // ✅ 6. RESTAURAR BOTÓN
-            syncButton.textContent = originalText;
-            syncButton.disabled = false;
-        });
+function eliminarImagen(idx) {
+    if (confirm('¿Eliminar esta imagen?')) {
+        datosMenu.menu_semana[idx].imagen = '';
+        renderMenuSemana();
+    }
 }
 
-// ------------------ GUARDAR CAMBIOS LOCALES (PARA SINCRONIZACIÓN) ------------------
-function guardarCambiosLocales() {
-    return new Promise((resolve, reject) => {
-        console.log('💾 GUARDANDO CAMBIOS LOCALES PARA SINCRONIZACIÓN...');
-        
-        // ✅ USAR LA MISMA LÓGICA DE guardarCambios PERO EN FORMA DE PROMESA
-        const datosActualizados = {
-            carta: [],
-            menu_semana: []
-        };
+// ==================== SINCRONIZACIÓN ====================
 
-        // CAPTURAR CARTA ACTUAL
-        document.querySelectorAll("#cartaContainer .hoja").forEach((hoja, idx) => {
-            const item = {
-                nombre: hoja.querySelector(`input[data-campo="nombre"]`)?.value || "",
-                descripcion: hoja.querySelector(`textarea[data-campo="descripcion"]`)?.value || "",
-                precio: hoja.querySelector(`input[data-campo="precio"]`)?.value || "",
-                tituloCarta: hoja.querySelector(`input[data-campo="tituloCarta"]`)?.value || "",
-                pagina4: hoja.querySelector(`textarea[data-campo="pagina4"]`)?.value || "",
-                pago: {
-                    mensaje: hoja.querySelector(`input[data-campo="pago_mensaje"]`)?.value || "",
-                    banco: hoja.querySelector(`input[data-campo="pago_banco"]`)?.value || ""
-                }
-            };
-            datosActualizados.carta.push(item);
-        });
-
-        // CAPTURAR MENÚ SEMANAL ACTUAL
-        document.querySelectorAll("#menuContainer .dia").forEach((diaElem, idx) => {
-            const platillosText = diaElem.querySelector(`textarea[data-campo="platillos"]`)?.value || "";
-            const platillosArray = platillosText.split(",").map(p => p.trim()).filter(p => p !== "");
-            
-            const dia = {
-                dia: diaElem.querySelector(`select[data-campo="dia"]`)?.value || "",
-                fecha: diaElem.querySelector(`input[data-campo="fecha"]`)?.value || "",
-                imagen: diaElem.querySelector(`input.hidden-image-input`)?.value || "",
-                platillos: platillosArray
-            };
-            datosActualizados.menu_semana.push(dia);
-        });
-
-        console.log('📊 DATOS PARA SINCRONIZACIÓN:', JSON.stringify(datosActualizados, null, 2));
-
-        // ✅ COMPARAR CON DATOS ORIGINALES
-        const hayCambios = JSON.stringify(datosActualizados) !== JSON.stringify(datosMenu);
-        
-        if (!hayCambios) {
-            console.log('ℹ️  No hay cambios locales para guardar');
-            resolve(); // Resolvemos igual para continuar con la sincronización
-            return;
-        }
-
-        // ✅ ACTUALIZAR datosMenu EN MEMORIA
-        datosMenu = datosActualizados;
-
-        // ✅ ENVIAR AL SERVIDOR
-        fetch("/api/menu", {
-            method: "POST",
+async function guardarYSincronizar() {
+    const boton = document.getElementById('syncButton');
+    if (!boton) {
+        alert('❌ Botón no encontrado');
+        return;
+    }
+    
+    const textoOriginal = boton.textContent;
+    
+    boton.disabled = true;
+    boton.textContent = '⏳ Guardando y sincronizando...';
+    
+    try {
+        const response = await fetch('/api/save-and-sync', {
+            method: 'POST',
             headers: { 
-                "Content-Type": "application/json",
-                "X-Requested-With": "XMLHttpRequest"
+                'Content-Type': 'application/json',
+                'Authorization': authToken 
             },
-            body: JSON.stringify(datosActualizados),
-            credentials: 'include'
-        })
-        .then(async res => {
-            if (!res.ok) {
-                const errorText = await res.text();
-                throw new Error(`Error ${res.status}: ${errorText}`);
-            }
-            return res.text();
-        })
-        .then(msg => {
-            console.log("✅ Cambios locales guardados:", msg);
-            resolve(); // ✅ ÉXITO - continuar con sincronización
-        })
-        .catch(err => {
-            console.error("❌ Error guardando cambios locales:", err);
-            reject(new Error("No se pudieron guardar los cambios locales: " + err.message));
+            body: JSON.stringify({ menuData: datosMenu })
         });
-    });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('✅ ' + data.message);
+        } else {
+            alert('❌ ' + (data.error || 'Error desconocido'));
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error de conexión: ' + error.message);
+    } finally {
+        boton.textContent = textoOriginal;
+        boton.disabled = false;
+    }
 }
 
-// ------------------ SINCRONIZAR CON PRODUCCIÓN ------------------
-function synchronizeWithProduction() {
-    return new Promise((resolve, reject) => {
-        console.log('🌐 INICIANDO SINCRONIZACIÓN CON PRODUCCIÓN...');
-        
-        // ✅ CREAR OVERLAY DE CARGA
-        const overlay = document.createElement("div");
-        overlay.style.position = "fixed";
-        overlay.style.top = "0";
-        overlay.style.left = "0";
-        overlay.style.width = "100%";
-        overlay.style.height = "100%";
-        overlay.style.backgroundColor = "rgba(0,0,0,0.8)";
-        overlay.style.display = "flex";
-        overlay.style.flexDirection = "column";
-        overlay.style.justifyContent = "center";
-        overlay.style.alignItems = "center";
-        overlay.style.zIndex = "10000";
-        overlay.style.color = "white";
-        overlay.style.fontSize = "1.2rem";
-        
-        // ✅ CONTENEDOR DE PROGRESO
-        const progressContainer = document.createElement("div");
-        progressContainer.style.width = "80%";
-        progressContainer.style.maxWidth = "500px";
-        progressContainer.style.textAlign = "center";
-        
-        // ✅ BARRA DE PROGRESO
-        const progressBar = document.createElement("div");
-        progressBar.style.width = "100%";
-        progressBar.style.height = "20px";
-        progressBar.style.backgroundColor = "#333";
-        progressBar.style.borderRadius = "10px";
-        progressBar.style.margin = "20px 0";
-        progressBar.style.overflow = "hidden";
-        
-        const progressFill = document.createElement("div");
-        progressFill.style.width = "0%";
-        progressFill.style.height = "100%";
-        progressFill.style.backgroundColor = "#4CAF50";
-        progressFill.style.transition = "width 0.3s ease";
-        progressFill.style.borderRadius = "10px";
-        
-        progressBar.appendChild(progressFill);
-        
-        // ✅ TEXTO DE PROGRESO
-        const progressText = document.createElement("div");
-        progressText.textContent = "0% - Iniciando sincronización...";
-        progressText.style.marginBottom = "10px";
-        
-        // ✅ ENSAMBLAR OVERLAY
-        progressContainer.appendChild(progressText);
-        progressContainer.appendChild(progressBar);
-        overlay.appendChild(progressContainer);
-        document.body.appendChild(overlay);
-        
-        // ✅ SIMULAR PROGRESO
-        let progress = 0;
-        const totalTime = 180; // 3 minutos en segundos
-        const interval = setInterval(() => {
-            progress += (100 / totalTime);
-            if (progress > 95) progress = 95; // Máximo 95% hasta que termine
-            
-            progressFill.style.width = progress + "%";
-            progressText.textContent = Math.round(progress) + "% - Sincronizando con producción...";
-        }, 1000);
-        
-        // ✅ HACER PETICIÓN REAL
-        fetch("/api/sync-production", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Error ${response.status}: ${response.statusText}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            clearInterval(interval);
-            progressFill.style.width = "100%";
-            progressText.textContent = "100% - ¡Completado!";
-            
-            setTimeout(() => {
-                document.body.removeChild(overlay);
-                
-                if (data.success) {
-                    console.log("✅ Sincronización exitosa:", data.message);
-                    alert("✅ " + data.message + "\n\nTodos los cambios han sido aplicados en el sitio público.");
-                    resolve(); // ✅ ÉXITO
-                } else {
-                    reject(new Error(data.message || "Error en sincronización"));
-                }
-            }, 2000);
-        })
-        .catch(error => {
-            clearInterval(interval);
-            document.body.removeChild(overlay);
-            console.error("❌ Error en sincronización:", error);
-            reject(new Error("Error de conexión: " + error.message));
-        });
-    });
-}
+// ==================== INICIALIZACIÓN ====================
 
-// Añadir el botón cuando se cargue el DOM
-addSyncButton();
+// Inicializar según la página
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.location.pathname === '/login' || window.location.pathname === '/') {
+        // Página de login - agregar evento al botón
+        const loginBtn = document.getElementById('loginBtn');
+        if (loginBtn) {
+            loginBtn.addEventListener('click', login);
+        }
+        // También permitir login con Enter
+        const inputs = document.querySelectorAll('#username, #password');
+        inputs.forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') login();
+            });
+        });
+    } else if (window.location.pathname.includes('/admin')) {
+        // Página admin - cargar datos
+        cargarDatos();
+        
+        // Agregar botón de logout si existe
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', logout);
+        }
+    }
+});
