@@ -54,15 +54,50 @@ const upload = multer({
 });
 
 // LOGIN simple
+// ⭐ LOGIN (POST - compatible con tu login actual)
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
-    
+
+    console.log('🔍 INTENTO DE LOGIN:', {
+        receivedUser: username,
+        match: username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS
+    });
+
     if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS) {
         const token = Date.now().toString();
         sessions.set(token, { user: username, timestamp: Date.now() });
-        res.json({ token, message: 'Login exitoso' });
+        
+        // ✅ DETECTAR SI ES PETICIÓN AJAX O FORM TRADICIONAL
+        const isAjax = req.headers['content-type'] === 'application/json';
+        
+        if (isAjax) {
+            // Para admin.js (JSON)
+            res.json({ token, message: 'Login exitoso' });
+        } else {
+            // Para tu login.html actual (redirección)
+            res.redirect('/admin');
+        }
+        
     } else {
-        res.status(401).json({ error: 'Credenciales incorrectas' });
+        console.log('❌ LOGIN FALLIDO');
+        
+        // ✅ MANEJAR ERROR PARA AMBOS CASOS
+        const isAjax = req.headers['content-type'] === 'application/json';
+        
+        if (isAjax) {
+            res.status(401).json({ error: 'Credenciales incorrectas' });
+        } else {
+            // Para tu login.html actual - mostrar error en la página
+            const loginPath = path.join(__dirname, 'admin', 'login.html');
+            let loginPage = fs.readFileSync(loginPath, 'utf-8');
+
+            loginPage = loginPage.replace(
+                '<h2>Iniciar Sesión</h2>',
+                '<h2>Iniciar Sesión</h2><p class="error">❌ Usuario o contraseña incorrectos</p>'
+            );
+
+            res.send(loginPage);
+        }
     }
 });
 
