@@ -313,22 +313,23 @@ app.post('/api/menu', isLoggedIn, (req, res) => {
         console.error('Error en commit del menú:', error);
     }
     
- // ✅ NUEVO: SINCRONIZACIÓN AUTOMÁTICA EN SEGUNDO PLANO
- console.log('🔄 Iniciando sincronización automática con fondita-production...');
- setTimeout(() => {
-    try {
-        execSync('node scripts/sync-to-production.js', { 
-            stdio: 'inherit', 
-            timeout: 120000 
-        });
-        console.log('✅ Sincronización automática completada');
-    } catch (syncError) {
-        console.error('⚠️ Error en sincronización automática:', syncError.message);
-    }
-}, 1000);
+    // ✅ NUEVO: SINCRONIZACIÓN AUTOMÁTICA EN SEGUNDO PLANO
+    console.log('🔄 Iniciando sincronización automática con fondita-production...');
+    setTimeout(() => {
+        try {
+            execSync('node scripts/sync-to-production.js', { 
+                stdio: 'inherit', 
+                timeout: 120000 
+            });
+            console.log('✅ Sincronización automática completada');
+        } catch (syncError) {
+            console.error('⚠️ Error en sincronización automática:', syncError.message);
+        }
+    }, 1000);
 
-res.send('Menú actualizado, guardado en GitHub. Sincronización con producción en progreso...');
+    res.send('Menú actualizado, guardado en GitHub. Sincronización con producción en progreso...');
 });
+
 app.post('/api/upload-image', isLoggedIn, upload.single('imagen'), (req, res) => {
     if (!req.file) {
         return res.status(400).send('No se subió ningún archivo');
