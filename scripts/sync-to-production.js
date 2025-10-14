@@ -1,177 +1,45 @@
+// sync-to-production.js - VERSIÓN OPTIMIZADA (MANTIENE INDEPENDENCIA)
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-// Configuración
-const PROD_REPO_URL = "https://github.com/DanielRoblesFra/fondita-production.git";
-const GH_TOKEN = process.env.GH_TOKEN;
+console.log('🚀 INICIANDO SINCRONIZACIÓN RÁPIDA...');
+
 const PROD_REPO_DIR = path.join(__dirname, '..', 'production-repo');
-const BRANCH = 'main';
-
-console.log('🔄 Iniciando sincronización optimizada...');
-
-// ✅ FUNCIÓN PARA VERIFICAR CAMBIOS REALES
-function verificarCambiosReales() {
-    console.log('🔍 VERIFICANDO CAMBIOS REALES...');
-    
-    const menuPath = path.join(__dirname, '..', 'data', 'menu.json');
-    const prodMenuPath = path.join(PROD_REPO_DIR, 'menu.json');
-    
-    try {
-        // Leer ambos archivos
-        const currentMenu = fs.readFileSync(menuPath, 'utf8');
-        let prodMenu = '';
-        
-        if (fs.existsSync(prodMenuPath)) {
-            prodMenu = fs.readFileSync(prodMenuPath, 'utf8');
-        }
-        
-        // Comparar contenido
-        const hayCambios = currentMenu !== prodMenu;
-        
-        console.log('📊 Comparación de cambios:', {
-            'menu.json actual': JSON.parse(currentMenu).carta?.[0]?.nombre || 'No hay carta',
-            'menu.json producción': prodMenu ? (JSON.parse(prodMenu).carta?.[0]?.nombre || 'No hay carta') : 'No existe',
-            'hayCambios': hayCambios
-        });
-        
-        return hayCambios;
-    } catch (error) {
-        console.error('❌ Error verificando cambios:', error);
-        return true; // Si hay error, asumir que hay cambios
-    }
-}
-
-// ✅ FUNCIÓN PARA FORZAR ACTUALIZACIÓN COMPLETA Y ELIMINAR CACHE
-function forceCompleteUpdate() {
-    console.log('🔄 FORZANDO ACTUALIZACIÓN COMPLETA DEL REPOSITORIO...');
-    
-    // ✅ DEFINIR AUTH_REPO_URL AQUÍ TAMBIÉN
-    const repoMatch = PROD_REPO_URL.match(/github\.com\/([^\/]+)\/([^\.]+)/);
-    const GIT_USERNAME = repoMatch ? repoMatch[1] : '';
-    const REPO_NAME = repoMatch ? repoMatch[2] : '';
-    const AUTH_REPO_URL = `https://${GIT_USERNAME}:${GH_TOKEN}@github.com/${GIT_USERNAME}/${REPO_NAME}.git`;
-    
-    try {
-        // 1. Cambiar al directorio del repo
-        process.chdir(PROD_REPO_DIR);
-        
-        // 2. Reset completo y forzado
-        execSync('git fetch origin', { stdio: 'inherit' });
-        execSync('git reset --hard origin/main', { stdio: 'inherit' });
-        execSync('git clean -fd', { stdio: 'inherit' });
-        
-        // 3. Volver al directorio original
-        process.chdir(path.join(__dirname, '..'));
-        
-        console.log('✅ REPOSITORIO COMPLETAMENTE ACTUALIZADO Y LIMPIO');
-        return true;
-    } catch (error) {
-        console.log('❌ Error en actualización forzada:', error.message);
-        
-        // Si falla, intentar solución alternativa
-        try {
-            console.log('🔄 Intentando solución alternativa...');
-            
-            // Eliminar y reclonar completamente
-            if (fs.existsSync(PROD_REPO_DIR)) {
-                fs.rmSync(PROD_REPO_DIR, { recursive: true, force: true });
-            }
-            
-            execSync(`git clone ${AUTH_REPO_URL} ${PROD_REPO_DIR}`, { stdio: 'inherit' });
-            console.log('✅ Repositorio reclonado completamente');
-            return true;
-        } catch (cloneError) {
-            console.log('❌ Error en reclonación:', cloneError.message);
-            return false;
-        }
-    }
-}
+const AUTH_REPO_URL = `https://DanielRoblesFra:${process.env.GH_TOKEN}@github.com/DanielRoblesFra/fondita-production.git`;
 
 try {
-    // ✅ CONFIGURACIÓN INICIAL (mantenemos esto)
-    try {
-        execSync('git config user.email "render@fondita.com"', { stdio: 'inherit' });
-        execSync('git config user.name "Render Bot"', { stdio: 'inherit' });
-        console.log('✅ Configuración de Git establecida');
-    } catch (error) {
-        console.log('⚠️ Error en configuración Git:', error.message);
-    }
-
-    // ✅ EXCLUIR production-repo DE .gitignore (simplificado)
-    try {
-        const gitignorePath = path.join(__dirname, '..', '.gitignore');
-        if (fs.existsSync(gitignorePath)) {
-            let gitignoreContent = fs.readFileSync(gitignorePath, 'utf8');
-            if (!gitignoreContent.includes('production-repo')) {
-                fs.writeFileSync(gitignorePath, gitignoreContent + '\nproduction-repo/\n');
-                console.log('✅ production-repo agregado a .gitignore');
-            }
-        }
-    } catch (error) {
-        console.log('⚠️ No se pudo actualizar .gitignore:', error.message);
-    }
-
-    // ✅ OBTENER URL DE AUTENTICACIÓN
-    const repoMatch = PROD_REPO_URL.match(/github\.com\/([^\/]+)\/([^\.]+)/);
-    const GIT_USERNAME = repoMatch ? repoMatch[1] : '';
-    const REPO_NAME = repoMatch ? repoMatch[2] : '';
-    const AUTH_REPO_URL = `https://${GIT_USERNAME}:${GH_TOKEN}@github.com/${GIT_USERNAME}/${REPO_NAME}.git`;
-
-    // ✅ OPTIMIZADO: Actualizar repositorio existente en lugar de clonar siempre
+    // 1. Actualizar o clonar repo de producción
     if (!fs.existsSync(PROD_REPO_DIR)) {
-        console.log('📦 Clonando repositorio de producción (primera vez)...');
+        console.log('📦 Clonando repositorio de producción...');
         execSync(`git clone ${AUTH_REPO_URL} ${PROD_REPO_DIR}`, { stdio: 'inherit' });
     } else {
-        console.log('📥 ACTUALIZANDO repositorio existente CON FUNCIÓN FORZADA...');
-        // ✅ REEMPLAZA la línea vieja con la función nueva
-        forceCompleteUpdate();
+        console.log('📥 Actualizando repositorio existente...');
+        execSync(`cd ${PROD_REPO_DIR} && git fetch origin && git reset --hard origin/main`, { stdio: 'inherit' });
     }
 
-    // Configurar Git para commits en el repo de producción
-    execSync(`cd ${PROD_REPO_DIR} && git config user.email "render@fondita.com"`, { stdio: 'inherit' });
-    execSync(`cd ${PROD_REPO_DIR} && git config user.name "Render Bot"`, { stdio: 'inherit' });
+    // 2. Cargar datos ACTUALES del menú
+    console.log('📊 Cargando datos del menú...');
+    const menuData = JSON.parse(fs.readFileSync(
+        path.join(__dirname, '..', 'data', 'menu.json'), 
+        'utf8'
+    ));
 
-    console.log('🗂️ Copiando archivos estáticos...');
-
-    // ✅ CARGAR DATOS DEL MENÚ (mantenemos esto)
-console.log('📊 Cargando datos ACTUALIZADOS del menú...');
-const menuPath = path.join(__dirname, '..', 'data', 'menu.json');
-let menuData = {};
-
-try {
-    // ✅ FORZAR LECTURA FRESCA - no usar caché
-    const menuContent = fs.readFileSync(menuPath, 'utf8');
-    menuData = JSON.parse(menuContent);
-    console.log('✅ Datos ACTUALIZADOS del menú cargados correctamente');
+    // 3. CREAR ARCHIVOS AUTÓNOMOS (INDEPENDIENTES DE RENDER)
+    console.log('📝 Generando archivos autónomos...');
     
-    if (menuData.menu_semana) {
-        console.log('📅 Estado ACTUAL del menú semanal:');
-        menuData.menu_semana.forEach(dia => {
-            console.log(`   📅 ${dia.dia}: ${dia.imagen} - ${dia.platillos.length} platillos`);
-        });
-    }
-    
-    // ✅ DEBUG: Mostrar contenido actual
-    console.log('🔍 Contenido actual de menu.json:');
-    console.log('   Carta:', menuData.carta?.[0]?.nombre || 'No hay carta');
-    console.log('   Días menu_semana:', menuData.menu_semana?.length || 0);
-    
-} catch (error) {
-    console.error('❌ Error cargando menu.json ACTUALIZADO:', error.message);
-    menuData = { carta: [], menu_semana: [] };
-}
-
-    // ✅ FUNCIONES PARA ARCHIVOS AUTÓNOMOS (mantenemos)
-    function createAutonomousLaCarta() {
-        return `
+    // ✅ la-carta.js - COMPLETAMENTE AUTÓNOMO
+    const laCartaContent = `
+// ARCHIVO AUTÓNOMO - NO DEPENDE DE RENDER
 let currentPage = 0;
 const container = document.getElementById("bookContainer");
 let pages = [];
 
+// DATOS EMBEBIDOS - NO HACE FETCH
 const menuData = ${JSON.stringify(menuData, null, 2)};
 
 function cargarCarta() {
+    if (!container) return;
     container.innerHTML = "";
     
     if (menuData.carta && menuData.carta.length > 0) {
@@ -179,11 +47,11 @@ function cargarCarta() {
         const tituloCarta = platillo.tituloCarta || "Carta del día";
         const textoPagina4 = platillo.pagina4 || 'Información adicional del restaurante';
         
-        // Páginas del libro
+        // Páginas del libro CON DATOS ACTUALES
         const pagesHTML = [
-            '<div class="content"><h2>' + tituloCarta + '</h2><img src="img/logo.png" alt="Logo Restaurante" class="page-image"><p>' + platillo.nombre + '</p><div class="back"></div></div>',
-            '<div class="content"><h2>' + platillo.nombre + '</h2><p>' + platillo.descripcion + '</p><div class="back"></div></div>',
-            '<div class="content"><p>Costo del platillo: ' + platillo.precio + '</p><p>' + platillo.pago.mensaje + '</p><p>' + platillo.pago.banco + '</p><div class="back"></div></div>',
+            '<div class="content"><h2>' + tituloCarta + '</h2><img src="img/logo.png" alt="Logo Restaurante" class="page-image"><p>' + (platillo.nombre || '') + '</p><div class="back"></div></div>',
+            '<div class="content"><h2>' + (platillo.nombre || '') + '</h2><p>' + (platillo.descripcion || '') + '</p><div class="back"></div></div>',
+            '<div class="content"><p>Costo del platillo: ' + (platillo.precio || '') + '</p><p>' + (platillo.pago?.mensaje || '') + '</p><p>' + (platillo.pago?.banco || '') + '</p><div class="back"></div></div>',
             '<div class="content"><p>' + textoPagina4 + '</p><div class="back"></div></div>'
         ];
         
@@ -208,196 +76,140 @@ function flipPage(){
     }
 }
 
+// Cargar automáticamente al iniciar
 document.addEventListener("DOMContentLoaded", cargarCarta);
 `;
-    }
 
-    function createAutonomousMenuSemana() {
-        return `document.addEventListener("DOMContentLoaded", () => {
+    // ✅ menu-semana.js - COMPLETAMENTE AUTÓNOMO  
+    const menuSemanaContent = `
+// ARCHIVO AUTÓNOMO - NO DEPENDE DE RENDER
+document.addEventListener("DOMContentLoaded", () => {
     const container = document.getElementById("menuSemanaContainer");
+    
+    // DATOS EMBEBIDOS - NO HACE FETCH
     const menuData = ${JSON.stringify(menuData, null, 2)};
 
     if (container && menuData.menu_semana) {
         container.innerHTML = "";
         menuData.menu_semana.forEach(dia => {
-            const platillosHTML = dia.platillos.map(p => '<li>' + p + '</li>').join("");
+            if (!dia.dia) return;
+            
+            const platillosHTML = dia.platillos 
+                ? dia.platillos.map(p => '<li>' + p + '</li>').join("")
+                : "";
+                
             const card = document.createElement("div");
             card.className = "card";
-            card.innerHTML = '<div class="card-inner"><div class="card-front"><h1>' + dia.dia + '</h1><p>' + dia.fecha + '</p></div><div class="card-back"><img src="img/' + dia.imagen + '" alt="' + dia.dia + '" class="dish-image"><ul class="menu-list">' + platillosHTML + '</ul></div></div>';
+            card.innerHTML = '<div class="card-inner"><div class="card-front"><h1>' + dia.dia + '</h1><p>' + (dia.fecha || '') + '</p></div><div class="card-back"><img src="img/' + (dia.imagen || 'default.jpg') + '" alt="' + dia.dia + '" class="dish-image"><ul class="menu-list">' + platillosHTML + '</ul></div></div>';
             container.appendChild(card);
         });
     }
-});`;
-    }
+});
+`;
 
-    // ✅ OPTIMIZADO: Función para corregir rutas
-    function fixImagePaths(content) {
-        return content
-            .replace(/src="\/img\//g, 'src="img/')
-            .replace(/src='\/img\//g, "src='img/")
-            .replace(/src="https:\/\/fondita\.onrender\.com\/img\//g, 'src="img/')
-            .replace(/src='https:\/\/fondita\.onrender\.com\/img\//g, "src='img/")
-            .replace(/url\("\/img\//g, 'url("img/')
-            .replace(/url\('\/img\//g, "url('img/")
-            .replace(/url\(\/img\//g, 'url(img/');
-    }
-
-    // ✅ CREAR ARCHIVOS AUTÓNOMOS
-    console.log('📝 Creando archivos autónomos...');
-    
-    const laCartaContent = createAutonomousLaCarta();
+    // 4. GUARDAR ARCHIVOS AUTÓNOMOS
     fs.writeFileSync(path.join(PROD_REPO_DIR, 'la-carta.js'), laCartaContent, 'utf8');
-    console.log('✅ la-carta.js creado (autónomo)');
-
-    const menuSemanaContent = createAutonomousMenuSemana();
     fs.writeFileSync(path.join(PROD_REPO_DIR, 'menu-semana.js'), menuSemanaContent, 'utf8');
-    console.log('✅ menu-semana.js creado (autónomo)');
+    console.log('✅ Archivos autónomos creados');
 
-    // ✅ COPIAR ARCHIVOS ESTÁTICOS (optimizado)
+    // 5. COPIAR ARCHIVOS ESTÁTICOS ESENCIALES
+    console.log('📄 Copiando archivos estáticos...');
     const filesToCopy = [
         { src: 'public/index.html', dest: 'index.html' },
         { src: 'public/estilos.css', dest: 'estilos.css' },
         { src: 'public/menu.js', dest: 'menu.js' },
         { src: 'public/preguntas.js', dest: 'preguntas.js' },
         { src: 'public/scoll.js', dest: 'scoll.js' },
-        { src: 'data/menu.json', dest: 'menu.json' }
+        { src: 'data/menu.json', dest: 'menu.json' } // COPIA de respaldo
     ];
 
-    const CACHE_BUST_TIMESTAMP = new Date().getTime();
-    
     for (const file of filesToCopy) {
         const srcPath = path.join(__dirname, '..', file.src);
         const destPath = path.join(PROD_REPO_DIR, file.dest);
         
         if (fs.existsSync(srcPath)) {
-            let content = fs.readFileSync(srcPath, 'utf8');
-            
-            if (file.dest === 'index.html') {
-                content = fixImagePaths(content);
-                // Cache busting simplificado
-                content = content.replace(/(src|href)=["'](.*?\.(jpg|jpeg|png|gif|svg|webp|avif))(\?v=\d+)?["']/gi, 
-                    (match, attr, url) => attr + '="' + url + '?v=' + CACHE_BUST_TIMESTAMP + '"');
-            }
-            
-            fs.writeFileSync(destPath, content, 'utf8');
-            console.log('✅ Copiado: ' + file.src + ' → ' + file.dest);
-        } else {
-            console.log('⚠️  Advertencia: ' + file.src + ' no existe');
+            fs.copyFileSync(srcPath, destPath);
+            console.log('✅ Copiado: ' + file.src);
         }
     }
 
-    // ==================== SECCIÓN OPTIMIZADA - MANEJO INTELIGENTE DE IMÁGENES ====================
-
-    console.log('🖼️ Sincronizando imágenes de forma inteligente...');
+    // 6. COPIAR IMÁGENES DE FORMA INTELIGENTE
+    console.log('🖼️ Sincronizando imágenes...');
     const srcImgDir = path.join(__dirname, '..', 'img');
     const destImgDir = path.join(PROD_REPO_DIR, 'img');
 
-    // Crear directorio si no existe
     if (!fs.existsSync(destImgDir)) {
         fs.mkdirSync(destImgDir, { recursive: true });
     }
 
-    let copiedCount = 0;
-    let skippedCount = 0;
-
     if (fs.existsSync(srcImgDir)) {
         const images = fs.readdirSync(srcImgDir);
+        let copiedCount = 0;
         
-        // ✅ OPTIMIZADO: Copiar solo imágenes NUEVAS o MODIFICADAS
         for (const image of images) {
-            const srcPath = path.join(srcImgDir, image);
-            const destPath = path.join(destImgDir, image);
-            
-            if (fs.statSync(srcPath).isFile() && /\.(jpg|jpeg|png|gif|svg|webp|avif|bmp|tiff)$/i.test(image)) {
-                
-                const needsCopy = !fs.existsSync(destPath) || 
-                                fs.statSync(srcPath).mtime > fs.statSync(destPath).mtime;
-                
-                if (needsCopy) {
-                    fs.copyFileSync(srcPath, destPath);
-                    console.log('✅ Copiada/Actualizada: ' + image);
-                    copiedCount++;
-                } else {
-                    skippedCount++;
-                }
+            if (/\.(jpg|jpeg|png)$/i.test(image)) {
+                fs.copyFileSync(
+                    path.join(srcImgDir, image), 
+                    path.join(destImgDir, image)
+                );
+                copiedCount++;
             }
         }
-        
-        console.log(`🖼️  Resumen: ${copiedCount} imágenes copiadas, ${skippedCount} imágenes sin cambios`);
-    } else {
-        console.log('❌ Directorio de imágenes fuente no encontrado');
+        console.log(`✅ ${copiedCount} imágenes sincronizadas`);
     }
 
-    // ✅ OPCIONAL: Limpieza de imágenes HUÉRFANAS
-    console.log('🧹 Verificando imágenes huérfanas...');
+    // 7. ELIMINAR IMÁGENES HUÉRFANAS (MANTIENE LIMPIO)
+    console.log('🧹 Limpiando imágenes no utilizadas...');
     if (fs.existsSync(destImgDir)) {
         const prodImages = fs.readdirSync(destImgDir);
         const usedImages = new Set();
         
-        // Obtener imágenes USADAS actualmente
+        // Imágenes usadas en el menú semanal
         if (menuData.menu_semana) {
             menuData.menu_semana.forEach(dia => {
-                if (dia.imagen && dia.imagen.trim() !== '') {
-                    usedImages.add(dia.imagen);
-                }
+                if (dia.imagen) usedImages.add(dia.imagen);
             });
         }
         
-        // Imágenes fijas que siempre deben mantenerse
+        // Imágenes fijas que siempre se mantienen
         usedImages.add('logo.png');
         usedImages.add('portada-login.jpg');
         usedImages.add('portada.avif');
         
-        // Eliminar imágenes que ya NO se usan
         let deletedCount = 0;
         prodImages.forEach(image => {
-            if (!usedImages.has(image) && /\.(jpg|jpeg|png|gif|svg|webp|avif|bmp|tiff)$/i.test(image)) {
+            if (!usedImages.has(image) && /\.(jpg|jpeg|png)$/i.test(image)) {
                 try {
                     fs.unlinkSync(path.join(destImgDir, image));
-                    console.log('🗑️  Eliminada huérfana: ' + image);
+                    console.log('🗑️ Eliminada: ' + image);
                     deletedCount++;
-                } catch (unlinkError) {
+                } catch (error) {
                     console.log('⚠️ No se pudo eliminar: ' + image);
                 }
             }
         });
         
         if (deletedCount > 0) {
-            console.log(`🧹 Imágenes huérfanas eliminadas: ${deletedCount}`);
+            console.log(`🧹 ${deletedCount} imágenes huérfanas eliminadas`);
         }
     }
 
-    // ==================== COMMIT Y PUSH ====================
-
-console.log('💾 Verificando cambios reales...');
-const hayCambiosReales = verificarCambiosReales();
-
-if (hayCambiosReales) {
+    // 8. COMMIT Y PUSH
     console.log('💾 Haciendo commit de los cambios...');
-    execSync('cd ' + PROD_REPO_DIR + ' && git add -A', { stdio: 'inherit' });
+    execSync(`cd ${PROD_REPO_DIR} && git add -A`, { stdio: 'inherit' });
     
-    const status = execSync('cd ' + PROD_REPO_DIR + ' && git status --porcelain').toString();
+    const status = execSync(`cd ${PROD_REPO_DIR} && git status --porcelain`).toString();
     
     if (status.trim() !== '') {
-        const commitMessage = 'Actualización automática: ' + new Date().toLocaleString();
-        execSync('cd ' + PROD_REPO_DIR + ' && git commit -m "' + commitMessage + '"', { stdio: 'inherit' });
-
-        console.log('🚀 Subiendo cambios...');
-        execSync('cd ' + PROD_REPO_DIR + ' && git push ' + AUTH_REPO_URL + ' ' + BRANCH, { stdio: 'inherit' });
-
-        console.log('✅ Sincronización completada con cambios reales!');
+        const commitMessage = `Actualización automática: ${new Date().toLocaleString('es-MX')}`;
+        execSync(`cd ${PROD_REPO_DIR} && git commit -m "${commitMessage}"`, { stdio: 'inherit' });
+        execSync(`cd ${PROD_REPO_DIR} && git push`, { stdio: 'inherit' });
+        console.log('✅ Sincronización completada con éxito!');
     } else {
-        console.log('✅ No hay cambios detectados después de verificación.');
+        console.log('✅ No hay cambios - ya está sincronizado');
     }
-} else {
-    console.log('✅ No hay cambios reales. Todo está sincronizado.');
-}
+
 } catch (error) {
-    console.error('Error en sincronización:', error);
+    console.error('❌ Error en sincronización:', error.message);
     process.exit(1);
 }
-
-
-
-
-
