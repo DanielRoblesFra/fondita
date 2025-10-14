@@ -1,0 +1,3 @@
+Última actualización: 2025-10-14T15:44:38.390Z
+User: Admin
+Changes: {"carta":[{"nombre":"Notas de relevancia","descripcion":"Es importante que previamente realices tu p...
