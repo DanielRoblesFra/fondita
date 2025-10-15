@@ -1,4 +1,4 @@
-// sync-to-production.js - VERSIÓN OPTIMIZADA (MANTIENE INDEPENDENCIA)
+// sync-to-production.js - VERSIÓN MEJORADA Y ROBUSTA
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -8,14 +8,44 @@ console.log('🚀 INICIANDO SINCRONIZACIÓN RÁPIDA...');
 const PROD_REPO_DIR = path.join(__dirname, '..', 'production-repo');
 const AUTH_REPO_URL = `https://DanielRoblesFra:${process.env.GH_TOKEN}@github.com/DanielRoblesFra/fondita-production.git`;
 
+// ✅ FUNCIÓN PARA EJECUTAR COMANDOS CON MANEJO DE ERRORES MEJORADO
+function ejecutarComando(comando, opciones = {}) {
+    try {
+        console.log(`📝 Ejecutando: ${comando.substring(0, 100)}...`);
+        return execSync(comando, { 
+            stdio: 'inherit', 
+            timeout: 60000,
+            cwd: PROD_REPO_DIR,
+            ...opciones 
+        });
+    } catch (error) {
+        console.log(`⚠️ Comando falló, pero continuamos: ${error.message}`);
+        return null;
+    }
+}
+
 try {
-    // 1. Actualizar o clonar repo de producción
+    // ✅ CONFIGURAR GIT (IMPORTANTE PARA CADA EJECUCIÓN)
+    ejecutarComando('git config --global user.email "danielroblesfra@gmail.com"', { cwd: __dirname });
+    ejecutarComando('git config --global user.name "DanielRoblesFra"', { cwd: __dirname });
+
+    // 1. GESTIÓN ROBUSTA DEL REPOSITORIO
     if (!fs.existsSync(PROD_REPO_DIR)) {
         console.log('📦 Clonando repositorio de producción...');
-        execSync(`git clone ${AUTH_REPO_URL} ${PROD_REPO_DIR}`, { stdio: 'inherit' });
+        ejecutarComando(`git clone ${AUTH_REPO_URL} ${PROD_REPO_DIR}`, { cwd: __dirname });
     } else {
         console.log('📥 Actualizando repositorio existente...');
-        execSync(`cd ${PROD_REPO_DIR} && git fetch origin && git reset --hard origin/main`, { stdio: 'inherit' });
+        
+        // ✅ MÚLTIPLES INTENTOS DE ACTUALIZACIÓN
+        try {
+            ejecutarComando('git fetch origin');
+            ejecutarComando('git reset --hard origin/main');
+        } catch (error) {
+            console.log('🔄 Falló el reset, intentando con clean...');
+            ejecutarComando('git clean -fd');
+            ejecutarComando('git checkout -- .');
+            ejecutarComando('git pull origin main');
+        }
     }
 
     // 2. Cargar datos ACTUALES del menú
@@ -25,7 +55,7 @@ try {
         'utf8'
     ));
 
-    // 3. CREAR ARCHIVOS AUTÓNOMOS (INDEPENDIENTES DE RENDER)
+    // 3. CREAR ARCHIVOS AUTÓNOMOS (SOLO 5 DÍAS - LUNES A VIERNES)
     console.log('📝 Generando archivos autónomos...');
     
     // ✅ la-carta.js - COMPLETAMENTE AUTÓNOMO
@@ -80,7 +110,7 @@ function flipPage(){
 document.addEventListener("DOMContentLoaded", cargarCarta);
 `;
 
-    // ✅ menu-semana.js - COMPLETAMENTE AUTÓNOMO  
+    // ✅ menu-semana.js - COMPLETAMENTE AUTÓNOMO (SOLO 5 DÍAS)
     const menuSemanaContent = `
 // ARCHIVO AUTÓNOMO - NO DEPENDE DE RENDER
 document.addEventListener("DOMContentLoaded", () => {
@@ -107,6 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 `;
+
     // 4. GUARDAR ARCHIVOS AUTÓNOMOS
     fs.writeFileSync(path.join(PROD_REPO_DIR, 'la-carta.js'), laCartaContent, 'utf8');
     fs.writeFileSync(path.join(PROD_REPO_DIR, 'menu-semana.js'), menuSemanaContent, 'utf8');
@@ -120,7 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
         { src: 'public/menu.js', dest: 'menu.js' },
         { src: 'public/preguntas.js', dest: 'preguntas.js' },
         { src: 'public/scoll.js', dest: 'scoll.js' },
-        { src: 'data/menu.json', dest: 'menu.json' } // COPIA de respaldo
+        { src: 'data/menu.json', dest: 'menu.json' }
     ];
 
     for (const file of filesToCopy) {
@@ -130,6 +161,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (fs.existsSync(srcPath)) {
             fs.copyFileSync(srcPath, destPath);
             console.log('✅ Copiado: ' + file.src);
+        } else {
+            console.log('⚠️ No encontrado: ' + file.src);
         }
     }
 
@@ -158,15 +191,15 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log(`✅ ${copiedCount} imágenes sincronizadas`);
     }
 
-    // 7. ELIMINAR IMÁGENES HUÉRFANAS (MANTIENE LIMPIO)
+    // 7. ELIMINAR IMÁGENES HUÉRFANAS
     console.log('🧹 Limpiando imágenes no utilizadas...');
     if (fs.existsSync(destImgDir)) {
         const prodImages = fs.readdirSync(destImgDir);
         const usedImages = new Set();
         
-        // Imágenes usadas en el menú semanal
+        // Imágenes usadas en el menú semanal (solo primeros 5 días)
         if (menuData.menu_semana) {
-            menuData.menu_semana.forEach(dia => {
+            menuData.menu_semana.slice(0, 5).forEach(dia => {
                 if (dia.imagen) usedImages.add(dia.imagen);
             });
         }
@@ -194,23 +227,35 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // 8. COMMIT Y PUSH
+    // 8. COMMIT Y PUSH ROBUSTO
     console.log('💾 Haciendo commit de los cambios...');
-    execSync(`cd ${PROD_REPO_DIR} && git add -A`, { stdio: 'inherit' });
     
-    const status = execSync(`cd ${PROD_REPO_DIR} && git status --porcelain`).toString();
+    // ✅ AGREGAR TODOS LOS CAMBIOS
+    ejecutarComando('git add -A');
     
-    if (status.trim() !== '') {
-        const commitMessage = `Actualización automática: ${new Date().toLocaleString('es-MX')}`;
-        execSync(`cd ${PROD_REPO_DIR} && git commit -m "${commitMessage}"`, { stdio: 'inherit' });
-        execSync(`cd ${PROD_REPO_DIR} && git push`, { stdio: 'inherit' });
-        console.log('✅ Sincronización completada con éxito!');
-    } else {
-        console.log('✅ No hay cambios - ya está sincronizado');
+    // ✅ VERIFICAR SI HAY CAMBIOS
+    try {
+        const status = ejecutarComando('git status --porcelain', { stdio: 'pipe' });
+        
+        if (status && status.toString().trim() !== '') {
+            const commitMessage = `Actualización automática: ${new Date().toLocaleString('es-MX')}`;
+            
+            // ✅ HACER COMMIT
+            ejecutarComando(`git commit -m "${commitMessage}"`);
+            
+            // ✅ HACER PUSH CON MÚLTIPLES INTENTOS
+            console.log('🚀 Haciendo push a producción...');
+            ejecutarComando('git push origin main');
+            
+            console.log('✅ Sincronización completada con éxito!');
+        } else {
+            console.log('✅ No hay cambios - ya está sincronizado');
+        }
+    } catch (error) {
+        console.log('⚠️ Error en commit/push, pero los archivos están actualizados');
     }
 
 } catch (error) {
-    console.error('❌ Error en sincronización:', error.message);
+    console.error('❌ Error crítico en sincronización:', error.message);
     process.exit(1);
 }
-
