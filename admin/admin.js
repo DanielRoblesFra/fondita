@@ -213,11 +213,23 @@ function renderMenuSemana() {
                 <label>Imagen</label>
                 <div class="imagen-controls">
                     ${dia.imagen ? `
-                        <img src="/img/${dia.imagen}?t=${Date.now()}" class="img-preview">
-                        <input type="file" accept="image/jpeg,image/png" onchange="subirImagen(${idx}, this)" class="file-input">
-                    ` : `
-                        <input type="file" accept="image/jpeg,image/png" onchange="subirImagen(${idx}, this)" class="file-input">
-                    `}
+                        <div class="img-preview-container">
+                            <img src="/img/${dia.imagen}?t=${Date.now()}" class="img-preview" alt="Vista previa">
+                        </div>
+                    ` : ''}
+                    
+                    <!-- ✅ BOTÓN SUBIR ARCHIVO SIMPLIFICADO Y FUNCIONAL -->
+                    <div class="file-input-container">
+                        <input type="file" 
+                               id="file-input-${idx}"
+                               accept="image/jpeg, image/png" 
+                               onchange="subirImagen(${idx}, this)"
+                               class="hidden-image-input">
+                        <label for="file-input-${idx}" class="file-input-label">
+                            <span class="file-input-icon">📁</span>
+                            ${dia.imagen ? 'Cambiar imagen' : 'Seleccionar imagen'}
+                        </label>
+                    </div>
                 </div>
             </div>
             
