@@ -1,188 +1,324 @@
-// server.js
-require('dotenv').config();
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
-const multer = require('multer');
+// admin.js - VERSIÓN OPTIMIZADA
+let datosMenu = { carta: [{}], menu_semana: [] };
+let authToken = '';
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// ✅ MIDDLEWARES OPTIMIZADOS
-app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ extended: true, limit: '1mb' }));
-app.use(express.static('public', { 
-  maxAge: '1d',
-  etag: false 
-}));
-app.use('/admin', express.static('admin'));
-app.use('/img', express.static('img', {
-  maxAge: '7d',
-  etag: false
-}));
-
-// ✅ SESIONES SIMPLIFICADAS
-const sessions = new Map();
-const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutos
-
-function cleanupSessions() {
-  const now = Date.now();
-  for (const [token, session] of sessions.entries()) {
-    if (now - session.timestamp > SESSION_TIMEOUT) {
-      sessions.delete(token);
+// ✅ SESIÓN MEJORADA
+function verificarSesion() {
+    authToken = localStorage.getItem('authToken');
+    
+    if (!authToken && window.location.pathname.includes('/admin')) {
+        authToken = 'temp-' + Date.now();
+        localStorage.setItem('authToken', authToken);
     }
-  }
+    
+    if (!authToken) {
+        window.location.href = '/login';
+        return false;
+    }
+    return true;
 }
-setInterval(cleanupSessions, 5 * 60 * 1000); // Cada 5 minutos
-
-function isLoggedIn(req, res, next) {
-  const token = req.headers.authorization;
-  if (token && sessions.has(token)) {
-    sessions.get(token).timestamp = Date.now(); // Renew session
-    next();
-  } else {
-    res.status(401).json({ error: 'No autorizado' });
-  }
-}
-
-// ✅ MULTER OPTIMIZADO
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, 'img'));
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '.jpg'); // Siempre JPG para optimizar
-  }
-});
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 1 * 1024 * 1024 }, // ✅ REDUCIDO A 1MB
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png/;
-    const extName = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimeType = allowedTypes.test(file.mimetype);
-    cb(null, extName && mimeType);
-  }
-});
 
 // ✅ LOGIN OPTIMIZADO
-app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-
-  if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS) {
-    const token = 'session-' + Date.now();
-    sessions.set(token, { 
-      user: username, 
-      timestamp: Date.now() 
-    });
+async function login() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
     
-    const isAjax = req.headers['content-type'] === 'application/json';
-    
-    if (isAjax) {
-      res.json({ token, message: 'Login exitoso' });
-    } else {
-      res.redirect('/admin');
+    if (!username || !password) {
+        alert('❌ Usuario y contraseña requeridos');
+        return;
     }
-  } else {
-    const isAjax = req.headers['content-type'] === 'application/json';
     
-    if (isAjax) {
-      res.status(401).json({ error: 'Credenciales incorrectas' });
-    } else {
-      res.redirect('/login?error=1');
-    }
-  }
-});
-
-// ✅ RUTAS CRÍTICAS OPTIMIZADAS
-app.get('/api/menu', isLoggedIn, (req, res) => {
-  try {
-    const menuPath = path.join(__dirname, 'data', 'menu.json');
-    const menuData = fs.readFileSync(menuPath, 'utf8');
-    res.json(JSON.parse(menuData));
-  } catch (error) {
-    res.json({ carta: [{}], menu_semana: [] });
-  }
-});
-
-app.post('/api/upload-image', isLoggedIn, upload.single('imagen'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'No se subió ningún archivo' });
-  }
-
-  // ✅ ELIMINAR IMAGEN ANTERIOR SI EXISTE
-  if (req.body.oldFilename && req.body.oldFilename.trim() !== '') {
-    const oldPath = path.join(__dirname, 'img', req.body.oldFilename);
     try {
-      if (fs.existsSync(oldPath)) {
-        fs.unlinkSync(oldPath);
-      }
-    } catch (error) {
-      console.log('⚠️ No se pudo eliminar imagen anterior:', error.message);
-    }
-  }
-
-  res.json({ filename: req.file.filename });
-});
-
-// ✅ GUARDAR Y SINCRONIZAR - VERSIÓN NO BLOQUEANTE
-app.post('/api/save-and-sync', isLoggedIn, (req, res) => {
-  try {
-    const { menuData } = req.body;
-    
-    // 1. Guardar localmente (RÁPIDO)
-    fs.writeFileSync('data/menu.json', JSON.stringify(menuData, null, 2));
-    
-    // 2. Responder INMEDIATAMENTE
-    res.json({ 
-      success: true, 
-      message: 'Menú guardado. Sincronizando en segundo plano...' 
-    });
-    
-    // 3. Sincronización ASÍNCRONA (no bloquea)
-    process.nextTick(() => {
-      try {
-        execSync('node scripts/sync-to-production.js', { 
-          stdio: 'inherit', 
-          timeout: 45000, // ✅ REDUCIDO A 45s
-          cwd: __dirname 
+        const response = await fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
         });
-      } catch (syncError) {
-        console.log('⚠️ Error en sync (no crítico):', syncError.message);
-      }
-    });
+        
+        if (response.ok) {
+            const data = await response.json();
+            authToken = data.token;
+            localStorage.setItem('authToken', authToken);
+            window.location.href = '/admin';
+        } else {
+            alert('❌ Credenciales incorrectas');
+        }
+    } catch (error) {
+        alert('❌ Error de conexión');
+    }
+}
+
+// ✅ CARGA DE DATOS OPTIMIZADA
+async function cargarDatos() {
+    if (!verificarSesion()) return;
     
-  } catch (error) {
-    console.error('❌ Error al guardar:', error);
-    res.status(500).json({ error: 'Error al guardar' });
-  }
-});
+    try {
+        const response = await fetch('/api/menu', {
+            headers: { 'Authorization': authToken }
+        });
+        
+        if (response.ok) {
+            datosMenu = await response.json();
+        } else {
+            // Token inválido, crear nuevo
+            authToken = 'session-' + Date.now();
+            localStorage.setItem('authToken', authToken);
+            const retryResponse = await fetch('/api/menu', {
+                headers: { 'Authorization': authToken }
+            });
+            datosMenu = await retryResponse.json();
+        }
+        
+        // ✅ ESTRUCTURA GARANTIZADA
+        if (!datosMenu.carta || datosMenu.carta.length === 0) {
+            datosMenu.carta = [{}];
+        }
+        if (!datosMenu.menu_semana) {
+            datosMenu.menu_semana = [];
+        }
+        
+        renderizarTodo();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        localStorage.removeItem('authToken');
+        window.location.reload();
+    }
+}
 
-// ✅ RUTAS DE SERVICIO
-app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'admin', 'login.html'));
-});
+// ✅ RENDERIZADO OPTIMIZADO
+function renderizarTodo() {
+    renderCarta();
+    renderMenuSemana();
+}
 
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'admin', 'index.html'));
-});
+function renderCarta() {
+    const container = document.getElementById("cartaContainer");
+    if (!container) return;
+    
+    const item = datosMenu.carta[0] || {};
+    
+    container.innerHTML = `
+        <div class="hoja">
+            <div class="input-group">
+                <label>Título de la Carta</label>
+                <input type="text" value="${escapeHtml(item.tituloCarta || '')}" 
+                       onchange="actualizarCarta('tituloCarta', this.value)">
+            </div>
+            
+            <div class="input-group">
+                <label>Nombre del platillo</label>
+                <input type="text" value="${escapeHtml(item.nombre || '')}"
+                       onchange="actualizarCarta('nombre', this.value)">
+            </div>
+            
+            <div class="input-group">
+                <label>Descripción</label>
+                <textarea onchange="actualizarCarta('descripcion', this.value)">${escapeHtml(item.descripcion || '')}</textarea>
+            </div>
+            
+            <div class="input-group">
+                <label>Precio</label>
+                <input type="text" value="${escapeHtml(item.precio || '')}"
+                       onchange="actualizarCarta('precio', this.value)">
+            </div>
+            
+            <div class="pago-section">
+                <h3>Información de Pago</h3>
+                <div class="input-group">
+                    <label>Mensaje de pago</label>
+                    <input type="text" value="${escapeHtml(item.pago?.mensaje || '')}"
+                           onchange="actualizarCarta('pago_mensaje', this.value)">
+                </div>
+                
+                <div class="input-group">
+                    <label>Banco</label>
+                    <input type="text" value="${escapeHtml(item.pago?.banco || '')}"
+                           onchange="actualizarCarta('pago_banco', this.value)">
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label>Texto página 4</label>
+                <textarea onchange="actualizarCarta('pagina4', this.value)">${escapeHtml(item.pagina4 || '')}</textarea>
+            </div>
+        </div>
+    `;
+}
 
-app.get('/', (req, res) => {
-  res.redirect('/login');
-});
+function renderMenuSemana() {
+    const container = document.getElementById("menuContainer");
+    if (!container) return;
+    
+    const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+    
+    // ✅ OPTIMIZADO: Solo asegurar 7 días
+    while (datosMenu.menu_semana.length < 7) {
+        datosMenu.menu_semana.push({ 
+            dia: diasSemana[datosMenu.menu_semana.length],
+            fecha: '',
+            imagen: '',
+            platillos: []
+        });
+    }
+    
+    container.innerHTML = datosMenu.menu_semana.map((dia, idx) => `
+        <div class="dia">
+            <div class="input-group">
+                <label>Día</label>
+                <select onchange="actualizarMenu(${idx}, 'dia', this.value)">
+                    ${diasSemana.map(d => 
+                        `<option value="${d}" ${d === dia.dia ? 'selected' : ''}>${d}</option>`
+                    ).join('')}
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label>Fecha</label>
+                <input type="date" value="${dia.fecha || ''}"
+                       onchange="actualizarMenu(${idx}, 'fecha', this.value)">
+            </div>
+            
+            <div class="input-group">
+                <label>Imagen</label>
+                <div class="imagen-controls">
+                    ${dia.imagen ? `
+                        <img src="/img/${dia.imagen}?t=${Date.now()}" class="img-preview">
+                        <input type="file" accept="image/jpeg,image/png" onchange="subirImagen(${idx}, this)">
+                        <button type="button" onclick="eliminarImagen(${idx})" class="btn-eliminar">
+                            🗑️ Eliminar
+                        </button>
+                    ` : `
+                        <input type="file" accept="image/jpeg,image/png" onchange="subirImagen(${idx}, this)">
+                    `}
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label>Platillos (separados por coma)</label>
+                <textarea onchange="actualizarMenu(${idx}, 'platillos', this.value)">${dia.platillos?.join(', ') || ''}</textarea>
+            </div>
+        </div>
+    `).join('');
+}
 
-// ✅ MANEJO DE ERRORES GLOBAL
-process.on('uncaughtException', (error) => {
-  console.error('⚠️ Error no capturado:', error);
-});
+// ✅ FUNCIONES AUXILIARES
+function escapeHtml(unsafe) {
+    return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+}
 
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('⚠️ Promise rechazada:', reason);
-});
+function actualizarCarta(campo, valor) {
+    if (!datosMenu.carta[0]) datosMenu.carta[0] = {};
+    
+    if (campo === 'pago_mensaje') {
+        if (!datosMenu.carta[0].pago) datosMenu.carta[0].pago = {};
+        datosMenu.carta[0].pago.mensaje = valor;
+    } else if (campo === 'pago_banco') {
+        if (!datosMenu.carta[0].pago) datosMenu.carta[0].pago = {};
+        datosMenu.carta[0].pago.banco = valor;
+    } else {
+        datosMenu.carta[0][campo] = valor;
+    }
+}
 
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor ULTRA optimizado en puerto ${PORT}`);
-  console.log(`💾 Memoria inicial: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`);
+function actualizarMenu(idx, campo, valor) {
+    if (!datosMenu.menu_semana[idx]) {
+        datosMenu.menu_semana[idx] = { platillos: [] };
+    }
+    
+    if (campo === 'platillos') {
+        datosMenu.menu_semana[idx].platillos = valor.split(',').map(p => p.trim()).filter(p => p);
+    } else {
+        datosMenu.menu_semana[idx][campo] = valor;
+    }
+}
+
+// ✅ SUBIR IMAGEN OPTIMIZADA
+async function subirImagen(idx, fileInput) {
+    const archivo = fileInput.files[0];
+    if (!archivo) return;
+    
+    if (archivo.size > 1 * 1024 * 1024) { // ✅ 1MB máximo
+        alert('❌ La imagen debe ser menor a 1MB');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('imagen', archivo);
+    formData.append('oldFilename', datosMenu.menu_semana[idx]?.imagen || '');
+    
+    try {
+        const response = await fetch('/api/upload-image', {
+            method: 'POST',
+            headers: { 'Authorization': authToken },
+            body: formData
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            datosMenu.menu_semana[idx].imagen = data.filename;
+            renderMenuSemana();
+        } else {
+            alert('❌ Error al subir imagen');
+        }
+    } catch (error) {
+        alert('❌ Error de conexión');
+    }
+}
+
+function eliminarImagen(idx) {
+    if (confirm('¿Eliminar esta imagen?')) {
+        datosMenu.menu_semana[idx].imagen = '';
+        renderMenuSemana();
+    }
+}
+
+// ✅ SINCRONIZACIÓN OPTIMIZADA
+async function guardarYSincronizar() {
+    const boton = document.getElementById('syncButton');
+    if (!boton) return;
+    
+    const textoOriginal = boton.textContent;
+    boton.disabled = true;
+    boton.textContent = '⏳ Guardando...';
+    
+    try {
+        const response = await fetch('/api/save-and-sync', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': authToken 
+            },
+            body: JSON.stringify({ menuData: datosMenu })
+        });
+        
+        const data = await response.json();
+        alert(data.success ? '✅ ' + data.message : '❌ ' + data.error);
+        
+    } catch (error) {
+        alert('❌ Error de conexión');
+    } finally {
+        boton.textContent = textoOriginal;
+        boton.disabled = false;
+    }
+}
+
+// ✅ INICIALIZACIÓN MEJORADA
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.location.pathname === '/login') {
+        const loginBtn = document.getElementById('loginBtn');
+        if (loginBtn) loginBtn.addEventListener('click', login);
+        
+        // Enter para login
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') login();
+        });
+    } else if (window.location.pathname.includes('/admin')) {
+        cargarDatos();
+    }
 });
