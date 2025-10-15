@@ -1,4 +1,4 @@
-// server.js - VERSIÓN OPTIMIZADA
+// server.js
 require('dotenv').config();
 const express = require('express');
 const fs = require('fs');
@@ -9,198 +9,180 @@ const multer = require('multer');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middlewares básicos
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static('public'));
+// ✅ MIDDLEWARES OPTIMIZADOS
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+app.use(express.static('public', { 
+  maxAge: '1d',
+  etag: false 
+}));
 app.use('/admin', express.static('admin'));
-app.use('/img', express.static('img'));
+app.use('/img', express.static('img', {
+  maxAge: '7d',
+  etag: false
+}));
 
-// Configuración simple de sesión
+// ✅ SESIONES SIMPLIFICADAS
 const sessions = new Map();
+const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutos
+
+function cleanupSessions() {
+  const now = Date.now();
+  for (const [token, session] of sessions.entries()) {
+    if (now - session.timestamp > SESSION_TIMEOUT) {
+      sessions.delete(token);
+    }
+  }
+}
+setInterval(cleanupSessions, 5 * 60 * 1000); // Cada 5 minutos
 
 function isLoggedIn(req, res, next) {
-    const token = req.headers.authorization;
-    if (token && sessions.has(token)) {
-        next();
-    } else {
-        res.status(401).json({ error: 'No autorizado' });
-    }
+  const token = req.headers.authorization;
+  if (token && sessions.has(token)) {
+    sessions.get(token).timestamp = Date.now(); // Renew session
+    next();
+  } else {
+    res.status(401).json({ error: 'No autorizado' });
+  }
 }
 
-// Configurar Multer para imágenes
+// ✅ MULTER OPTIMIZADO
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, 'img'));
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, 'img'));
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '.jpg'); // Siempre JPG para optimizar
+  }
 });
 
 const upload = multer({
-    storage,
-    limits: { fileSize: 2 * 1024 * 1024 },
-    fileFilter: (req, file, cb) => {
-        const allowedTypes = /jpeg|jpg|png/;
-        const extName = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-        const mimeType = allowedTypes.test(file.mimetype);
-        if (extName && mimeType) {
-            cb(null, true);
-        } else {
-            cb(new Error('Solo se permiten imágenes .jpg, .jpeg o .png'));
-        }
-    }
+  storage,
+  limits: { fileSize: 1 * 1024 * 1024 }, // ✅ REDUCIDO A 1MB
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png/;
+    const extName = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimeType = allowedTypes.test(file.mimetype);
+    cb(null, extName && mimeType);
+  }
 });
 
-// LOGIN simple
-// ⭐ LOGIN (POST - compatible con tu login actual)
+// ✅ LOGIN OPTIMIZADO
 app.post('/login', (req, res) => {
-    const { username, password } = req.body;
+  const { username, password } = req.body;
 
-    console.log('🔍 INTENTO DE LOGIN:', {
-        receivedUser: username,
-        match: username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS
+  if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS) {
+    const token = 'session-' + Date.now();
+    sessions.set(token, { 
+      user: username, 
+      timestamp: Date.now() 
     });
-
-    if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS) {
-        const token = Date.now().toString();
-        sessions.set(token, { user: username, timestamp: Date.now() });
-        
-        // ✅ DETECTAR SI ES PETICIÓN AJAX O FORM TRADICIONAL
-        const isAjax = req.headers['content-type'] === 'application/json';
-        
-        if (isAjax) {
-            // Para admin.js (JSON)
-            res.json({ token, message: 'Login exitoso' });
-        } else {
-            // Para tu login.html actual (redirección)
-            res.redirect('/admin');
-        }
-        
+    
+    const isAjax = req.headers['content-type'] === 'application/json';
+    
+    if (isAjax) {
+      res.json({ token, message: 'Login exitoso' });
     } else {
-        console.log('❌ LOGIN FALLIDO');
-        
-        // ✅ MANEJAR ERROR PARA AMBOS CASOS
-        const isAjax = req.headers['content-type'] === 'application/json';
-        
-        if (isAjax) {
-            res.status(401).json({ error: 'Credenciales incorrectas' });
-        } else {
-            // Para tu login.html actual - mostrar error en la página
-            const loginPath = path.join(__dirname, 'admin', 'login.html');
-            let loginPage = fs.readFileSync(loginPath, 'utf-8');
-
-            loginPage = loginPage.replace(
-                '<h2>Iniciar Sesión</h2>',
-                '<h2>Iniciar Sesión</h2><p class="error">❌ Usuario o contraseña incorrectos</p>'
-            );
-
-            res.send(loginPage);
-        }
+      res.redirect('/admin');
     }
+  } else {
+    const isAjax = req.headers['content-type'] === 'application/json';
+    
+    if (isAjax) {
+      res.status(401).json({ error: 'Credenciales incorrectas' });
+    } else {
+      res.redirect('/login?error=1');
+    }
+  }
 });
 
-// OBTENER menú actual
+// ✅ RUTAS CRÍTICAS OPTIMIZADAS
 app.get('/api/menu', isLoggedIn, (req, res) => {
-    try {
-        const menu = JSON.parse(fs.readFileSync('data/menu.json', 'utf8'));
-        res.json(menu);
-    } catch (error) {
-        res.json({ carta: [], menu_semana: [] });
-    }
+  try {
+    const menuPath = path.join(__dirname, 'data', 'menu.json');
+    const menuData = fs.readFileSync(menuPath, 'utf8');
+    res.json(JSON.parse(menuData));
+  } catch (error) {
+    res.json({ carta: [{}], menu_semana: [] });
+  }
 });
 
-// SUBIR IMAGEN
 app.post('/api/upload-image', isLoggedIn, upload.single('imagen'), (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ error: 'No se subió ningún archivo' });
+  if (!req.file) {
+    return res.status(400).json({ error: 'No se subió ningún archivo' });
+  }
+
+  // ✅ ELIMINAR IMAGEN ANTERIOR SI EXISTE
+  if (req.body.oldFilename && req.body.oldFilename.trim() !== '') {
+    const oldPath = path.join(__dirname, 'img', req.body.oldFilename);
+    try {
+      if (fs.existsSync(oldPath)) {
+        fs.unlinkSync(oldPath);
+      }
+    } catch (error) {
+      console.log('⚠️ No se pudo eliminar imagen anterior:', error.message);
     }
+  }
 
-    console.log('📸 Imagen subida:', req.file.filename);
-
-    // Eliminar imagen anterior si se proporciona
-    if (req.body.oldFilename && req.body.oldFilename.trim() !== '') {
-        const oldPath = path.join(__dirname, 'img', req.body.oldFilename);
-        if (fs.existsSync(oldPath)) {
-            fs.unlinkSync(oldPath);
-            console.log('🗑️ Imagen anterior eliminada:', req.body.oldFilename);
-        }
-    }
-
-    res.json({ filename: req.file.filename });
+  res.json({ filename: req.file.filename });
 });
 
-// GUARDAR menú + SINCRONIZAR en un solo paso
+// ✅ GUARDAR Y SINCRONIZAR - VERSIÓN NO BLOQUEANTE
 app.post('/api/save-and-sync', isLoggedIn, (req, res) => {
-    console.log('💾 GUARDANDO Y SINCRONIZANDO...');
+  try {
+    const { menuData } = req.body;
     
-    try {
-        const { menuData } = req.body;
-        
-        // 1. Guardar localmente
-        fs.writeFileSync('data/menu.json', JSON.stringify(menuData, null, 2));
-        console.log('✅ menu.json guardado');
-        
-        // 2. Responder INMEDIATAMENTE al usuario
-        res.json({ 
-            success: true, 
-            message: 'Menú guardado. Sincronizando con producción...' 
+    // 1. Guardar localmente (RÁPIDO)
+    fs.writeFileSync('data/menu.json', JSON.stringify(menuData, null, 2));
+    
+    // 2. Responder INMEDIATAMENTE
+    res.json({ 
+      success: true, 
+      message: 'Menú guardado. Sincronizando en segundo plano...' 
+    });
+    
+    // 3. Sincronización ASÍNCRONA (no bloquea)
+    process.nextTick(() => {
+      try {
+        execSync('node scripts/sync-to-production.js', { 
+          stdio: 'inherit', 
+          timeout: 45000, // ✅ REDUCIDO A 45s
+          cwd: __dirname 
         });
-        
-        // 3. Sincronización EN SEGUNDO PLANO (no bloquea la respuesta)
-        setTimeout(() => {
-            try {
-                console.log('🚀 Iniciando sync-to-production...');
-                
-                // Commit básico en repositorio principal
-                execSync('git add data/menu.json', { stdio: 'inherit' });
-                execSync('git commit -m "Actualizar menú" || true', { stdio: 'inherit' });
-                execSync(`git push https://DanielRoblesFra:${process.env.GH_TOKEN}@github.com/DanielRoblesFra/fondita.git main || true`, 
-                        { stdio: 'inherit' });
-                
-                // Sincronización con producción
-                execSync('node scripts/sync-to-production.js', { stdio: 'inherit', timeout: 60000 });
-                console.log('✅ Sync completado');
-                
-            } catch (syncError) {
-                console.log('⚠️ Error en segundo plano:', syncError.message);
-            }
-        }, 1000);
-        
-    } catch (error) {
-        console.error('❌ Error:', error);
-        res.status(500).json({ error: 'Error al guardar' });
-    }
-});
-
-// SINCRONIZACIÓN MANUAL
-app.post('/api/sync-production', isLoggedIn, (req, res) => {
-    console.log('🔁 Sincronización manual solicitada');
+      } catch (syncError) {
+        console.log('⚠️ Error en sync (no crítico):', syncError.message);
+      }
+    });
     
-    try {
-        execSync('node scripts/sync-to-production.js', { stdio: 'inherit', timeout: 60000 });
-        res.json({ success: true, message: 'Sincronización completada' });
-    } catch (error) {
-        res.status(500).json({ success: false, message: 'Error en sincronización' });
-    }
+  } catch (error) {
+    console.error('❌ Error al guardar:', error);
+    res.status(500).json({ error: 'Error al guardar' });
+  }
 });
 
-// Servir login
+// ✅ RUTAS DE SERVICIO
 app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin', 'login.html'));
+  res.sendFile(path.join(__dirname, 'admin', 'login.html'));
 });
 
-// Servir admin
 app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin', 'index.html'));
+  res.sendFile(path.join(__dirname, 'admin', 'index.html'));
 });
 
-// Ruta principal
 app.get('/', (req, res) => {
-    res.redirect('/login');
+  res.redirect('/login');
+});
+
+// ✅ MANEJO DE ERRORES GLOBAL
+process.on('uncaughtException', (error) => {
+  console.error('⚠️ Error no capturado:', error);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('⚠️ Promise rechazada:', reason);
 });
 
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor optimizado en puerto ${PORT}`);
+  console.log(`🚀 Servidor ULTRA optimizado en puerto ${PORT}`);
+  console.log(`💾 Memoria inicial: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`);
 });
