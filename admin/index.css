@@ -576,35 +576,84 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 /* ==================== ESTILOS MEJORADOS PARA BOTONES ==================== */
 
-/* ✅ BOTÓN SUBIR ARCHIVO MEJORADO - ¡MANTENER! */
-.file-input {
+/* ✅ CONTENEDOR DEL BOTÓN SUBIR ARCHIVO */
+.file-input-container {
+    display: block;
+    margin: 10px 0;
+}
+
+/* ✅ INPUT FILE OCULTO */
+.hidden-image-input {
+    display: none !important;
+}
+
+/* ✅ LABEL ESTILIZADO COMO BOTÓN - ¡ESTE ES EL BOTÓN QUE SE VE! */
+.file-input-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 12px 20px;
     border-radius: 8px;
-    border: none;
     cursor: pointer;
     font-size: 14px;
     font-weight: 600;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-    display: inline-block;
+    border: none;
     text-align: center;
-    margin: 10px 0;
-    width: 100%;
+    min-width: 200px;
 }
 
-.file-input:hover {
+.file-input-label:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
     background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
 }
 
-.file-input:active {
+.file-input-label:active {
     transform: translateY(0);
 }
 
-/* ✅ BOTÓN GUARDAR Y SINCRONIZAR MEJORADO */
+/* ✅ ÍCONO DEL BOTÓN */
+.file-input-icon {
+    font-size: 16px;
+}
+
+/* ✅ PREVIEW DE IMÁGENES */
+.img-preview-container {
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.img-preview {
+    max-width: 200px;
+    max-height: 150px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    border: 2px solid #444;
+    display: block;
+    margin: 0 auto 10px;
+}
+
+/* ✅ CONTENEDOR DE CONTROLES DE IMAGEN */
+.imagen-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+@media (min-width: 768px) {
+    .imagen-controls {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+}
+
+/* ✅ BOTÓN GUARDAR Y SINCRONIZAR */
 #syncButton {
     background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
     color: white;
@@ -632,6 +681,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
+}
+
+/* ✅ ELIMINAR ESTILOS CONFLICTIVOS DEL .file-input anterior */
+.file-input {
+    display: none !important;
 }
 
 /* ✅ BOTÓN ELIMINAR - COMPLETAMENTE OCULTO */
