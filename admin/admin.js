@@ -147,27 +147,29 @@ async function verificarImagenesPersistentes(availableImages) {
     });
 }
 
-// ✅ CARGAR DATOS DE RESPALDO (sin autenticación)
+// ✅ CARGAR DATOS DE RESPALDO
 async function cargarDatosDeRespaldo() {
     try {
-        const response = await fetch('/api/load-persistent-data');
+        console.log('🔄 Intentando cargar datos desde GitHub...');
+        
+        // Intentar cargar directamente desde GitHub RAW
+        const response = await fetch('https://raw.githubusercontent.com/DanielRoblesFra/fondita/main/data/menu.json');
         if (response.ok) {
-            const data = await response.json();
-            if (data.success) {
-                datosMenu = data.menuData;
-                renderizarTodo();
-                return;
-            }
+            const menuData = await response.json();
+            datosMenu = menuData;
+            console.log('✅ Datos cargados desde GitHub');
+            renderizarTodo();
+            return true;
         }
     } catch (error) {
-        console.log('No se pudieron cargar datos de respaldo');
+        console.log('❌ No se pudieron cargar datos desde GitHub');
     }
     
-    alert('❌ Error de sesión. Serás redirigido al login.');
-    localStorage.removeItem('authToken');
-    window.location.href = '/login';
+    // Último recurso: datos por defecto
+    datosMenu = { carta: [{}], menu_semana: [] };
+    renderizarTodo();
+    return false;
 }
-
 // ✅ FUNCIONES DE RENDERIZADO
 function renderizarTodo() {
     renderCarta();
