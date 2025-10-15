@@ -171,34 +171,32 @@ app.post('/api/save-and-sync', isLoggedIn, (req, res) => {
         
         // 1. Guardar localmente
         fs.writeFileSync('data/menu.json', JSON.stringify(menuData, null, 2));
-        console.log('✅ menu.json guardado');
+        console.log('✅ menu.json guardado LOCALMENTE');
         
-        // 2. Responder INMEDIATAMENTE al usuario
+        // 2. ✅ COMMIT INMEDIATO AL REPOSITORIO PRINCIPAL (ANTES de responder)
+        console.log('🚀 Haciendo commit inmediato...');
+        execSync('git add data/menu.json', { stdio: 'inherit', cwd: __dirname });
+        execSync('git add img/ || true', { stdio: 'inherit', cwd: __dirname });
+        execSync('git commit -m "Actualización: ' + new Date().toLocaleString() + '" || true', 
+                { stdio: 'inherit', cwd: __dirname });
+        execSync(`git push https://DanielRoblesFra:${process.env.GH_TOKEN}@github.com/DanielRoblesFra/fondita.git main || true`, 
+                { stdio: 'inherit', cwd: __dirname });
+        
+        console.log('✅ Cambios COMMITEADOS a GitHub');
+        
+        // 3. Responder al usuario
         res.json({ 
             success: true, 
-            message: 'Menú guardado. Sincronizando...' 
+            message: 'Menú guardado y sincronizado.' 
         });
         
-        // 3. SINCRONIZACIÓN COMPLETA EN SEGUNDO PLANO
+        // 4. Sync con producción en segundo plano (OPCIONAL ya que los datos están commitidos)
         setTimeout(() => {
             try {
-                console.log('🚀 Iniciando sync completo...');
-                
-                // ✅ COMMIT Y PUSH AL REPOSITORIO PRINCIPAL (ESENCIAL)
-                execSync('git add data/menu.json', { stdio: 'inherit', cwd: __dirname });
-                execSync('git add img/ || true', { stdio: 'inherit', cwd: __dirname }); // Imágenes si existen
-                execSync('git commit -m "Actualización automática del menú" || true', { stdio: 'inherit', cwd: __dirname });
-                execSync(`git push https://DanielRoblesFra:${process.env.GH_TOKEN}@github.com/DanielRoblesFra/fondita.git main || true`, 
-                        { stdio: 'inherit', cwd: __dirname });
-                
-                console.log('✅ Cambios guardados en repositorio principal');
-                
-                // ✅ SINCRONIZAR CON PRODUCCIÓN
                 execSync('node scripts/sync-to-production.js', { stdio: 'inherit', timeout: 45000, cwd: __dirname });
-                console.log('✅ Sync completado');
-                
+                console.log('✅ Sync con producción completado');
             } catch (syncError) {
-                console.log('⚠️ Error en sync:', syncError.message);
+                console.log('⚠️ Error en sync producción:', syncError.message);
             }
         }, 1000);
         
