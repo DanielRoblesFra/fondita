@@ -383,3 +383,64 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
+// ==================== BARRA DE PROGRESO DE 3 MINUTOS ====================
+
+// ✅ CREAR LA BARRA DE PROGRESO DINÁMICAMENTE
+function crearBarraProgreso() {
+    const overlay = document.createElement('div');
+    overlay.className = 'progress-overlay';
+    overlay.innerHTML = `
+        <div class="progress-container">
+            <div class="progress-title">🔄 Sincronizando Cambios</div>
+            <div class="progress-message">
+                Los cambios estarán visibles para los usuarios en aproximadamente 3-5 minutos.
+            </div>
+            <div class="progress-time" id="progressTime">3:00</div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="progress-info">
+                Actualizando: https://danielroblesfra.github.io/fondita-production/
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    return overlay;
+}
+
+// ✅ INICIAR BARRA DE PROGRESO (3 MINUTOS EXACTOS)
+function iniciarBarraProgreso() {
+    const overlay = crearBarraProgreso();
+    const progressBar = document.getElementById('progressBar');
+    const progressTime = document.getElementById('progressTime');
+    
+    let secondsLeft = 180; // 3 minutos = 180 segundos
+    const totalSeconds = 180;
+    
+    overlay.classList.add('active');
+    
+    const interval = setInterval(() => {
+        secondsLeft--;
+        
+        // Actualizar tiempo
+        const minutes = Math.floor(secondsLeft / 60);
+        const seconds = secondsLeft % 60;
+        progressTime.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        // Actualizar barra (100% al inicio, 0% al final)
+        const progress = ((totalSeconds - secondsLeft) / totalSeconds) * 100;
+        progressBar.style.width = progress + '%';
+        
+        // Finalizar después de 3 minutos
+        if (secondsLeft <= 0) {
+            clearInterval(interval);
+            setTimeout(() => {
+                overlay.classList.remove('active');
+                setTimeout(() => {
+                    document.body.removeChild(overlay);
+                }, 500);
+            }, 1000);
+        }
+    }, 1000);
+}
