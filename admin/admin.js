@@ -178,9 +178,12 @@ function renderMenuSemana() {
     const container = document.getElementById("menuContainer");
     if (!container) return;
     
-    const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+    const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
     
-    while (datosMenu.menu_semana.length < 7) {
+    while (datosMenu.menu_semana.length > 5) {
+        datosMenu.menu_semana.pop();
+    }
+    while (datosMenu.menu_semana.length < 5) {
         datosMenu.menu_semana.push({ 
             dia: diasSemana[datosMenu.menu_semana.length],
             fecha: '',
@@ -211,12 +214,9 @@ function renderMenuSemana() {
                 <div class="imagen-controls">
                     ${dia.imagen ? `
                         <img src="/img/${dia.imagen}?t=${Date.now()}" class="img-preview">
-                        <input type="file" accept="image/jpeg,image/png" onchange="subirImagen(${idx}, this)">
-                        <button type="button" onclick="eliminarImagen(${idx})" class="btn-eliminar">
-                            🗑️ Eliminar
-                        </button>
+                        <input type="file" accept="image/jpeg,image/png" onchange="subirImagen(${idx}, this)" class="file-input">
                     ` : `
-                        <input type="file" accept="image/jpeg,image/png" onchange="subirImagen(${idx}, this)">
+                        <input type="file" accept="image/jpeg,image/png" onchange="subirImagen(${idx}, this)" class="file-input">
                     `}
                 </div>
             </div>
