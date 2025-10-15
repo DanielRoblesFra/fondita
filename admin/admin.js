@@ -86,6 +86,27 @@ async function cargarDatos() {
     if (!await verificarSesion()) return;
     
     try {
+        // Primero intentar cargar datos persistentes
+        const persistentResponse = await fetch('/api/load-persistent-data', {
+            headers: { 'Authorization': authToken }
+        });
+        
+        if (persistentResponse.ok) {
+            const persistentData = await persistentResponse.json();
+            
+            if (persistentData.success) {
+                datosMenu = persistentData.menuData;
+                console.log('✅ Datos persistentes cargados');
+                
+                // Verificar que las imágenes todavía existen
+                await verificarImagenesPersistentes(persistentData.availableImages);
+                
+                renderizarTodo();
+                return; // Salir, ya tenemos los datos
+            }
+        }
+        
+        // Fallback: cargar datos normales (para compatibilidad)
         const response = await fetch('/api/menu', {
             headers: { 'Authorization': authToken }
         });
@@ -108,10 +129,43 @@ async function cargarDatos() {
         
     } catch (error) {
         console.error('Error cargando datos:', error);
-        alert('❌ Error de sesión. Serás redirigido al login.');
-        localStorage.removeItem('authToken');
-        window.location.href = '/login';
+        // Intentar cargar datos persistentes sin autenticación como último recurso
+        await cargarDatosDeRespaldo();
     }
+}
+
+// ✅ VERIFICAR IMÁGENES PERSISTENTES
+async function verificarImagenesPersistentes(availableImages) {
+    const imageSet = new Set(availableImages);
+    
+    // Verificar cada día del menú semanal
+    datosMenu.menu_semana.forEach(dia => {
+        if (dia.imagen && !imageSet.has(dia.imagen)) {
+            console.log(`⚠️ Imagen no encontrada: ${dia.imagen}`);
+            dia.imagen = ''; // Limpiar imagen faltante
+        }
+    });
+}
+
+// ✅ CARGAR DATOS DE RESPALDO (sin autenticación)
+async function cargarDatosDeRespaldo() {
+    try {
+        const response = await fetch('/api/load-persistent-data');
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                datosMenu = data.menuData;
+                renderizarTodo();
+                return;
+            }
+        }
+    } catch (error) {
+        console.log('No se pudieron cargar datos de respaldo');
+    }
+    
+    alert('❌ Error de sesión. Serás redirigido al login.');
+    localStorage.removeItem('authToken');
+    window.location.href = '/login';
 }
 
 // ✅ FUNCIONES DE RENDERIZADO
@@ -309,7 +363,6 @@ function eliminarImagen(idx) {
     }
 }
 
-// ✅ GUARDAR Y SINCRONIZAR
 // ✅ GUARDAR Y SINCRONIZAR CON BARRA DE PROGRESO
 async function guardarYSincronizar() {
     const boton = document.getElementById('syncButton');
