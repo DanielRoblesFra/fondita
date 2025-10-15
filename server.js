@@ -194,7 +194,7 @@ app.get('/api/load-persistent-data', (req, res) => {
 });
 
 app.post('/api/save-and-sync', isLoggedIn, (req, res) => {
-    console.log('💾 Guardando y sincronizando...');
+    console.log('💾 GUARDANDO Y SINCRONIZANDO...');
     
     try {
         const { menuData } = req.body;
@@ -203,29 +203,37 @@ app.post('/api/save-and-sync', isLoggedIn, (req, res) => {
         fs.writeFileSync('data/menu.json', JSON.stringify(menuData, null, 2));
         console.log('✅ menu.json guardado');
         
-        // 2. Responder inmediatamente
+        // 2. Responder INMEDIATAMENTE al usuario
         res.json({ 
             success: true, 
             message: 'Menú guardado. Sincronizando...' 
         });
         
-        // 3. Sincronización en segundo plano
+        // 3. SINCRONIZACIÓN COMPLETA EN SEGUNDO PLANO
         setTimeout(() => {
             try {
-                console.log('🚀 Iniciando sync-to-production...');
-                execSync('node scripts/sync-to-production.js', { 
-                    stdio: 'inherit', 
-                    timeout: 45000,
-                    cwd: __dirname 
-                });
+                console.log('🚀 Iniciando sync completo...');
+                
+                // ✅ COMMIT Y PUSH AL REPOSITORIO PRINCIPAL (ESENCIAL)
+                execSync('git add data/menu.json', { stdio: 'inherit', cwd: __dirname });
+                execSync('git add img/ || true', { stdio: 'inherit', cwd: __dirname }); // Imágenes si existen
+                execSync('git commit -m "Actualización automática del menú" || true', { stdio: 'inherit', cwd: __dirname });
+                execSync(`git push https://DanielRoblesFra:${process.env.GH_TOKEN}@github.com/DanielRoblesFra/fondita.git main || true`, 
+                        { stdio: 'inherit', cwd: __dirname });
+                
+                console.log('✅ Cambios guardados en repositorio principal');
+                
+                // ✅ SINCRONIZAR CON PRODUCCIÓN
+                execSync('node scripts/sync-to-production.js', { stdio: 'inherit', timeout: 45000, cwd: __dirname });
                 console.log('✅ Sync completado');
+                
             } catch (syncError) {
                 console.log('⚠️ Error en sync:', syncError.message);
             }
         }, 1000);
         
     } catch (error) {
-        console.error('❌ Error al guardar:', error);
+        console.error('❌ Error:', error);
         res.status(500).json({ error: 'Error al guardar' });
     }
 });
