@@ -166,6 +166,20 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+        // 5.1. ✅ COPIAR BACKUP DE DATOS PARA PERSISTENCIA
+    console.log('💾 Creando backup para persistencia...');
+    try {
+        // Copiar menu.json a un backup
+        const backupPath = path.join(PROD_REPO_DIR, 'backup-menu.json');
+        fs.copyFileSync(
+            path.join(__dirname, '..', 'data', 'menu.json'),
+            backupPath
+        );
+        console.log('✅ Backup creado para persistencia');
+    } catch (error) {
+        console.log('⚠️ No se pudo crear backup (no crítico)');
+    }
+
     // 6. COPIAR IMÁGENES DE FORMA INTELIGENTE
     console.log('🖼️ Sincronizando imágenes...');
     const srcImgDir = path.join(__dirname, '..', 'img');
@@ -259,3 +273,4 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error('❌ Error crítico en sincronización:', error.message);
     process.exit(1);
 }
+
