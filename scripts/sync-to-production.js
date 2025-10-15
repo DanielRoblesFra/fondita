@@ -91,7 +91,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (container && menuData.menu_semana) {
         container.innerHTML = "";
-        menuData.menu_semana.forEach(dia => {
+        // ✅ MOSTRAR SOLO LOS PRIMEROS 5 DÍAS (Lunes a Viernes)
+        menuData.menu_semana.slice(0, 5).forEach(dia => {
             if (!dia.dia) return;
             
             const platillosHTML = dia.platillos 
@@ -106,7 +107,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 `;
-
     // 4. GUARDAR ARCHIVOS AUTÓNOMOS
     fs.writeFileSync(path.join(PROD_REPO_DIR, 'la-carta.js'), laCartaContent, 'utf8');
     fs.writeFileSync(path.join(PROD_REPO_DIR, 'menu-semana.js'), menuSemanaContent, 'utf8');
@@ -213,3 +213,4 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error('❌ Error en sincronización:', error.message);
     process.exit(1);
 }
+
