@@ -310,18 +310,20 @@ function eliminarImagen(idx) {
 }
 
 // ✅ GUARDAR Y SINCRONIZAR
+// ✅ GUARDAR Y SINCRONIZAR CON BARRA DE PROGRESO
 async function guardarYSincronizar() {
     const boton = document.getElementById('syncButton');
-    if (!boton) {
-        alert('❌ Botón no encontrado');
-        return;
-    }
+    if (!boton) return;
     
     const textoOriginal = boton.textContent;
     boton.disabled = true;
-    boton.textContent = '⏳ Guardando...';
+    boton.textContent = '⏳ Iniciando...';
     
     try {
+        // 1. INICIAR BARRA DE PROGRESO INMEDIATAMENTE
+        iniciarBarraProgreso();
+        
+        // 2. ENVIAR PETICIÓN AL SERVIDOR
         const response = await fetch('/api/save-and-sync', {
             method: 'POST',
             headers: { 
@@ -333,11 +335,10 @@ async function guardarYSincronizar() {
         
         const data = await response.json();
         
-        if (data.success) {
-            alert('✅ ' + data.message);
-        } else {
+        if (!data.success) {
             alert('❌ ' + (data.error || 'Error desconocido'));
         }
+        // NO mostramos alerta de éxito - la barra ya muestra el progreso
         
     } catch (error) {
         alert('❌ Error de conexión: ' + error.message);
