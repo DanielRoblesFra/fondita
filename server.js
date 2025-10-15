@@ -163,6 +163,36 @@ app.post('/api/upload-image', isLoggedIn, upload.single('imagen'), (req, res) =>
     res.json({ filename: req.file.filename });
 });
 
+// ✅ RUTA PARA CARGAR DATOS PERSISTENTES EN RENDER
+app.get('/api/load-persistent-data', (req, res) => {
+    try {
+        const menuPath = path.join(__dirname, 'data', 'menu.json');
+        const imgDir = path.join(__dirname, 'img');
+        
+        // Cargar menú actual
+        const menuData = fs.existsSync(menuPath) 
+            ? JSON.parse(fs.readFileSync(menuPath, 'utf8'))
+            : { carta: [{}], menu_semana: [] };
+        
+        // Listar imágenes disponibles
+        const images = fs.existsSync(imgDir) 
+            ? fs.readdirSync(imgDir).filter(file => /\.(jpg|jpeg|png)$/i.test(file))
+            : [];
+        
+        res.json({
+            success: true,
+            menuData: menuData,
+            availableImages: images
+        });
+    } catch (error) {
+        res.json({
+            success: true,
+            menuData: { carta: [{}], menu_semana: [] },
+            availableImages: []
+        });
+    }
+});
+
 app.post('/api/save-and-sync', isLoggedIn, (req, res) => {
     console.log('💾 Guardando y sincronizando...');
     
