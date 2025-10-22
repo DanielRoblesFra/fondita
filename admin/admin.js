@@ -372,14 +372,12 @@ async function guardarYSincronizar() {
     
     const textoOriginal = boton.textContent;
     boton.disabled = true;
-    boton.textContent = '⏳ Iniciando...';
+    boton.textContent = '💾 Guardando...';
     
     try {
-        // 1. INICIAR BARRA DE PROGRESO INMEDIATAMENTE
-        iniciarBarraProgreso();
-        
-        // 2. ENVIAR PETICIÓN AL SERVIDOR
-        const response = await fetch('/api/save-and-sync', {
+        // ✅ PRIMERO: GUARDAR DATOS PERSISTENTEMENTE
+        console.log('💾 Guardando datos persistentemente...');
+        const saveResponse = await fetch('/api/save-persistent', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
@@ -388,15 +386,40 @@ async function guardarYSincronizar() {
             body: JSON.stringify({ menuData: datosMenu })
         });
         
-        const data = await response.json();
+        const saveData = await saveResponse.json();
         
-        if (!data.success) {
-            alert('❌ ' + (data.error || 'Error desconocido'));
+        if (!saveData.success) {
+            throw new Error(saveData.error || 'Error al guardar datos persistentes');
         }
-        // NO mostramos alerta de éxito - la barra ya muestra el progreso
+        
+        console.log('✅ Datos guardados persistentemente en menu.json');
+        
+        // ✅ SEGUNDO: INICIAR SINCRONIZACIÓN CON BARRA DE PROGRESO
+        boton.textContent = '🔄 Sincronizando...';
+        
+        // 1. INICIAR BARRA DE PROGRESO INMEDIATAMENTE
+        iniciarBarraProgreso();
+        
+        // 2. ENVIAR PETICIÓN DE SINCRONIZACIÓN
+        const syncResponse = await fetch('/api/save-and-sync', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': authToken 
+            },
+            body: JSON.stringify({ menuData: datosMenu })
+        });
+        
+        const syncData = await syncResponse.json();
+        
+        if (!syncData.success) {
+            console.error('❌ Error en sync:', syncData.error);
+            // No mostrar alerta para no interrumpir la barra de progreso
+        }
         
     } catch (error) {
-        alert('❌ Error de conexión: ' + error.message);
+        console.error('❌ Error en guardarYSincronizar:', error);
+        // Mostrar error pero no interrumpir la barra de progreso
     } finally {
         boton.textContent = textoOriginal;
         boton.disabled = false;
