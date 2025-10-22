@@ -235,66 +235,132 @@ function renderMenuSemana() {
     if (!container) return;
     
     const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+    const seccionesEspeciales = ["Ensaladas", "Promociones de temporada"];
     
-    while (datosMenu.menu_semana.length > 5) {
+    // Asegurar que tenemos 5 días de semana + 2 secciones especiales
+    while (datosMenu.menu_semana.length > 7) {
         datosMenu.menu_semana.pop();
     }
-    while (datosMenu.menu_semana.length < 5) {
-        datosMenu.menu_semana.push({ 
-            dia: diasSemana[datosMenu.menu_semana.length],
-            fecha: '',
-            imagen: '',
-            platillos: []
-        });
+    while (datosMenu.menu_semana.length < 7) {
+        const index = datosMenu.menu_semana.length;
+        if (index < 5) {
+            // Días de la semana (0-4)
+            datosMenu.menu_semana.push({ 
+                dia: diasSemana[index],
+                fecha: '',
+                imagen: '',
+                platillos: []
+            });
+        } else {
+            // Secciones especiales (5-6)
+            datosMenu.menu_semana.push({ 
+                dia: seccionesEspeciales[index - 5],
+                fecha: '',
+                imagen: '',
+                platillos: []
+            });
+        }
     }
     
-    container.innerHTML = datosMenu.menu_semana.map((dia, idx) => `
-        <div class="dia">
-            <div class="input-group">
-                <label>Día</label>
-                <select onchange="actualizarMenu(${idx}, 'dia', this.value)">
-                    ${diasSemana.map(d => 
-                        `<option value="${d}" ${d === dia.dia ? 'selected' : ''}>${d}</option>`
-                    ).join('')}
-                </select>
-            </div>
-            
-            <div class="input-group">
-                <label>Fecha</label>
-                <input type="date" value="${dia.fecha || ''}"
-                       onchange="actualizarMenu(${idx}, 'fecha', this.value)">
-            </div>
-            
-            <div class="input-group">
-                <label>Imagen</label>
-                <div class="imagen-controls">
-                    ${dia.imagen ? `
-                        <div class="img-preview-container">
-                            <img src="/img/${dia.imagen}?t=${Date.now()}" class="img-preview" alt="Vista previa">
-                        </div>
-                    ` : ''}
+    container.innerHTML = datosMenu.menu_semana.map((dia, idx) => {
+        // Para los primeros 5 días (Lunes-Viernes), mostrar selector de día
+        if (idx < 5) {
+            return `
+                <div class="dia">
+                    <div class="input-group">
+                        <label>Día</label>
+                        <select onchange="actualizarMenu(${idx}, 'dia', this.value)">
+                            ${diasSemana.map(d => 
+                                `<option value="${d}" ${d === dia.dia ? 'selected' : ''}>${d}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
                     
-                    <!-- ✅ BOTÓN SUBIR ARCHIVO SIMPLIFICADO Y FUNCIONAL -->
-                    <div class="file-input-container">
-                        <input type="file" 
-                               id="file-input-${idx}"
-                               accept="image/jpeg, image/png" 
-                               onchange="subirImagen(${idx}, this)"
-                               class="hidden-image-input">
-                        <label for="file-input-${idx}" class="file-input-label">
-                            <span class="file-input-icon">📁</span>
-                            ${dia.imagen ? 'Cambiar imagen' : 'Seleccionar imagen'}
-                        </label>
+                    <div class="input-group">
+                        <label>Fecha</label>
+                        <input type="date" value="${dia.fecha || ''}"
+                               onchange="actualizarMenu(${idx}, 'fecha', this.value)">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Imagen</label>
+                        <div class="imagen-controls">
+                            ${dia.imagen ? `
+                                <div class="img-preview-container">
+                                    <img src="/img/${dia.imagen}?t=${Date.now()}" class="img-preview" alt="Vista previa">
+                                </div>
+                            ` : ''}
+                            
+                            <div class="file-input-container">
+                                <input type="file" 
+                                       id="file-input-${idx}"
+                                       accept="image/jpeg, image/png" 
+                                       onchange="subirImagen(${idx}, this)"
+                                       class="hidden-image-input">
+                                <label for="file-input-${idx}" class="file-input-label">
+                                    <span class="file-input-icon">📁</span>
+                                    ${dia.imagen ? 'Cambiar imagen' : 'Seleccionar imagen'}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Platillos (separados por coma)</label>
+                        <textarea onchange="actualizarMenu(${idx}, 'platillos', this.value)">${dia.platillos?.join(', ') || ''}</textarea>
                     </div>
                 </div>
-            </div>
+            `;
+        } else {
+            // Para Ensaladas y Promociones (índices 5 y 6) - MISMOS ESTILOS
+            const titulo = idx === 5 ? "Ensaladas" : "Promociones de temporada";
+            const labelPlatillos = idx === 5 ? 'Ensaladas disponibles' : 'Promociones disponibles';
             
-            <div class="input-group">
-                <label>Platillos (separados por coma)</label>
-                <textarea onchange="actualizarMenu(${idx}, 'platillos', this.value)">${dia.platillos?.join(', ') || ''}</textarea>
-            </div>
-        </div>
-    `).join('');
+            return `
+                <div class="dia">
+                    <div class="input-group">
+                        <label>Sección</label>
+                        <input type="text" value="${titulo}" readonly class="readonly-input">
+                        <small class="input-note">(Título fijo - no editable)</small>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Fecha de vigencia</label>
+                        <input type="date" value="${dia.fecha || ''}"
+                               onchange="actualizarMenu(${idx}, 'fecha', this.value)">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Imagen</label>
+                        <div class="imagen-controls">
+                            ${dia.imagen ? `
+                                <div class="img-preview-container">
+                                    <img src="/img/${dia.imagen}?t=${Date.now()}" class="img-preview" alt="Vista previa">
+                                </div>
+                            ` : ''}
+                            
+                            <div class="file-input-container">
+                                <input type="file" 
+                                       id="file-input-${idx}"
+                                       accept="image/jpeg, image/png" 
+                                       onchange="subirImagen(${idx}, this)"
+                                       class="hidden-image-input">
+                                <label for="file-input-${idx}" class="file-input-label">
+                                    <span class="file-input-icon">📁</span>
+                                    ${dia.imagen ? 'Cambiar imagen' : 'Seleccionar imagen'}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>${labelPlatillos} (separados por coma)</label>
+                        <textarea onchange="actualizarMenu(${idx}, 'platillos', this.value)">${dia.platillos?.join(', ') || ''}</textarea>
+                    </div>
+                </div>
+            `;
+        }
+    }).join('');
 }
 
 // ✅ FUNCIONES DE ACTUALIZACIÓN
