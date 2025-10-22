@@ -163,6 +163,88 @@ app.post('/api/upload-image', isLoggedIn, upload.single('imagen'), (req, res) =>
     res.json({ filename: req.file.filename });
 });
 
+app.post('/api/save-persistent', isLoggedIn, (req, res) => {
+    try {
+        const { menuData } = req.body;
+        const menuPath = path.join(__dirname, 'data', 'menu.json');
+        
+        console.log('💾 Guardando datos persistentes...');
+        
+        // 1. Crear directorio data si no existe
+        if (!fs.existsSync(path.dirname(menuPath))) {
+            fs.mkdirSync(path.dirname(menuPath), { recursive: true });
+        }
+        
+        // 2. Guardar en menu.json
+        fs.writeFileSync(menuPath, JSON.stringify(menuData, null, 2));
+        console.log('✅ menu.json guardado PERSISTENTEMENTE');
+        
+        // 3. Hacer commit inmediato al repositorio principal
+        try {
+            execSync('git add data/menu.json', { stdio: 'inherit', cwd: __dirname });
+            execSync('git add img/ || true', { stdio: 'inherit', cwd: __dirname });
+            execSync('git commit -m "Auto-save: ' + new Date().toLocaleString() + '" || true', 
+                    { stdio: 'inherit', cwd: __dirname });
+            execSync(`git push https://DanielRoblesFra:${process.env.GH_TOKEN}@github.com/DanielRoblesFra/fondita.git main || true`, 
+                    { stdio: 'inherit', cwd: __dirname });
+            console.log('✅ Cambios guardados en GitHub (fondita)');
+        } catch (gitError) {
+            console.log('⚠️ Error en git (puede ser normal):', gitError.message);
+        }
+        
+        res.json({ 
+            success: true, 
+            message: 'Datos guardados persistentemente en menu.json' 
+        });
+        
+    } catch (error) {
+        console.error('❌ Error guardando datos persistentes:', error);
+        res.status(500).json({ 
+            success: false,
+            error: 'Error al guardar datos persistentes' 
+        });
+    }
+});
+
+app.get('/api/load-persistent-data', isLoggedIn, (req, res) => {
+    try {
+        const menuPath = path.join(__dirname, 'data', 'menu.json');
+        
+        // Verificar si existe el archivo
+        if (!fs.existsSync(menuPath)) {
+            return res.json({ 
+                success: false, 
+                message: 'No hay datos persistentes guardados' 
+            });
+        }
+        
+        // Leer datos persistentes
+        const menuData = JSON.parse(fs.readFileSync(menuPath, 'utf8'));
+        
+        // Obtener lista de imágenes disponibles
+        const imgDir = path.join(__dirname, 'img');
+        let availableImages = [];
+        if (fs.existsSync(imgDir)) {
+            availableImages = fs.readdirSync(imgDir);
+        }
+        
+        console.log('📥 Datos persistentes cargados, imágenes:', availableImages.length);
+        
+        res.json({
+            success: true,
+            menuData: menuData,
+            availableImages: availableImages
+        });
+        
+    } catch (error) {
+        console.error('❌ Error cargando datos persistentes:', error);
+        res.json({ 
+            success: false, 
+            error: 'Error al cargar datos' 
+        });
+    }
+});
+
 app.post('/api/save-and-sync', isLoggedIn, (req, res) => {
     console.log('💾 GUARDANDO Y SINCRONIZANDO...');
     
