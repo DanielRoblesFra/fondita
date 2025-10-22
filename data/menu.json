@@ -65,6 +65,18 @@
         "Primer",
         "prueba."
       ]
+    },
+        {
+      "dia": "Ensaladas",
+      "fecha": "",
+      "imagen": "",
+      "platillos": []
+    },
+    {
+      "dia": "Promociones de temporada",
+      "fecha": "",
+      "imagen": "",
+      "platillos": []
     }
   ]
 }
