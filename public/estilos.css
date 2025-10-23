@@ -577,46 +577,40 @@ button:hover {
     margin-bottom: 0.5rem;
 }
 
-/* ==================== TARJETAS ESPECIALES - SOLO FONDITA-PRODUCTION ==================== */
+/* ==================== TARJETAS ESPECIALES ACTUALIZADAS ==================== */
 
-.card-especial {
-    border: 2px solid #4CAF50 !important;
-    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3) !important;
+/* Ensaladas - Verde #178F32 */
+.card-especial[class*="Ensaladas"] .card-front,
+.card-especial:has(.card-front h1:contains("Ensaladas")) .card-front {
+    background: #178F32 !important;
 }
 
-.card-especial .card-front {
-    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%) !important;
+/* Promociones de temporada - Rojo #940F0F */
+.card-especial[class*="Promociones"] .card-front,
+.card-especial:has(.card-front h1:contains("Promociones")) .card-front {
+    background: #940F0F !important;
+}
+
+/* Quitar bordes de color en tarjetas especiales */
+.card-especial {
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
 }
 
 .card-especial .card-back {
-    border: 2px solid #4CAF50 !important;
+    border: none !important;
 }
 
+/* Quitar badges especiales */
 .badge-especial {
-    background: rgba(255, 255, 255, 0.3);
-    padding: 4px 12px;
-    border-radius: 15px;
-    font-size: 0.8rem;
-    margin-top: 8px;
-    display: inline-block;
-    font-weight: 600;
-    backdrop-filter: blur(10px);
+    display: none !important;
 }
 
-.no-menu, .no-platillos {
-    text-align: center;
-    color: #888;
-    font-style: italic;
-    padding: 2rem;
-}
-
-/* Asegurar que el grid muestre hasta 7 tarjetas */
-.menu-semanal #menuSemanaContainer {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
-    max-width: 1200px;
-    margin: 0 auto;
+/* Asegurar que el texto sea visible en los nuevos colores */
+.card-especial .card-front h1,
+.card-especial .card-front p {
+    color: white !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 @media (max-width: 768px) {
