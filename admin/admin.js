@@ -463,7 +463,6 @@ function eliminarImagen(idx) {
 }
 
 // ✅ GUARDAR Y SINCRONIZAR CON BARRA DE PROGRESO
-// ✅ GUARDAR Y SINCRONIZAR CON BARRA DE PROGRESO
 async function guardarYSincronizar() {
     const boton = document.getElementById('syncButton');
     if (!boton) return;
@@ -493,8 +492,6 @@ async function guardarYSincronizar() {
         if (!saveData.success) {
             throw new Error(saveData.error || 'Error al guardar');
         }
-        
-        console.log('✅ Datos guardados');
         
         // ✅ SEGUNDO: SINCRONIZAR
         boton.textContent = '🔄 Sincronizando...';
