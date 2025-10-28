@@ -212,6 +212,14 @@ app.post('/api/upload-image', isLoggedIn, upload.single('imagen'), (req, res) =>
 
 app.post('/api/save-persistent', isLoggedIn, (req, res) => {
     try {
+        // ✅ NUEVO: SOLUCIONAR DETACHED HEAD
+        try {
+            execSync('git checkout main', { stdio: 'inherit', cwd: __dirname });
+        } catch (error) {
+            execSync('git checkout -b main', { stdio: 'inherit', cwd: __dirname });
+        }
+        
+        // ✅ AGREGAR ESTO QUE FALTABA:
         const { menuData } = req.body;
         const menuPath = path.join(__dirname, 'data', 'menu.json');
         
@@ -296,6 +304,14 @@ app.post('/api/save-and-sync', isLoggedIn, (req, res) => {
     console.log('💾 GUARDANDO Y SINCRONIZANDO...');
     
     try {
+
+        try {
+            execSync('git checkout main', { stdio: 'inherit', cwd: __dirname });
+        } catch (error) {
+            execSync('git checkout -b main', { stdio: 'inherit', cwd: __dirname });
+        }
+
+        
         const { menuData } = req.body;
         
         // 1. Guardar localmente
