@@ -463,14 +463,13 @@ function eliminarImagen(idx) {
 }
 
 // ✅ GUARDAR Y SINCRONIZAR CON BARRA DE PROGRESO
+// ✅ GUARDAR Y SINCRONIZAR CON BARRA DE PROGRESO
 async function guardarYSincronizar() {
     const boton = document.getElementById('syncButton');
     if (!boton) return;
     
     // ✅ ACTUALIZAR DATOS ANTES DE GUARDAR
     actualizarDatosDesdeFormularios();
-
-    console.log('🔴 [DEBUG] datosMenu actualizado:', datosMenu.menu_semana[0]?.platillos);//temporal para ver que esta pasando porque menu.json no se actualiza. 
     
     const textoOriginal = boton.textContent;
     boton.disabled = true;
@@ -499,6 +498,9 @@ async function guardarYSincronizar() {
         
         // ✅ SEGUNDO: SINCRONIZAR
         boton.textContent = '🔄 Sincronizando...';
+        
+        // ✅ AGREGAR ESTA LÍNEA PARA LA BARRA DE PROGRESO:
+        iniciarBarraProgreso();
         
         const syncResponse = await fetch('/api/save-and-sync', {
             method: 'POST',
