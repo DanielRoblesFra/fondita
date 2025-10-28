@@ -469,6 +469,8 @@ async function guardarYSincronizar() {
     
     // ✅ ACTUALIZAR DATOS ANTES DE GUARDAR
     actualizarDatosDesdeFormularios();
+
+    console.log('🔴 [DEBUG] datosMenu actualizado:', datosMenu.menu_semana[0]?.platillos);//temporal para ver que esta pasando porque menu.json no se actualiza. 
     
     const textoOriginal = boton.textContent;
     boton.disabled = true;
