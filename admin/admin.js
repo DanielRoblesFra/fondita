@@ -81,43 +81,40 @@ async function login() {
     }
 }
 
-// ✅ CARGAR DATOS CON MANEJO DE ERRORES MEJORADO
+// ✅ CARGAR DATOS MEJORADO - CON PERSISTENCIA GARANTIZADA
 async function cargarDatos() {
     if (!await verificarSesion()) return;
     
     try {
-        // Primero intentar cargar datos persistentes
-        const persistentResponse = await fetch('/api/load-persistent-data', {
-            headers: { 'Authorization': authToken }
-        });
+        console.log('📥 Cargando datos...');
         
-        if (persistentResponse.ok) {
-            const persistentData = await persistentResponse.json();
-            
-            if (persistentData.success) {
-                datosMenu = persistentData.menuData;
-                console.log('✅ Datos persistentes cargados');
-                
-                // Verificar que las imágenes todavía existen
-                await verificarImagenesPersistentes(persistentData.availableImages);
-                
+        // PRIMERO: Intentar cargar datos persistentes SIN autenticación
+        try {
+            const publicResponse = await fetch('/api/public/menu?' + Date.now());
+            if (publicResponse.ok) {
+                const publicData = await publicResponse.json();
+                datosMenu = publicData;
+                console.log('✅ Datos cargados via API pública');
                 renderizarTodo();
-                return; // Salir, ya tenemos los datos
+                return;
             }
+        } catch (publicError) {
+            console.log('⚠️ API pública no disponible, intentando método protegido');
         }
         
-        // Fallback: cargar datos normales (para compatibilidad)
+        // SEGUNDO: Intentar con autenticación
         const response = await fetch('/api/menu', {
             headers: { 'Authorization': authToken }
         });
         
         if (response.ok) {
             datosMenu = await response.json();
+            console.log('✅ Datos cargados via API protegida');
         } else {
-            throw new Error('Error cargando datos');
+            throw new Error('Error cargando datos protegidos');
         }
         
-        // Estructura garantizada
+        // ESTRUCTURA GARANTIZADA
         if (!datosMenu.carta || datosMenu.carta.length === 0) {
             datosMenu.carta = [{}];
         }
@@ -128,8 +125,8 @@ async function cargarDatos() {
         renderizarTodo();
         
     } catch (error) {
-        console.error('Error cargando datos:', error);
-        // Intentar cargar datos persistentes sin autenticación como último recurso
+        console.error('❌ Error cargando datos:', error);
+        // ULTIMO RECURSO: Cargar desde GitHub directamente
         await cargarDatosDeRespaldo();
     }
 }
@@ -148,21 +145,36 @@ async function verificarImagenesPersistentes(availableImages) {
 }
 
 // ✅ CARGAR DATOS DE RESPALDO
+// ✅ CARGAR DATOS DE RESPALDO MEJORADO
 async function cargarDatosDeRespaldo() {
     try {
         console.log('🔄 Intentando cargar datos desde GitHub...');
         
-        // Intentar cargar directamente desde GitHub RAW
-        const response = await fetch('https://raw.githubusercontent.com/DanielRoblesFra/fondita/main/data/menu.json');
+        // Intentar cargar directamente desde GitHub RAW del repositorio de PRODUCCIÓN
+        const response = await fetch('https://raw.githubusercontent.com/DanielRoblesFra/fondita-production/main/menu.json?' + Date.now());
         if (response.ok) {
             const menuData = await response.json();
             datosMenu = menuData;
-            console.log('✅ Datos cargados desde GitHub');
+            console.log('✅ Datos cargados desde GitHub Production');
             renderizarTodo();
             return true;
         }
     } catch (error) {
-        console.log('❌ No se pudieron cargar datos desde GitHub');
+        console.log('❌ No se pudieron cargar datos desde GitHub Production');
+    }
+    
+    try {
+        // Intentar desde el repositorio principal como último recurso
+        const response = await fetch('https://raw.githubusercontent.com/DanielRoblesFra/fondita/main/data/menu.json?' + Date.now());
+        if (response.ok) {
+            const menuData = await response.json();
+            datosMenu = menuData;
+            console.log('✅ Datos cargados desde GitHub Main');
+            renderizarTodo();
+            return true;
+        }
+    } catch (error) {
+        console.log('❌ No se pudieron cargar datos desde ningún origen');
     }
     
     // Último recurso: datos por defecto
