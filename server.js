@@ -82,10 +82,6 @@ const upload = multer({
     }
 });
 
-import fetch from "node-fetch";
-import fs from "fs";
-import path from "path";
-
 // RUTA a tu base de datos local
 const menuFilePath = path.join("data", "menu.json");
 
