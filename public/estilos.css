@@ -603,7 +603,6 @@ button:hover {
 .card-especial .card-front,
 .card-especial .card-back {
     border: none !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
 }
 
 /* Eliminar completamente los badges */
