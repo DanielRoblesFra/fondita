@@ -82,6 +82,46 @@ const upload = multer({
     }
 });
 
+import fetch from "node-fetch";
+import fs from "fs";
+import path from "path";
+
+// RUTA a tu base de datos local
+const menuFilePath = path.join("data", "menu.json");
+
+// Función que garantiza que el JSON sea persistente
+async function loadPersistentMenu() {
+  try {
+    // Si existe el archivo local y no está vacío, úsalo
+    if (fs.existsSync(menuFilePath)) {
+      const data = fs.readFileSync(menuFilePath, "utf8");
+      if (data && data.trim().length > 10) {
+        console.log("✅ Usando menu.json local");
+        return JSON.parse(data);
+      }
+    }
+
+    // Si no existe (Render se durmió y borró datos), bájalo de GitHub
+    console.log("🌐 Recuperando menu.json desde GitHub...");
+    const res = await fetch(
+      "https://raw.githubusercontent.com/DanielRoblesFra/fondita-production/main/menu.json"
+    );
+
+    if (!res.ok) throw new Error("Error al descargar menu.json desde GitHub");
+
+    const json = await res.json();
+    // Guarda una copia local para uso inmediato
+    fs.mkdirSync("data", { recursive: true });
+    fs.writeFileSync(menuFilePath, JSON.stringify(json, null, 2));
+
+    console.log("💾 menu.json restaurado correctamente desde GitHub");
+    return json;
+  } catch (err) {
+    console.error("❌ Error cargando menu.json persistente:", err);
+    return {}; // Devuelve vacío si algo falla
+  }
+}
+
 // ✅ LOGIN MEJORADO
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
@@ -129,13 +169,24 @@ app.post('/api/logout', (req, res) => {
     res.json({ success: true, message: 'Sesión cerrada' });
 });
 
-// ✅ RUTAS PROTEGIDAS
-app.get('/api/menu', isLoggedIn, (req, res) => {
+// ✅ RUTA PÚBLICA PARA CARGAR DATOS PERSISTENTES (SIN AUTENTICACIÓN)
+app.get('/api/public/menu', async (req, res) => {
     try {
-        const menuPath = path.join(__dirname, 'data', 'menu.json');
-        const menuData = fs.readFileSync(menuPath, 'utf8');
-        res.json(JSON.parse(menuData));
+        const data = await loadPersistentMenu();
+        res.json(data);
     } catch (error) {
+        console.error("❌ Error en /api/public/menu:", error);
+        res.json({ carta: [{}], menu_semana: [] });
+    }
+});
+
+// ✅ RUTAS PROTEGIDAS
+app.get('/api/menu', isLoggedIn, async (req, res) => {
+    try {
+        const data = await loadPersistentMenu();
+        res.json(data);
+    } catch (error) {
+        console.error("❌ Error en /api/menu:", error);
         res.json({ carta: [{}], menu_semana: [] });
     }
 });
