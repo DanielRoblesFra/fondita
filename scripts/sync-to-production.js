@@ -28,6 +28,7 @@ try {
     // ✅ CONFIGURAR GIT (IMPORTANTE PARA CADA EJECUCIÓN)
     ejecutarComando('git config --global user.email "danielroblesfra@gmail.com"', { cwd: __dirname });
     ejecutarComando('git config --global user.name "DanielRoblesFra"', { cwd: __dirname });
+    ejecutarComando('git checkout main', { cwd: __dirname });
 
     // 1. GESTIÓN ROBUSTA DEL REPOSITORIO
     if (!fs.existsSync(PROD_REPO_DIR)) {
@@ -278,6 +279,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error('❌ Error crítico en sincronización:', error.message);
     process.exit(1);
 }
+
 
 
 
