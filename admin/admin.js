@@ -145,7 +145,6 @@ async function verificarImagenesPersistentes(availableImages) {
 }
 
 // ✅ CARGAR DATOS DE RESPALDO
-// ✅ CARGAR DATOS DE RESPALDO MEJORADO
 async function cargarDatosDeRespaldo() {
     try {
         console.log('🔄 Intentando cargar datos desde GitHub...');
@@ -402,6 +401,26 @@ function actualizarMenu(idx, campo, valor) {
     }
 }
 
+// ✅ ACTUALIZAR DATOS ANTES DE GUARDAR
+function actualizarDatosDesdeFormularios() {
+    console.log('🔄 Actualizando datos desde formularios...');
+    
+    // Forzar actualización de todos los campos del formulario
+    const inputs = document.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        // Disparar evento change para que actualice datosMenu
+        if (input.value !== input.defaultValue) {
+            const event = new Event('change', { bubbles: true });
+            input.dispatchEvent(event);
+        }
+    });
+}
+
+// ✅ SUBIR IMAGEN (esto ya lo tienes después)
+async function subirImagen(idx, fileInput) {
+    // ... tu código existente ...
+}
+
 // ✅ SUBIR IMAGEN
 async function subirImagen(idx, fileInput) {
     const archivo = fileInput.files[0];
@@ -448,13 +467,17 @@ async function guardarYSincronizar() {
     const boton = document.getElementById('syncButton');
     if (!boton) return;
     
+    // ✅ ACTUALIZAR DATOS ANTES DE GUARDAR
+    actualizarDatosDesdeFormularios();
+    
     const textoOriginal = boton.textContent;
     boton.disabled = true;
     boton.textContent = '💾 Guardando...';
     
     try {
+        console.log('📤 Enviando datos a servidor...');
+        
         // ✅ PRIMERO: GUARDAR DATOS PERSISTENTEMENTE
-        console.log('💾 Guardando datos persistentemente...');
         const saveResponse = await fetch('/api/save-persistent', {
             method: 'POST',
             headers: { 
@@ -467,18 +490,14 @@ async function guardarYSincronizar() {
         const saveData = await saveResponse.json();
         
         if (!saveData.success) {
-            throw new Error(saveData.error || 'Error al guardar datos persistentes');
+            throw new Error(saveData.error || 'Error al guardar');
         }
         
-        console.log('✅ Datos guardados persistentemente en menu.json');
+        console.log('✅ Datos guardados');
         
-        // ✅ SEGUNDO: INICIAR SINCRONIZACIÓN CON BARRA DE PROGRESO
+        // ✅ SEGUNDO: SINCRONIZAR
         boton.textContent = '🔄 Sincronizando...';
         
-        // 1. INICIAR BARRA DE PROGRESO INMEDIATAMENTE
-        iniciarBarraProgreso();
-        
-        // 2. ENVIAR PETICIÓN DE SINCRONIZACIÓN
         const syncResponse = await fetch('/api/save-and-sync', {
             method: 'POST',
             headers: { 
@@ -490,14 +509,13 @@ async function guardarYSincronizar() {
         
         const syncData = await syncResponse.json();
         
-        if (!syncData.success) {
-            console.error('❌ Error en sync:', syncData.error);
-            // No mostrar alerta para no interrumpir la barra de progreso
+        if (syncData.success) {
+            alert('✅ Cambios guardados correctamente');
         }
         
     } catch (error) {
-        console.error('❌ Error en guardarYSincronizar:', error);
-        // Mostrar error pero no interrumpir la barra de progreso
+        console.error('Error:', error);
+        alert('❌ Error: ' + error.message);
     } finally {
         boton.textContent = textoOriginal;
         boton.disabled = false;
