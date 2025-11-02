@@ -15,67 +15,77 @@
   "menu_semana": [
     {
       "dia": "Lunes",
-      "fecha": "2025-10-27",
-      "imagen": "1761688310019.jpg",
+      "fecha": "2025-11-03",
+      "imagen": "1762108143519.jpg",
       "platillos": [
-        "Prueba de persistencia"
+        "Arroz rojo",
+        "Bistec ranchero",
+        "Frijoles de la olla",
+        "Postre"
       ]
     },
     {
       "dia": "Martes",
-      "fecha": "2025-10-28",
-      "imagen": "1761688316780.jpg",
+      "fecha": "2025-11-04",
+      "imagen": "1762108450546.jpg",
       "platillos": [
-        "Crema de zanahoria",
-        "Hamburguesas de carne de res",
-        "Ensalada",
+        "Arroz blanco con elote",
+        "Pollo en salsa asada",
+        "Frijoles refritos",
         "Postre"
       ]
     },
     {
       "dia": "Miércoles",
-      "fecha": "2025-10-29",
-      "imagen": "1761688335787.jpg",
+      "fecha": "2025-11-05",
+      "imagen": "1762108992991.jpg",
       "platillos": [
         "Arroz rojo con verduras",
-        "Queso con rajas en salsa asada",
+        "Chile relleno de queso o requesón",
         "Frijoles de la olla",
         "Postre"
       ]
     },
     {
       "dia": "Jueves",
-      "fecha": "2025-10-30",
-      "imagen": "1761688345336.jpg",
+      "fecha": "2025-11-06",
+      "imagen": "1762109247537.jpg",
       "platillos": [
-        "Arroz blanco",
-        "Tortitas de camarón con nopales",
-        "Frijoles de la olla",
-        "Postre"
+        "Crema de zanahoria",
+        "Cecina de res",
+        "Guacamole",
+        "Frijoles de la olla"
       ]
     },
     {
       "dia": "Viernes",
-      "fecha": "2025-10-31",
-      "imagen": "1761688356324.jpg",
+      "fecha": "2025-11-07",
+      "imagen": "1762109569151.jpg",
       "platillos": [
-        "Primer",
-        "prueba."
+        "Sopa de fideos",
+        "Ensalada de pollo con tostadas",
+        "Postre"
       ]
     },
     {
       "dia": "Ensaladas",
-      "fecha": "",
-      "imagen": "1761687406623.jpg",
+      "fecha": "2025-11-03",
+      "imagen": "1762109663237.jpg",
       "platillos": [
-        "Proximamente :)"
+        "Tenemos otra alternativa para ti más saludable",
+        "si así lo deseas. Ensalada a tu gusto (podrás elegir las verduras de tu gusto",
+        "proteína",
+        "adereso y si lo acompañas con crotones o tiritas de maíz) Pide los ingredientes al 3316922341."
       ]
     },
     {
       "dia": "Promociones de temporada",
-      "fecha": "",
+      "fecha": "2025-11-03",
       "imagen": "1761687413369.jpg",
-      "platillos": []
+      "platillos": [
+        "Calabaza en dulce",
+        "¡haz tu pedido al 3316922341!"
+      ]
     }
   ]
 }
