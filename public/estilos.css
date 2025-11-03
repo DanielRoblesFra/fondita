@@ -132,18 +132,18 @@ nav {
 /* 🔥 RESOLUCIONES MEDIANAS (1024px - 1366px) */
 @media screen and (min-width: 1024px) and (max-width: 1366px) {
     nav {
-        max-width: 1100px; /* Ancho controlado */
+        max-width: 1200px; /* Ancho controlado */
         padding: 0 3rem;
         gap: 1.5rem;
     }
     
     .nav-menu {
-        gap: 2rem; /* Gap equilibrado */
+        gap: 1.5rem; /* Gap equilibrado */
     }
     
     .nav-menu a {
-        font-size: 1.1rem;
-        padding: 1rem 0.8rem;
+        font-size: 1rem;
+        padding: 1rem 0.6rem;
     }
 }
 
