@@ -90,16 +90,16 @@ nav {
     color: white;
     text-decoration: none;
     text-transform: uppercase;
-    font-size: 0.71rem; /* REDUCIDO */
+    font-size: 0.85rem; /
     font-weight: 600;
-    padding: 0.55rem 0.1rem; /* REDUCIDO */
+    padding: 0.55rem 0.1rem; 
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
     height: 100%;
     line-height: 1;
     white-space: nowrap;
-    letter-spacing: 0.2px; /* REDUCIDO */
+    letter-spacing: 0.2px; 
 }
 
 .nav-menu a:hover {
@@ -137,8 +137,8 @@ nav {
     }
     
     .nav-menu a {
-        font-size: 0.75rem; /* REDUCIDO */
-        padding: 0.6rem 0.2rem; /* REDUCIDO */
+        font-size: 0.85rem; /* REDUCIDO */
+        padding: 0.6rem 0.25rem; /* REDUCIDO */
     }
 }
 
@@ -155,7 +155,7 @@ nav {
     }
     
     .nav-menu a {
-        font-size: 0.8rem; /* REDUCIDO */
+        font-size: 0.95rem; /* REDUCIDO */
         padding: 0.7rem 0.3rem; /* REDUCIDO */
     }
     
@@ -182,7 +182,7 @@ nav {
     }
     
     .nav-menu a {
-        font-size: 0.9rem; /* REDUCIDO */
+        font-size: 0.95rem; /* REDUCIDO */
         padding: 0.8rem 0.5rem; /* REDUCIDO */
     }
     
