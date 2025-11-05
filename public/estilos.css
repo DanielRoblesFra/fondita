@@ -37,6 +37,7 @@ nav {
     position: relative;
     min-height: 80px;
     gap: 0.5rem;
+    white-space: nowrap !important; 
 }
 
 .logo {
@@ -69,7 +70,7 @@ nav {
 .nav-menu {
     display: none;
     list-style: none;
-    gap: 0.8rem;
+    gap: 0.4rem;
     margin: 0;
     flex-wrap: wrap;
     transition: all 0.3s ease;
@@ -89,9 +90,9 @@ nav {
     color: white;
     text-decoration: none;
     text-transform: uppercase;
-    font-size: 0.75rem; /* REDUCIDO */
+    font-size: 0.71rem; /* REDUCIDO */
     font-weight: 600;
-    padding: 0.6rem 0.15rem; /* REDUCIDO */
+    padding: 0.55rem 0.1rem; /* REDUCIDO */
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
