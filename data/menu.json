@@ -15,55 +15,58 @@
   "menu_semana": [
     {
       "dia": "Lunes",
-      "fecha": "2025-11-03",
-      "imagen": "1762108143519.jpg",
+      "fecha": "2025-11-10",
+      "imagen": "1762707495230.jpg",
       "platillos": [
-        "Arroz rojo",
-        "Bistec ranchero",
-        "Frijoles de la olla",
-        "Postre"
-      ]
-    },
-    {
-      "dia": "Martes",
-      "fecha": "2025-11-04",
-      "imagen": "1762108450546.jpg",
-      "platillos": [
-        "Arroz blanco con elote",
-        "Pollo en salsa asada",
+        "Sopa de lentejas",
+        "Flautas (pollo",
+        "papa y requesón)",
         "Frijoles refritos",
         "Postre"
       ]
     },
     {
-      "dia": "Miércoles",
-      "fecha": "2025-11-05",
-      "imagen": "1762108992991.jpg",
+      "dia": "Martes",
+      "fecha": "2025-11-11",
+      "imagen": "1762708344650.jpg",
       "platillos": [
-        "Arroz rojo con verduras",
-        "Chile relleno de queso o requesón",
+        "Caldo de pollo con verduras",
+        "Pastel azteca",
+        "Frijoles de la olla",
+        "Postre"
+      ]
+    },
+    {
+      "dia": "Miércoles",
+      "fecha": "2025-11-12",
+      "imagen": "1762708482517.jpg",
+      "platillos": [
+        "Arroz blanco con elote",
+        "Chicharrón en salsa verde",
         "Frijoles de la olla",
         "Postre"
       ]
     },
     {
       "dia": "Jueves",
-      "fecha": "2025-11-06",
-      "imagen": "1762109247537.jpg",
+      "fecha": "2025-11-13",
+      "imagen": "1762708640206.jpg",
       "platillos": [
-        "Crema de zanahoria",
-        "Cecina de res",
+        "Sopa de fideos",
+        "Tortitas de papa con atún",
         "Guacamole",
-        "Frijoles de la olla"
+        "Frijoles de la olla",
+        "Postre"
       ]
     },
     {
       "dia": "Viernes",
-      "fecha": "2025-11-07",
-      "imagen": "1762109569151.jpg",
+      "fecha": "2025-11-14",
+      "imagen": "1762708757301.jpg",
       "platillos": [
-        "Sopa de fideos",
-        "Ensalada de pollo con tostadas",
+        "Arroz blanco con elote",
+        "Enchiladas suizas de pollo",
+        "Frijoles refritos",
         "Postre"
       ]
     },
