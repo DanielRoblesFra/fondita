@@ -15,58 +15,55 @@
   "menu_semana": [
     {
       "dia": "Lunes",
-      "fecha": "2025-11-10",
-      "imagen": "1762707495230.jpg",
+      "fecha": "2025-11-17",
+      "imagen": "1763310280170.jpg",
       "platillos": [
-        "Sopa de lentejas",
-        "Flautas (pollo",
-        "papa y requesón)",
-        "Frijoles refritos",
-        "Postre"
+        "ASUETO",
+        "estaremos descansando."
       ]
     },
     {
       "dia": "Martes",
-      "fecha": "2025-11-11",
-      "imagen": "1762708344650.jpg",
+      "fecha": "2025-11-18",
+      "imagen": "1763310564501.jpg",
       "platillos": [
-        "Caldo de pollo con verduras",
-        "Pastel azteca",
-        "Frijoles de la olla",
+        "Crema de espinacas",
+        "Milanesa de res empanizadas",
+        "Ensalada",
+        "Frijoles refritos",
         "Postre"
       ]
     },
     {
       "dia": "Miércoles",
-      "fecha": "2025-11-12",
-      "imagen": "1762708482517.jpg",
+      "fecha": "2025-11-19",
+      "imagen": "1763310423972.jpg",
       "platillos": [
-        "Arroz blanco con elote",
-        "Chicharrón en salsa verde",
-        "Frijoles de la olla",
+        "Arroz rojo",
+        "Albódigas con verduras",
+        "Frijoles refritos",
         "Postre"
       ]
     },
     {
       "dia": "Jueves",
-      "fecha": "2025-11-13",
-      "imagen": "1762708640206.jpg",
+      "fecha": "2025-11-20",
+      "imagen": "1763311357464.jpg",
       "platillos": [
-        "Sopa de fideos",
-        "Tortitas de papa con atún",
-        "Guacamole",
-        "Frijoles de la olla",
+        "Arroz rojo con verduras",
+        "Rajas con queso y papas",
+        "Piernas de pollo frito",
         "Postre"
       ]
     },
     {
       "dia": "Viernes",
-      "fecha": "2025-11-14",
-      "imagen": "1762708757301.jpg",
+      "fecha": "2025-11-21",
+      "imagen": "1763311633428.jpg",
       "platillos": [
-        "Arroz blanco con elote",
-        "Enchiladas suizas de pollo",
-        "Frijoles refritos",
+        "Espagueti rojo",
+        "Hamburguesa de arrachera",
+        "Ensalada",
         "Postre"
       ]
     },
@@ -82,10 +79,9 @@
     {
       "dia": "Promociones de temporada",
       "fecha": "2025-11-03",
-      "imagen": "1761687413369.jpg",
+      "imagen": "1763312170861.jpg",
       "platillos": [
-        "Calabaza en dulce",
-        "¡haz tu pedido al 3316922341!"
+        "¡Espera por la temporada decembrina!"
       ]
     }
   ]
