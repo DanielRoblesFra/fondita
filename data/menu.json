@@ -15,54 +15,58 @@
   "menu_semana": [
     {
       "dia": "Lunes",
-      "fecha": "2025-11-17",
-      "imagen": "1763310280170.jpg",
+      "fecha": "2025-11-24",
+      "imagen": "1763916646698.jpg",
       "platillos": [
-        "ASUETO",
-        "estaremos descansando."
+        "Arroz blanco con elote",
+        "Picadillo",
+        "Ensalada",
+        "Frijosles de la olla",
+        "Postre"
       ]
     },
     {
       "dia": "Martes",
-      "fecha": "2025-11-18",
-      "imagen": "1763310564501.jpg",
+      "fecha": "2025-11-25",
+      "imagen": "1763916804133.jpg",
       "platillos": [
-        "Crema de espinacas",
-        "Milanesa de res empanizadas",
+        "Caldo de camaron",
+        "Ceviche de pescado con tostadas",
+        "Guacamole",
+        "Postre"
+      ]
+    },
+    {
+      "dia": "Miércoles",
+      "fecha": "2025-11-26",
+      "imagen": "1763916947594.jpg",
+      "platillos": [
+        "Arroz rojo con verduras",
+        "Milanesa natural de pollo",
         "Ensalada",
         "Frijoles refritos",
         "Postre"
       ]
     },
     {
-      "dia": "Miércoles",
-      "fecha": "2025-11-19",
-      "imagen": "1763310423972.jpg",
+      "dia": "Jueves",
+      "fecha": "2025-11-27",
+      "imagen": "1763917062257.jpg",
       "platillos": [
         "Arroz rojo",
-        "Albódigas con verduras",
-        "Frijoles refritos",
-        "Postre"
-      ]
-    },
-    {
-      "dia": "Jueves",
-      "fecha": "2025-11-20",
-      "imagen": "1763311357464.jpg",
-      "platillos": [
-        "Arroz rojo con verduras",
-        "Rajas con queso y papas",
-        "Piernas de pollo frito",
+        "mole poblano con cerdo",
+        "Frijoles de la olla",
         "Postre"
       ]
     },
     {
       "dia": "Viernes",
-      "fecha": "2025-11-21",
-      "imagen": "1763311633428.jpg",
+      "fecha": "2025-11-28",
+      "imagen": "1763917164339.jpg",
       "platillos": [
-        "Espagueti rojo",
-        "Hamburguesa de arrachera",
+        "Sopa de fideos",
+        "Chuletas de cerdo hawaianas",
+        "Pure de papa",
         "Ensalada",
         "Postre"
       ]
