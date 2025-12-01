@@ -15,58 +15,57 @@
   "menu_semana": [
     {
       "dia": "Lunes",
-      "fecha": "2025-11-24",
-      "imagen": "1763916646698.jpg",
+      "fecha": "2025-12-01",
+      "imagen": "1764558312748.jpg",
       "platillos": [
         "Arroz blanco con elote",
-        "Picadillo",
-        "Ensalada",
-        "Frijosles de la olla",
+        "Flautas (pollo",
+        "requesón y papa)",
+        "Frijoles de la olla",
         "Postre"
       ]
     },
     {
       "dia": "Martes",
-      "fecha": "2025-11-25",
-      "imagen": "1763916804133.jpg",
+      "fecha": "2025-12-02",
+      "imagen": "1764558534138.jpg",
       "platillos": [
-        "Caldo de camaron",
-        "Ceviche de pescado con tostadas",
-        "Guacamole",
-        "Postre"
-      ]
-    },
-    {
-      "dia": "Miércoles",
-      "fecha": "2025-11-26",
-      "imagen": "1763916947594.jpg",
-      "platillos": [
-        "Arroz rojo con verduras",
-        "Milanesa natural de pollo",
+        "Sopa de habas",
+        "Tinga (se anexan tostádas)",
         "Ensalada",
         "Frijoles refritos",
         "Postre"
       ]
     },
     {
-      "dia": "Jueves",
-      "fecha": "2025-11-27",
-      "imagen": "1763917062257.jpg",
+      "dia": "Miércoles",
+      "fecha": "2025-12-03",
+      "imagen": "1764558692228.jpg",
       "platillos": [
-        "Arroz rojo",
-        "mole poblano con cerdo",
+        "Arroz rojo con verduras",
+        "Chiles rellenos de panela",
+        "Frijoles de la olla",
+        "Postre"
+      ]
+    },
+    {
+      "dia": "Jueves",
+      "fecha": "2025-12-04",
+      "imagen": "1764558843590.jpg",
+      "platillos": [
+        "Sopa de fideo",
+        "Calabacitas con carne de cerdo",
         "Frijoles de la olla",
         "Postre"
       ]
     },
     {
       "dia": "Viernes",
-      "fecha": "2025-11-28",
-      "imagen": "1763917164339.jpg",
+      "fecha": "2025-12-05",
+      "imagen": "1764558961342.jpg",
       "platillos": [
-        "Sopa de fideos",
-        "Chuletas de cerdo hawaianas",
-        "Pure de papa",
+        "Arroz blanco con verduras",
+        "Pescado a la veracruzana",
         "Ensalada",
         "Postre"
       ]
@@ -83,9 +82,9 @@
     {
       "dia": "Promociones de temporada",
       "fecha": "2025-11-03",
-      "imagen": "1763312170861.jpg",
+      "imagen": "1764559318532.jpg",
       "platillos": [
-        "¡Espera por la temporada decembrina!"
+        "Estaremos ofreciendo bacalao y romeritos con tortitas de camarónes. ¡Aparta con tiempo al 3316922341!"
       ]
     }
   ]
