@@ -15,58 +15,58 @@
   "menu_semana": [
     {
       "dia": "Lunes",
-      "fecha": "2025-12-01",
-      "imagen": "1764558312748.jpg",
+      "fecha": "2025-12-08",
+      "imagen": "1765219518183.jpg",
       "platillos": [
         "Arroz blanco con elote",
-        "Flautas (pollo",
-        "requesón y papa)",
+        "Tortitas de papa y atún",
         "Frijoles de la olla",
         "Postre"
       ]
     },
     {
       "dia": "Martes",
-      "fecha": "2025-12-02",
-      "imagen": "1764558534138.jpg",
+      "fecha": "2025-12-09",
+      "imagen": "1765219657774.jpg",
       "platillos": [
-        "Sopa de habas",
-        "Tinga (se anexan tostadas)",
-        "Ensalada",
-        "Frijoles refritos",
+        "Caldo de pollo con verduras",
+        "Pastel azteca",
+        "Ensalada fresca",
         "Postre"
       ]
     },
     {
       "dia": "Miércoles",
-      "fecha": "2025-12-03",
-      "imagen": "1764558692228.jpg",
+      "fecha": "2025-12-10",
+      "imagen": "1765219856397.jpg",
       "platillos": [
         "Arroz rojo con verduras",
-        "Chiles rellenos de panela",
+        "Chicharrón en salsa roja",
         "Frijoles de la olla",
         "Postre"
       ]
     },
     {
       "dia": "Jueves",
-      "fecha": "2025-12-04",
-      "imagen": "1764558843590.jpg",
+      "fecha": "2025-12-11",
+      "imagen": "1765219985503.jpg",
       "platillos": [
-        "Sopa de fideo",
-        "Calabacitas con carne de cerdo",
+        "Arroz blanco con elote",
+        "Enchiladas suizasa",
+        "Ensalada",
         "Frijoles de la olla",
         "Postre"
       ]
     },
     {
       "dia": "Viernes",
-      "fecha": "2025-12-05",
-      "imagen": "1764558961342.jpg",
+      "fecha": "2025-12-12",
+      "imagen": "1765220114758.jpg",
       "platillos": [
-        "Arroz blanco con verduras",
-        "Pescado a la veracruzana",
-        "Ensalada",
+        "Sopa de fideos",
+        "Hamburguesas de res",
+        "Ensalada fresca",
+        "Papas",
         "Postre"
       ]
     },
